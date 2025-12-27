@@ -6,7 +6,7 @@ import * as OrganizationControllers from "../../modules/controllers/organization
 
 const OrganizationRouter = Router();
 
-Router.use(requireAuth)
+OrganizationRouter.use(requireAuth)
 
 OrganizationRouter.post('/createOrganization',validate(createOrgSchema),OrganizationControllers.createOrganization)
 OrganizationRouter.get('/listOrganizations',OrganizationControllers.listOrganizations)

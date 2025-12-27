@@ -1,5 +1,4 @@
-import { syncIndexes } from "mongoose";
-import { Organization } from "../models/organization.mode.js";
+import Organization from "../models/organization.model.js";
 
 export async function createOrganization(data){
     return Organization.create(data);

@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import AppError from '../errors/AppErrors';
+import AppError from '../errors/AppErrors.js';
 import { JWT_SECRET } from '../../config/env.js';
 
 export function authMiddleware(req, _res, next) {
@@ -13,8 +13,11 @@ export function authMiddleware(req, _res, next) {
     try{
         const payload = jwt.verify(token, JWT_SECRET);
         req.user = payload;
+        req.auth = payload; 
         next();
     }catch (err) {
         return next(new AppError("Unauthorized", 401, "UNAUTHORIZED"));
     }
 }
+
+export { authMiddleware as requireAuth };
