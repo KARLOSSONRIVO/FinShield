@@ -7,10 +7,134 @@ http://localhost:<PORT>
 **Note:** Replace `<PORT>` with your server port (check your `.env` file or server logs)
 
 ## Authentication
-All endpoints require authentication. Make sure to include your auth token in the headers:
+Most endpoints require authentication. Make sure to include your auth token in the headers:
 ```
 Authorization: Bearer <your_token>
 ```
+
+---
+
+## Health Check Endpoint
+
+### Check Server Status
+**Method:** `GET`  
+**URL:** `/health`  
+**Headers:** None (Public endpoint)
+
+**Response:**
+```json
+{
+  "ok": true,
+  "status": "healthy"
+}
+```
+
+---
+
+## Auth Endpoints
+
+### 1. Login
+**Method:** `POST`  
+**URL:** `/auth/login`  
+**Headers:**
+```json
+{
+  "Content-Type": "application/json"
+}
+```
+**Request Body:**
+```json
+{
+  "email": "admin@finshield.com",
+  "password": "Admin123!@#"
+}
+```
+
+**Response:**
+```json
+{
+  "ok": true,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "_id": "...",
+      "email": "admin@finshield.com",
+      "username": "super_admin",
+      "role": "SUPER_ADMIN",
+      ...
+    },
+    "mustChangePassword": true
+  }
+}
+```
+
+**Note:** Save the `token` from the response to use in other requests. If `mustChangePassword` is `true`, you must change the password before accessing other endpoints.
+
+---
+
+### 2. Get Current User (Me)
+**Method:** `GET`  
+**URL:** `/auth/me`  
+**Headers:**
+```json
+{
+  "Authorization": "Bearer <your_token>"
+}
+```
+**Request Body:** None
+
+**Response:**
+```json
+{
+  "ok": true,
+  "data": {
+    "_id": "...",
+    "email": "admin@finshield.com",
+    "username": "super_admin",
+    "role": "SUPER_ADMIN",
+    "orgId": "...",
+    ...
+  }
+}
+```
+
+---
+
+### 3. Change Password
+**Method:** `POST`  
+**URL:** `/auth/change-password`  
+**Headers:**
+```json
+{
+  "Content-Type": "application/json",
+  "Authorization": "Bearer <your_token>"
+}
+```
+**Request Body:**
+```json
+{
+  "currentPassword": "Admin123!@#",
+  "newPassword": "NewSecurePassword123!"
+}
+```
+
+**Response:**
+```json
+{
+  "ok": true,
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "_id": "...",
+      "email": "admin@finshield.com",
+      ...
+    },
+    "mustChangePassword": false
+  }
+}
+```
+
+**Note:** After changing password, you'll receive a new token. Use this new token for subsequent requests.
 
 ---
 
@@ -215,52 +339,103 @@ Authorization: Bearer <your_token>
 
 ## Complete Testing Workflow Example
 
-1. **Create Organization:**
+### Initial Setup (Using Seeder)
+
+**Run the seeder to create a super admin:**
+```bash
+npm run seed:super-admin
+```
+
+This will create:
+- A platform organization
+- A super admin user with default credentials:
+  - Email: `admin@finshield.com` (or from `SUPER_ADMIN_EMAIL` env var)
+  - Username: `super_admin` (or from `SUPER_ADMIN_USERNAME` env var)
+  - Password: `Admin123!@#` (or from `SUPER_ADMIN_PASSWORD` env var)
+
+---
+
+### Testing Workflow
+
+1. **Login:**
+   ```
+   POST /auth/login
+   {
+     "email": "admin@finshield.com",
+     "password": "Admin123!@#"
+   }
+   ```
+   *Save the token from the response*
+
+2. **Change Password (if mustChangePassword is true):**
+   ```
+   POST /auth/change-password
+   Authorization: Bearer <token_from_step_1>
+   {
+     "currentPassword": "Admin123!@#",
+     "newPassword": "YourNewSecurePassword123!"
+   }
+   ```
+   *Save the new token from the response*
+
+3. **Get Current User:**
+   ```
+   GET /auth/me
+   Authorization: Bearer <token>
+   ```
+
+4. **Create Organization (SUPER_ADMIN only):**
    ```
    POST /organization/createOrganization
+   Authorization: Bearer <token>
    {
-     "type": "platform",
-     "name": "Test Platform"
+     "type": "company",
+     "name": "Acme Corporation"
    }
    ```
    *Save the organization ID from the response*
 
-2. **Create User:**
+5. **Create User:**
    ```
    POST /user/createUser
+   Authorization: Bearer <token>
    {
-     "orgId": "<organization_id_from_step_1>",
-     "portal": "admin",
-     "role": "SUPER_ADMIN",
-     "email": "test@example.com",
-     "username": "testuser",
-     "password": "Test123456"
+     "orgId": "<organization_id_from_step_4>",
+     "portal": "user",
+     "role": "COMPANY_MANAGER",
+     "email": "manager@acme.com",
+     "username": "manager_user",
+     "password": "SecurePassword123"
    }
    ```
    *Save the user ID from the response*
 
-3. **List All Users:**
+6. **List All Users (SUPER_ADMIN only):**
    ```
    GET /user/listUsers
+   Authorization: Bearer <token>
    ```
 
-4. **Get Specific User:**
+7. **Get Specific User:**
    ```
    GET /user/<user_id>
+   Authorization: Bearer <token>
    ```
 
-5. **Disable User:**
+8. **Disable User (SUPER_ADMIN only):**
    ```
    PUT /user/updateUser/<user_id>
+   Authorization: Bearer <token>
    {
      "status": "disabled",
      "reason": "Testing disable functionality"
    }
    ```
 
-6. **Enable User:**
+9. **Enable User (SUPER_ADMIN only):**
    ```
    PUT /user/updateUser/<user_id>
+   Authorization: Bearer <token>
    {
      "status": "active"
    }
@@ -282,9 +457,17 @@ All endpoints may return errors in this format:
 **Common Error Codes:**
 - `UNAUTHORIZED` - Missing or invalid authentication
 - `FORBIDDEN` - Insufficient permissions
+- `FORBIDDEN_ROLE` - User role not allowed for this endpoint
+- `FORBIDDEN_PORTAL` - User portal not allowed for this endpoint
+- `FORBIDDEN_ORG_SCOPE` - User trying to access organization outside their scope
 - `VALIDATION_ERROR` - Request body validation failed
+- `INVALID_CREDENTIALS` - Invalid email or password
 - `USER_NOT_FOUND` - User ID not found
+- `USER_NOT_ACTIVE` - User account is not active
 - `ORGANIZATION_NOT_FOUND` - Organization ID not found
 - `CANNOT_DISABLE_SELF` - Cannot disable your own account
 - `USER_ALREADY_EXISTS` - Email already registered
+- `MUST_CHANGE_PASSWORD` - User must change password before accessing this endpoint
+- `WRONG_PASSWORD` - Current password is incorrect
+- `ACCOUNT_DISABLED` - Account is disabled
 

@@ -13,13 +13,13 @@ export async function findByEmail(email) {
 }
 
 export async function findByEmailWithPassword(email) {
-    return UserModel.findOne({ email: email.toLowerCase().trim() }).select("+passwordHash").exec();
+    return User.findOne({ email: email.toLowerCase().trim() }).select("+passwordHash").exec();
 }
 
 export async function findMany(filter = {}) {
-    return UserModel.find(filter).sort({ createdAt: -1 }).exec();
+    return User.find(filter).sort({ createdAt: -1 }).exec();
 }
 
 export async function updateById(id, update) {
-    return UserModel.findByIdAndUpdate(id, update, { new: true }).exec();
+    return User.findByIdAndUpdate(id, update, { new: true }).exec();
 }

@@ -26,15 +26,14 @@ export async function listOrganizations({actor}){
     if(!actor || actor.role !== "SUPER_ADMIN"){
         throw new AppError("Unauthorized", 403, "UNAUTHORIZED");
     }
-    const orgs = await OrganizationRepositories.findMany({orgId});
-    if(!orgs) throw new AppError("Organizations not found", 404, "ORGANIZATIONS_NOT_FOUND");
+    const orgs = await OrganizationRepositories.findMany({});
     return orgs;
 }
 
 export async function getOrganizationById({actor, orgId}){
     if(!actor) throw new AppError("Unauthorized", 403, "UNAUTHORIZED");
 
-    if(actor.role !== "SUPER-ADMIN" && String(actor.orgId) !== String(orgId)){
+    if(actor.role !== "SUPER_ADMIN" && String(actor.orgId) !== String(orgId)){
         throw new AppError("Forbidden",403,"FORBIDDEN")
     }
 

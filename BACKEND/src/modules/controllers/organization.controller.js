@@ -1,5 +1,5 @@
 import asyncHandler from "../../common/utils/asyncHandler.js";
-import * as OrganizationServices from "../services/organization.services.js";
+import * as OrganizationServices from "../services/organization.service.js";
 
 export const createOrganization = asyncHandler(async (req, res) => {
     const org  = await OrganizationServices.createOrganization({

@@ -1,10 +1,9 @@
 import express from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { PORT, CORS_ORIGIN } from './config/env.js';
-import apiRoutes from "./routes/index.js";
+import { CORS_ORIGIN } from './config/env.js';
+import router from "./routes/index.js";
 import notFound from "./common/middlewares/notFound.middleware.js";
 import errorHandler from "./common/middlewares/error.middleware.js";
 
@@ -19,7 +18,10 @@ app.use(cors({
 
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-app.use('/', apiRoutes);
+// Parse JSON bodies
+app.use(express.json());
+
+app.use('/', router);
 
 app.use(notFound);
 app.use(errorHandler);  

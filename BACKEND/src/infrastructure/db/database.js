@@ -5,9 +5,7 @@ export async function connectDB() {
     moongoose.set('strictQuery', true);
     try {
         await moongoose.connect(MONGO_URI, {
-            useNewUrlParser: true,
             autoIndex: true,
-            useUnifiedTopology: true,
         });
         console.log('Connected to MongoDB');
     } catch (error) {
