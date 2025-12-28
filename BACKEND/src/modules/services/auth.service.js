@@ -32,7 +32,7 @@ export async function me({ actor }) {
   }
 
 export async function changePassword({actor, payload}){
-    const user = await UsersRepository.findById(actor.sub)
+    const user = await UsersRepository.findByIdWithPassword(actor.sub)
     if (!user) throw new AppError("User not found", 404, "USER_NOT_FOUND");
     if (user.status !== "active") throw new AppError("Account disabled", 403, "ACCOUNT_DISABLED");
 
@@ -46,8 +46,7 @@ export async function changePassword({actor, payload}){
     mustChangePassword: false,
     });
 
-    const updatedWithFields = await UsersRepository.findByEmailWithPassword(updated.email);
-  const token = signToken(updatedWithFields);
+    const token = signToken(updated);
 
   return { token, user: toUserPublic(updated), mustChangePassword: false };
 }

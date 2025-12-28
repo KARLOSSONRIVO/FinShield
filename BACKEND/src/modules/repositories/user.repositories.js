@@ -8,6 +8,10 @@ export async function findById(id) {
     return User.findById(id).exec();
 }
 
+export async function findByIdWithPassword(id) {
+    return User.findById(id).select("+passwordHash").exec();
+}
+
 export async function findByEmail(email) {
     return User.findOne({ email: email.toLowerCase().trim() }).exec();
 }
