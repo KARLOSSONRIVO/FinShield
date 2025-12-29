@@ -55,9 +55,8 @@ function signToken(user) {
   return jwt.sign(
     {
       sub: String(user._id),
-      orgId: String(user.orgId),
+      orgId: user.orgId ? String(user.orgId) : null, // SUPER_ADMIN may not have orgId
       role: user.role,
-      portal: user.portal,
       email: user.email,
       mustChangePassword: !!user.mustChangePassword,
     },

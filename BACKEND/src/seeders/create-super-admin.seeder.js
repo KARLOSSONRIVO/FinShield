@@ -13,23 +13,7 @@ async function createSuperAdmin() {
     console.log("Connecting to database...");
     await connectDB();
 
-    // Step 1: Find or create platform organization
-    console.log("Checking for platform organization...");
-    let platformOrg = await OrganizationRepositories.findOne({ type: "platform" });
-
-    if (!platformOrg) {
-      console.log("Creating platform organization...");
-      platformOrg = await OrganizationRepositories.createOrganization({
-        name: "FinShield Platform",
-        type: "platform",
-        status: "active",
-      });
-      console.log(`✅ Platform organization created with ID: ${platformOrg._id}`);
-    } else {
-      console.log(`✅ Platform organization already exists with ID: ${platformOrg._id}`);
-    }
-
-    // Step 2: Check if super admin already exists
+    // Step 1: Check if super admin already exists
     console.log("Checking for existing super admin...");
     const existingAdmin = await UsersRepositories.findByEmail(SUPER_ADMIN_EMAIL);
 
@@ -40,15 +24,15 @@ async function createSuperAdmin() {
       return;
     }
 
-    // Step 3: Hash the password
+    // Step 2: Hash the password
     console.log("Hashing password...");
     const passwordHash = await bcrypt.hash(SUPER_ADMIN_PASSWORD, 10);
 
-    // Step 4: Create super admin user
+    // Step 3: Create super admin user (no orgId required for SUPER_ADMIN)
     console.log("Creating super admin user...");
     const superAdmin = await UsersRepositories.create({
-      orgId: platformOrg._id,
-      portal: "admin",
+      orgId: null, // SUPER_ADMIN doesn't belong to any organization
+      // portal is derived from role (SUPER_ADMIN -> "admin")
       role: "SUPER_ADMIN",
       email: SUPER_ADMIN_EMAIL,
       username: SUPER_ADMIN_USERNAME,

@@ -2,12 +2,28 @@ import mongoose from "mongoose";
 
 
 export const USER_ROLES = ["SUPER_ADMIN", "AUDITOR", "REGULATOR", "COMPANY_MANAGER", "COMPANY_USER"];
-export const USER_PORTALS = ["admin", "user"];
 export const USER_STATUS = ["active", "disabled"];
 
+/**
+ * Derives portal from role
+ * @param {string} role - User role
+ * @returns {string} - "admin" for platform roles, "user" for company roles
+ */
+export function getPortalFromRole(role) {
+  const platformRoles = ["SUPER_ADMIN", "AUDITOR", "REGULATOR"];
+  return platformRoles.includes(role) ? "admin" : "user";
+}
+
 const UserSchema = new mongoose.Schema({
-    orgId :{ type: mongoose.Schema.Types.ObjectId, ref: "Organization", required: true,index: true},
-    portal: { type: String, enum: USER_PORTALS, required: true, index: true },
+    orgId :{ 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: "Organization", 
+        required: function() {
+            // orgId is required for all roles except SUPER_ADMIN
+            return this.role !== "SUPER_ADMIN";
+        },
+        index: true
+    },
     role: { type: String, enum: USER_ROLES, required: true, index: true },
     email: { type: String, required: true, lowercase: true, trim: true },
     username: { type: String, required: true, trim: true },

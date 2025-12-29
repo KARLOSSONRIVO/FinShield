@@ -15,20 +15,39 @@ function expectedOrgTypeForRole(role) {
 }
 
 export async function createUser({actor, payload}){
-  if(!actor|| actor.role !== "SUPER_ADMIN"){
-
+  if(!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
+  
+  let finalOrgId = payload.orgId;
+  
+  if(actor.role === "SUPER_ADMIN"){
+    // SUPER_ADMIN can create any user
   }else if(actor.role === "COMPANY_MANAGER"){
-      if(!isCompanyRole(payload.role))throw new AppError("Forbidden",403,"FORBIDDEN")
-      if (String(payload.orgId) !== String(actor.orgId)) throw new AppError("Forbidden", 403, "FORBIDDEN_ORG_SCOPE");
+      // COMPANY_MANAGER can only create COMPANY_USER accounts
+      if(payload.role !== "COMPANY_USER"){
+        throw new AppError("Unauthorized", 403, "FORBIDDEN_ROLE");
+      }
+      // Automatically use the manager's orgId (ignore any orgId in payload)
+      finalOrgId = actor.orgId;
+      if (!finalOrgId) {
+        throw new AppError("Company manager must belong to an organization", 400, "MISSING_ORG_ID");
+      }
   }else{
       throw new AppError("Forbidden",403,"FORBIDDEN")
   }
-  const org = await OrganizationRepositories.findById(payload.orgId);
-  if(!org)throw new AppError("Organization not found",404,"ORGANIZATION_NOT_FOUND");
+  
+  // SUPER_ADMIN doesn't require orgId, but all other roles do
+  if (payload.role !== "SUPER_ADMIN") {
+    if (!finalOrgId) {
+      throw new AppError("orgId is required for this role", 400, "ORG_ID_REQUIRED");
+    }
+    
+    const org = await OrganizationRepositories.findById(finalOrgId);
+    if(!org)throw new AppError("Organization not found",404,"ORGANIZATION_NOT_FOUND");
 
-  const requiredType = expectedOrgTypeForRole(payload.role);
-  if(org.type !== requiredType){
-    throw new AppError(  `Role ${payload.role} must belong to a ${requiredType} organization`,400,"ROLE_ORG_TYPE_MISMATCH")
+    const requiredType = expectedOrgTypeForRole(payload.role);
+    if(org.type !== requiredType){
+      throw new AppError(  `Role ${payload.role} must belong to a ${requiredType} organization`,400,"ROLE_ORG_TYPE_MISMATCH")
+    }
   }
 
   const existing = await UsersRepositories.findByEmail(payload.email);
@@ -36,9 +55,9 @@ export async function createUser({actor, payload}){
 
   const passwordHash = await bcrypt.hash(payload.password, 10);
 
-  const createUser = await UsersRepositories.createUser({
-    orgId: payload.orgId,
-    portal: payload.portal,
+  const createUser = await UsersRepositories.create({
+    orgId: payload.role === "SUPER_ADMIN" ? null : finalOrgId,
+    // portal is derived from role, no longer stored
     role: payload.role,
     email: payload.email,
     username: payload.username,
@@ -55,7 +74,7 @@ export async function listUsers({ actor, orgId }){
 
   if(actor.role === "SUPER_ADMIN"){
     const filter = orgId ? {orgId} : {};
-    const users = await UsersRepositories.findmany(filter)
+    const users = await UsersRepositories.findMany(filter)
     return users.map(toUserPublic) 
   }
 
@@ -68,8 +87,12 @@ export async function getUserById({ actor, userId }) {
   const user = await UsersRepositories.findById(userId);
   if (!user) throw new AppError("User not found", 404, "USER_NOT_FOUND");
 
-  if (actor.role !== "SUPER_ADMIN" && String(user.orgId) !== String(actor.orgId)) {
-    throw new AppError("Forbidden", 403, "FORBIDDEN");
+  // SUPER_ADMIN can access any user, others can only access users in their org
+  if (actor.role !== "SUPER_ADMIN") {
+    // Handle case where user might not have orgId (shouldn't happen for non-SUPER_ADMIN, but be safe)
+    if (!user.orgId || !actor.orgId || String(user.orgId) !== String(actor.orgId)) {
+      throw new AppError("Forbidden", 403, "FORBIDDEN");
+    }
   }
 
   return toUserPublic(user);

@@ -1,8 +1,9 @@
+
+
 export function toUserPublic(userDoc){
     return{
         id: String(userDoc._id),
-        orgId: String(userDoc.orgId),
-        portal: userDoc.portal,
+        orgId: userDoc.orgId ? String(userDoc.orgId) : null, // SUPER_ADMIN may not have orgId
         role: userDoc.role,
         email: userDoc.email,
         username: userDoc.username,

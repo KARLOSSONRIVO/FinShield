@@ -33,8 +33,11 @@ export async function listOrganizations({actor}){
 export async function getOrganizationById({actor, orgId}){
     if(!actor) throw new AppError("Unauthorized", 403, "UNAUTHORIZED");
 
-    if(actor.role !== "SUPER_ADMIN" && String(actor.orgId) !== String(orgId)){
-        throw new AppError("Forbidden",403,"FORBIDDEN")
+    // SUPER_ADMIN can access any organization, others can only access their own
+    if(actor.role !== "SUPER_ADMIN") {
+        if (!actor.orgId || String(actor.orgId) !== String(orgId)){
+            throw new AppError("Forbidden",403,"FORBIDDEN")
+        }
     }
 
     const org = await OrganizationRepositories.findById(orgId);
