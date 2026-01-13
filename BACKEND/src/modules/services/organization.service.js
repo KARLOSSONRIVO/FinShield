@@ -1,6 +1,7 @@
 import AppError from "../../common/errors/AppErrors.js";
 import Organization from "../models/organization.model.js";
 import * as OrganizationRepositories from "../repositories/organization.repositories.js";
+import { toOrganizationPublic } from "../mappers/organization.mapper.js";
 
 export async function createOrganization({actor, payload}){
     if(!actor || actor.role !== "SUPER_ADMIN"){
@@ -20,14 +21,14 @@ export async function createOrganization({actor, payload}){
         status: payload.status ?? "active",
     })
 
-    return org;
+    return toOrganizationPublic(org);
 }
 export async function listOrganizations({actor}){
     if(!actor || actor.role !== "SUPER_ADMIN"){
         throw new AppError("Unauthorized", 403, "UNAUTHORIZED");
     }
     const orgs = await OrganizationRepositories.findMany({});
-    return orgs;
+    return orgs.map(toOrganizationPublic);
 }
 
 export async function getOrganizationById({actor, orgId}){
@@ -42,7 +43,7 @@ export async function getOrganizationById({actor, orgId}){
 
     const org = await OrganizationRepositories.findById(orgId);
     if(!org) throw new AppError("Organization not found", 404, "ORGANIZATION_NOT_FOUND");
-    return org;
+    return toOrganizationPublic(org);
 }
 
 

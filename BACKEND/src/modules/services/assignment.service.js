@@ -2,6 +2,7 @@ import AppError from "../../common/errors/AppErrors.js";
 import * as AssignmentRepositories from "../repositories/assignment.repositories.js";
 import * as UserRepositories from "../repositories/user.repositories.js";
 import * as OrganizationRepositories from "../repositories/organization.repositories.js";
+import { toAssignmentPublic } from "../mappers/assignment.mapper.js";
 
 export async function createAssignment({ actor, payload }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
@@ -47,7 +48,8 @@ export async function createAssignment({ actor, payload }) {
                 assignedAt: new Date(),
                 notes: payload.notes || existingAssignment.notes
             });
-            return await AssignmentRepositories.findById(updated._id);
+            const reactivated = await AssignmentRepositories.findById(updated._id);
+            return toAssignmentPublic(reactivated);
         }
     }
 
@@ -60,7 +62,8 @@ export async function createAssignment({ actor, payload }) {
         notes: payload.notes || null
     });
 
-    return await AssignmentRepositories.findById(assignment._id);
+    const created = await AssignmentRepositories.findById(assignment._id);
+    return toAssignmentPublic(created);
 }
 
 export async function listAssignments({ actor }) {
@@ -71,7 +74,7 @@ export async function listAssignments({ actor }) {
 
     const filter = {};
     const assignments = await AssignmentRepositories.findMany(filter);
-    return assignments;
+    return assignments.map(toAssignmentPublic);
 }
 
 export async function getAssignmentById({ actor, assignmentId }) {
@@ -82,7 +85,7 @@ export async function getAssignmentById({ actor, assignmentId }) {
 
     const assignment = await AssignmentRepositories.findById(assignmentId);
     if (!assignment) throw new AppError("Assignment not found", 404, "ASSIGNMENT_NOT_FOUND");
-    return assignment;
+    return toAssignmentPublic(assignment);
 }
 
 export async function updateAssignment({ actor, assignmentId, payload }) {
@@ -108,7 +111,7 @@ export async function updateAssignment({ actor, assignmentId, payload }) {
     // If needed, delete old assignment and create new one
 
     const updated = await AssignmentRepositories.updateById(assignmentId, updateData);
-    return updated;
+    return toAssignmentPublic(updated);
 }
 
 export async function deleteAssignment({ actor, assignmentId }) {
