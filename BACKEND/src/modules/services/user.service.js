@@ -35,8 +35,9 @@ export async function createUser({actor, payload}){
       throw new AppError("Forbidden",403,"FORBIDDEN")
   }
   
-  // SUPER_ADMIN doesn't require orgId, but all other roles do
-  if (payload.role !== "SUPER_ADMIN") {
+  // Platform roles (SUPER_ADMIN, AUDITOR, REGULATOR) don't require orgId
+  // Company roles (COMPANY_MANAGER, COMPANY_USER) require orgId
+  if (isCompanyRole(payload.role)) {
     if (!finalOrgId) {
       throw new AppError("orgId is required for this role", 400, "ORG_ID_REQUIRED");
     }
@@ -56,7 +57,7 @@ export async function createUser({actor, payload}){
   const passwordHash = await bcrypt.hash(payload.password, 10);
 
   const createUser = await UsersRepositories.create({
-    orgId: payload.role === "SUPER_ADMIN" ? null : finalOrgId,
+    orgId: isPlatformRole(payload.role) ? null : finalOrgId, // Platform roles don't need orgId
     // portal is derived from role, no longer stored
     role: payload.role,
     email: payload.email,
@@ -87,9 +88,11 @@ export async function getUserById({ actor, userId }) {
   const user = await UsersRepositories.findById(userId);
   if (!user) throw new AppError("User not found", 404, "USER_NOT_FOUND");
 
-  // SUPER_ADMIN can access any user, others can only access users in their org
-  if (actor.role !== "SUPER_ADMIN") {
-    // Handle case where user might not have orgId (shouldn't happen for non-SUPER_ADMIN, but be safe)
+  // SUPER_ADMIN can access any user
+  // Platform roles (AUDITOR, REGULATOR) can access users without orgId restrictions
+  // Company roles can only access users in their org
+  if (actor.role !== "SUPER_ADMIN" && !isPlatformRole(actor.role)) {
+    // Company roles must check orgId match
     if (!user.orgId || !actor.orgId || String(user.orgId) !== String(actor.orgId)) {
       throw new AppError("Forbidden", 403, "FORBIDDEN");
     }

@@ -19,8 +19,9 @@ const UserSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId, 
         ref: "Organization", 
         required: function() {
-            // orgId is required for all roles except SUPER_ADMIN
-            return this.role !== "SUPER_ADMIN";
+            // orgId is required only for COMPANY_MANAGER and COMPANY_USER
+            // SUPER_ADMIN, AUDITOR, and REGULATOR don't need orgId
+            return ["COMPANY_MANAGER", "COMPANY_USER"].includes(this.role);
         },
         index: true
     },

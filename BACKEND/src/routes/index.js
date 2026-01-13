@@ -6,6 +6,7 @@ import healthRoutes from "./health/health.route.js";
 import organizationRouter from "./organization/organization.route.js";
 import userRouter from "./User/user.route.js";
 import authRouter from "./auth/auth.route.js";
+import assignmentRouter from "./assignment/assignment.route.js";
 
 
 const router = Router();
@@ -24,5 +25,6 @@ router.use(enforceMustChangePassword({ exceptPaths: ["/auth/change-password"] })
 
 router.use("/organization", organizationRouter);
 router.use("/user", userRouter);
+router.use("/assignment", assignmentRouter);
 
 export default router;

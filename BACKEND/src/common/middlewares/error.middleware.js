@@ -3,7 +3,7 @@ import AppError from "../errors/AppErrors.js";
 export default function errorHandler(err, req, res, next) {
     const isApperror = err instanceof AppError;
 
-    const status = isApperror ? err.statusCode : (err.statusCode || err.status, 500);
+    const status = isApperror ? err.statusCode : (err.statusCode || err.status || 500);
 
     const payload = {
         ok : false,

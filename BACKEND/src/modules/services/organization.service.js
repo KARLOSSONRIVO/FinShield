@@ -44,3 +44,6 @@ export async function getOrganizationById({actor, orgId}){
     if(!org) throw new AppError("Organization not found", 404, "ORGANIZATION_NOT_FOUND");
     return org;
 }
+
+
+    

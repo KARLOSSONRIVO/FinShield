@@ -135,6 +135,54 @@ Content-Type: application/json
 
 ---
 
+### Assignment Endpoints
+
+#### 1. Create Assignment (SUPER_ADMIN only)
+```
+POST http://localhost:3000/assignment/createAssignment
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "companyOrgId": "COMPANY_ORG_ID_HERE",
+  "auditorUserId": "AUDITOR_USER_ID_HERE",
+  "status": "active",
+  "notes": "Initial assignment"
+}
+```
+
+#### 2. List All Assignments (SUPER_ADMIN only)
+```
+GET http://localhost:3000/assignment/listAssignments
+Authorization: Bearer YOUR_TOKEN_HERE
+```
+
+#### 3. Get Assignment by ID (SUPER_ADMIN only)
+```
+GET http://localhost:3000/assignment/ASSIGNMENT_ID_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
+```
+
+#### 4. Update Assignment (SUPER_ADMIN only)
+```
+PUT http://localhost:3000/assignment/updateAssignment/ASSIGNMENT_ID_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "status": "inactive",
+  "notes": "Updated notes"
+}
+```
+
+#### 5. Delete Assignment (SUPER_ADMIN only - Soft Delete)
+```
+DELETE http://localhost:3000/assignment/deleteAssignment/ASSIGNMENT_ID_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
+```
+
+---
+
 ## Sample Data Examples
 
 ### Platform Organization Example
@@ -219,6 +267,26 @@ Content-Type: application/json
 }
 ```
 
+### Assignment Examples
+
+**Create Assignment:**
+```json
+{
+  "companyOrgId": "COMPANY_ORG_ID_HERE",
+  "auditorUserId": "AUDITOR_USER_ID_HERE",
+  "status": "active",
+  "notes": "Assigned for quarterly audit review"
+}
+```
+
+**Update Assignment:**
+```json
+{
+  "status": "inactive",
+  "notes": "Assignment completed - audit review finished"
+}
+```
+
 ---
 
 ## Testing Checklist
@@ -230,11 +298,16 @@ Content-Type: application/json
 5. ✅ Create Organization (SUPER_ADMIN) - Create test organization
 6. ✅ List Organizations (SUPER_ADMIN) - Verify organization was created
 7. ✅ Get Organization - Get organization details
-8. ✅ Create User - Create test user
+8. ✅ Create User - Create test user (including AUDITOR)
 9. ✅ List Users (SUPER_ADMIN) - Verify user was created
 10. ✅ Get User - Get user details
 11. ✅ Disable User (SUPER_ADMIN) - Test disable functionality
 12. ✅ Enable User (SUPER_ADMIN) - Test enable functionality
+13. ✅ Create Assignment (SUPER_ADMIN) - Assign auditor to company
+14. ✅ List Assignments (SUPER_ADMIN) - Verify assignment was created
+15. ✅ Get Assignment (SUPER_ADMIN) - Get assignment details
+16. ✅ Update Assignment (SUPER_ADMIN) - Test update functionality
+17. ✅ Delete Assignment (SUPER_ADMIN) - Test delete functionality
 
 ---
 
@@ -246,6 +319,8 @@ In Postman, create environment variables:
 - `token` = (will be set after login)
 - `org_id` = (will be set after creating organization)
 - `user_id` = (will be set after creating user)
+- `auditor_id` = (will be set after creating auditor user)
+- `assignment_id` = (will be set after creating assignment)
 
 Then use in requests like:
 ```
