@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export const ASSIGNMENT_STATUS = ["active", "inactive"];
+export const ASSIGNMENT_STATUS = ["active", "inactive"]
 
 const AssignmentSchema = new mongoose.Schema({
     companyOrgId: {type: mongoose.Schema.Types.ObjectId,ref: "Organization",required: true,index: true},
@@ -13,11 +13,11 @@ const AssignmentSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Composite index for faster queries
-AssignmentSchema.index({ companyOrgId: 1, status: 1 });
-AssignmentSchema.index({ auditorUserId: 1, status: 1 });
+AssignmentSchema.index({ companyOrgId: 1, status: 1 })
+AssignmentSchema.index({ auditorUserId: 1, status: 1 })
 // Unique constraint: One auditor can only be assigned once to the same company (active assignments)
-AssignmentSchema.index({ companyOrgId: 1, auditorUserId: 1 }, { unique: true });
+AssignmentSchema.index({ companyOrgId: 1, auditorUserId: 1 }, { unique: true })
 
-const Assignment = mongoose.models.Assignment || mongoose.model("Assignment", AssignmentSchema);
+const Assignment = mongoose.models.Assignment || mongoose.model("Assignment", AssignmentSchema)
 
-export default Assignment;
+export default Assignment

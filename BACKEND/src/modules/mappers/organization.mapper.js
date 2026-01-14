@@ -7,5 +7,5 @@ export function toOrganizationPublic(orgDoc) {
         status: orgDoc.status,
         createdAt: orgDoc.createdAt,
         updatedAt: orgDoc.updatedAt,
-    };
+    }
 }

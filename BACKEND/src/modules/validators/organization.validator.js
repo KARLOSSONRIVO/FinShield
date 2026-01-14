@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-export const ORG_TYPES = ["platform", "company"];
-export const ORG_STATUS = ["active", "inactive"];
+export const ORG_TYPES = ["platform", "company"]
+export const ORG_STATUS = ["active", "inactive"]
 
 export const createOrgSchema = z.object({
     body: z.object({

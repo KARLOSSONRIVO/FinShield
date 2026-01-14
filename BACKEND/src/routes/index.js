@@ -7,24 +7,25 @@ import organizationRouter from "./organization/organization.route.js";
 import userRouter from "./User/user.route.js";
 import authRouter from "./auth/auth.route.js";
 import assignmentRouter from "./assignment/assignment.route.js";
+import invoiceRouter from "./invoice/invoice.route.js";
 
 
 const router = Router();
 
 // Public routes (no auth required)
-router.use("/health", healthRoutes);
+router.use("/health", healthRoutes)
 
 // Auth routes (login is public, others require auth)
-router.use("/auth", authRouter);
+router.use("/auth", authRouter)
 
 // Protected routes - require authentication
 router.use(requireAuth);
 
 // Enforce password change for all authenticated routes (except change-password)
-router.use(enforceMustChangePassword({ exceptPaths: ["/auth/change-password"] }));
+router.use(enforceMustChangePassword({ exceptPaths: ["/auth/change-password"] }))
 
-router.use("/organization", organizationRouter);
+router.use("/organization", organizationRouter)
 router.use("/user", userRouter);
-router.use("/assignment", assignmentRouter);
-
+router.use("/assignment", assignmentRouter)
+router.use("/invoice", invoiceRouter)
 export default router;

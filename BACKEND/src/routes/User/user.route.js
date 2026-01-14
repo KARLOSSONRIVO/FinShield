@@ -21,4 +21,4 @@ userRouter.get('/:id', allowRoles("SUPER_ADMIN", "COMPANY_MANAGER"), UserControl
 // Only SUPER_ADMIN can update user status (service enforces this)
 userRouter.put('/updateUser/:id', validate(updateUserSchema), allowRoles("SUPER_ADMIN"), UserController.update)
 
-export default userRouter;
+export default userRouter

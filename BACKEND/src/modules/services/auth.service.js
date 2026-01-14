@@ -33,22 +33,22 @@ export async function me({ actor }) {
 
 export async function changePassword({actor, payload}){
     const user = await UsersRepository.findByIdWithPassword(actor.sub)
-    if (!user) throw new AppError("User not found", 404, "USER_NOT_FOUND");
-    if (user.status !== "active") throw new AppError("Account disabled", 403, "ACCOUNT_DISABLED");
+    if (!user) throw new AppError("User not found", 404, "USER_NOT_FOUND")
+    if (user.status !== "active") throw new AppError("Account disabled", 403, "ACCOUNT_DISABLED")
 
-    const ok = await bcrypt.compare(payload.currentPassword, user.passwordHash);
-    if (!ok) throw new AppError("Current password is incorrect", 400, "WRONG_PASSWORD");
+    const ok = await bcrypt.compare(payload.currentPassword, user.passwordHash)
+    if (!ok) throw new AppError("Current password is incorrect", 400, "WRONG_PASSWORD")
 
-    const passwordHash = await bcrypt.hash(payload.newPassword, 10);
+    const passwordHash = await bcrypt.hash(payload.newPassword, 10)
 
     const updated = await UsersRepository.updateById(user._id, {
     passwordHash,
     mustChangePassword: false,
     });
 
-    const token = signToken(updated);
+    const token = signToken(updated)
 
-  return { token, user: toUserPublic(updated), mustChangePassword: false };
+  return { token, user: toUserPublic(updated), mustChangePassword: false }
 }
 
 function signToken(user) {
@@ -62,5 +62,5 @@ function signToken(user) {
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
-  );
+  )
 }

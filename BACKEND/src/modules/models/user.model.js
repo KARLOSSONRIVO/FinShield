@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
 
-export const USER_ROLES = ["SUPER_ADMIN", "AUDITOR", "REGULATOR", "COMPANY_MANAGER", "COMPANY_USER"];
-export const USER_STATUS = ["active", "disabled"];
+export const USER_ROLES = ["SUPER_ADMIN", "AUDITOR", "REGULATOR", "COMPANY_MANAGER", "COMPANY_USER"]
+export const USER_STATUS = ["active", "disabled"]
 
 /**
  * Derives portal from role
@@ -10,8 +10,8 @@ export const USER_STATUS = ["active", "disabled"];
  * @returns {string} - "admin" for platform roles, "user" for company roles
  */
 export function getPortalFromRole(role) {
-  const platformRoles = ["SUPER_ADMIN", "AUDITOR", "REGULATOR"];
-  return platformRoles.includes(role) ? "admin" : "user";
+  const platformRoles = ["SUPER_ADMIN", "AUDITOR", "REGULATOR"]
+  return platformRoles.includes(role) ? "admin" : "user"
 }
 
 const UserSchema = new mongoose.Schema({
@@ -21,7 +21,7 @@ const UserSchema = new mongoose.Schema({
         required: function() {
             // orgId is required only for COMPANY_MANAGER and COMPANY_USER
             // SUPER_ADMIN, AUDITOR, and REGULATOR don't need orgId
-            return ["COMPANY_MANAGER", "COMPANY_USER"].includes(this.role);
+            return ["COMPANY_MANAGER", "COMPANY_USER"].includes(this.role)
         },
         index: true
     },
@@ -38,13 +38,13 @@ const UserSchema = new mongoose.Schema({
     lastLoginAt: { type: Date, default: null, index: true },
   },
   { timestamps: true }
-);
+)
 
-UserSchema.index({ email: 1 }, { unique: true });
-UserSchema.index({ username: 1 }, { unique: true });
+UserSchema.index({ email: 1 }, { unique: true })
+UserSchema.index({ username: 1 }, { unique: true })
 
 
 
-const User = mongoose.models.User || mongoose.model("User", UserSchema);
+const User = mongoose.models.User || mongoose.model("User", UserSchema)
 
-export default User;
+export default User

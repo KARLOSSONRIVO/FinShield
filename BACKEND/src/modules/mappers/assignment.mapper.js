@@ -27,5 +27,5 @@ export function toAssignmentPublic(assignmentDoc) {
             email: assignmentDoc.assignedByUserId.email,
             username: assignmentDoc.assignedByUserId.username,
         } : null,
-    };
+    }
 }

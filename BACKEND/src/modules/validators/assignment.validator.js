@@ -9,11 +9,11 @@ export const createAssignmentSchema = z.object({
         status: z.enum(ASSIGNMENT_STATUS).default("active").optional(),
         notes: z.string().optional().nullable()
     })
-});
+})
 
 export const updateAssignmentSchema = z.object({
     body: z.object({
         status: z.enum(ASSIGNMENT_STATUS).optional(),
         notes: z.string().optional().nullable()
     })
-});
+})

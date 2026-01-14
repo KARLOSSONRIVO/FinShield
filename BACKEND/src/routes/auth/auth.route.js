@@ -8,14 +8,14 @@ import * as AuthController from "../../modules/controllers/auth.controller.js";
 const authRouter = Router();
 
 // Public route - no auth required
-authRouter.post("/login", validate(loginSchema), AuthController.login);
+authRouter.post("/login", validate(loginSchema), AuthController.login)
 
 // Protected routes - auth required
-authRouter.use(requireAuth);
-authRouter.use(enforceMustChangePassword({ exceptPaths: ["/auth/change-password"] }));
+authRouter.use(requireAuth)
+authRouter.use(enforceMustChangePassword({ exceptPaths: ["/auth/change-password"] }))
 
-authRouter.get("/me", AuthController.me);
-authRouter.post("/change-password", validate(changePasswordSchema), AuthController.changePassword);
+authRouter.get("/me", AuthController.me)
+authRouter.post("/change-password", validate(changePasswordSchema), AuthController.changePassword)
 
 export default authRouter
 

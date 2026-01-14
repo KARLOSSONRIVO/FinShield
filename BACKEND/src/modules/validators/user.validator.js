@@ -27,7 +27,7 @@ export function validateCreateUser(req, _res, next) {
 
   if (!baseResult.success) {
     const msg = baseResult.error.issues?.[0]?.message || "Validation error";
-    return next(new AppError(msg, 400, "VALIDATION_ERROR"));
+    return next(new AppError(msg, 400, "VALIDATION_ERROR"))
   }
 
   // Apply parsed data
@@ -46,7 +46,7 @@ export function validateCreateUser(req, _res, next) {
         "Company managers can only create COMPANY_USER accounts",
         403,
         "FORBIDDEN_ROLE"
-      ));
+      ))
     }
 
     // SUPER_ADMIN can create any role (no additional restrictions)

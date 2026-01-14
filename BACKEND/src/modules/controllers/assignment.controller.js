@@ -14,7 +14,7 @@ export const createAssignment = asyncHandler(async (req, res) => {
 });
 
 export const listAssignments = asyncHandler(async (req, res) => {
-    const assignments = await AssignmentServices.listAssignments({ actor: req.auth });
+    const assignments = await AssignmentServices.listAssignments({ actor: req.auth })
     res.json({ ok: true, data: assignments });
 });
 
@@ -23,7 +23,7 @@ export const getAssignmentById = asyncHandler(async (req, res) => {
         actor: req.auth,
         assignmentId: req.params.id
     });
-    res.json({ ok: true, data: assignment });
+    res.json({ ok: true, data: assignment })
 });
 
 export const updateAssignment = asyncHandler(async (req, res) => {
@@ -32,7 +32,7 @@ export const updateAssignment = asyncHandler(async (req, res) => {
         assignmentId: req.params.id,
         payload: req.body
     });
-    res.json({ ok: true, message: "Assignment updated successfully", data: assignment });
+    res.json({ ok: true, message: "Assignment updated successfully", data: assignment })
 });
 
 export const deleteAssignment = asyncHandler(async (req, res) => {
@@ -40,5 +40,5 @@ export const deleteAssignment = asyncHandler(async (req, res) => {
         actor: req.auth,
         assignmentId: req.params.id
     });
-    res.json({ ok: true, message: result.message });
-});
+    res.json({ ok: true, message: result.message })
+})

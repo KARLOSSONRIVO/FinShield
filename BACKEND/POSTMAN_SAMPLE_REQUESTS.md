@@ -183,6 +183,51 @@ Authorization: Bearer YOUR_TOKEN_HERE
 
 ---
 
+### Invoice Endpoints
+
+#### 1. Upload Invoice (COMPANY_MANAGER or COMPANY_USER only)
+```
+POST http://localhost:3000/invoice/upload
+Authorization: Bearer YOUR_TOKEN_HERE
+Content-Type: multipart/form-data
+
+file: [SELECT FILE]
+```
+
+**Note:** This endpoint requires:
+- User must be COMPANY_MANAGER or COMPANY_USER
+- User must have an orgId (belong to a company)
+- File must be uploaded as multipart/form-data with field name "file"
+- Maximum file size: 10MB
+
+**Response Example:**
+```json
+{
+  "ok": true,
+  "data": {
+    "id": "INVOICE_ID",
+    "ipfsCid": "QmXxxx...",
+    "fileHashSha256": "abc123...",
+    "anchorTxHash": "0x123...",
+    "anchorBlockNumber": 12345,
+    "anchoredAt": "2024-01-01T00:00:00.000Z",
+    "anchorStatus": "anchored",
+    "anchorError": null,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
+**Using cURL:**
+```bash
+curl -X POST http://localhost:3000/invoice/upload \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -F "file=@/path/to/invoice.pdf"
+```
+
+---
+
 ## Sample Data Examples
 
 ### Platform Organization Example
@@ -308,6 +353,7 @@ Authorization: Bearer YOUR_TOKEN_HERE
 15. ✅ Get Assignment (SUPER_ADMIN) - Get assignment details
 16. ✅ Update Assignment (SUPER_ADMIN) - Test update functionality
 17. ✅ Delete Assignment (SUPER_ADMIN) - Test delete functionality
+18. ✅ Upload Invoice (COMPANY_MANAGER or COMPANY_USER) - Upload invoice file to IPFS and anchor on blockchain
 
 ---
 

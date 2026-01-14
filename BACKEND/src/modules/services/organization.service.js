@@ -25,14 +25,14 @@ export async function createOrganization({actor, payload}){
 }
 export async function listOrganizations({actor}){
     if(!actor || actor.role !== "SUPER_ADMIN"){
-        throw new AppError("Unauthorized", 403, "UNAUTHORIZED");
+        throw new AppError("Unauthorized", 403, "UNAUTHORIZED")
     }
-    const orgs = await OrganizationRepositories.findMany({});
+    const orgs = await OrganizationRepositories.findMany({})
     return orgs.map(toOrganizationPublic);
 }
 
 export async function getOrganizationById({actor, orgId}){
-    if(!actor) throw new AppError("Unauthorized", 403, "UNAUTHORIZED");
+    if(!actor) throw new AppError("Unauthorized", 403, "UNAUTHORIZED")
 
     // SUPER_ADMIN can access any organization, others can only access their own
     if(actor.role !== "SUPER_ADMIN") {
@@ -42,7 +42,7 @@ export async function getOrganizationById({actor, orgId}){
     }
 
     const org = await OrganizationRepositories.findById(orgId);
-    if(!org) throw new AppError("Organization not found", 404, "ORGANIZATION_NOT_FOUND");
+    if(!org) throw new AppError("Organization not found", 404, "ORGANIZATION_NOT_FOUND")
     return toOrganizationPublic(org);
 }
 

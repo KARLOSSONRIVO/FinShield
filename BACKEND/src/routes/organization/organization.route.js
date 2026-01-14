@@ -4,7 +4,7 @@ import { allowRoles, requireSameOrgParam } from "../../common/middlewares/rbac.m
 import { createOrgSchema } from "../../modules/validators/organization.validator.js";
 import * as OrganizationControllers from "../../modules/controllers/organization.controller.js";
 
-const organizationRouter = Router();
+const organizationRouter = Router()
 
 // Auth and password change enforcement handled in index.js
 
@@ -17,4 +17,4 @@ organizationRouter.get('/listOrganizations', allowRoles("SUPER_ADMIN"), Organiza
 // SUPER_ADMIN can access any org, others can only access their own
 organizationRouter.get('/getOrganization/:id', requireSameOrgParam("id"), OrganizationControllers.getOneOrganization)
 
-export default organizationRouter;
+export default organizationRouter
