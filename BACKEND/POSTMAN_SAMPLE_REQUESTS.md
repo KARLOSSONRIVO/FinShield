@@ -27,7 +27,9 @@ Content-Type: application/json
 {
   "ok": true,
   "data": {
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "a1b2c3d4e5f6...",
+    "expiresIn": 3600,
     "user": {
       "id": "USER_ID",
       "email": "admin@finshield.com",
@@ -41,7 +43,54 @@ Content-Type: application/json
 }
 ```
 
-#### 2. Get Current User (Me)
+#### 2. Refresh Token
+```
+POST http://localhost:5000/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "YOUR_REFRESH_TOKEN_HERE"
+}
+```
+
+**Response Example:**
+```json
+{
+  "ok": true,
+  "data": {
+    "accessToken": "NEW_ACCESS_TOKEN",
+    "refreshToken": "NEW_REFRESH_TOKEN",
+    "expiresIn": 3600,
+    "user": { ... }
+  }
+}
+```
+
+#### 3. Logout
+```
+POST http://localhost:5000/auth/logout
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+Content-Type: application/json
+
+{
+  "refreshToken": "YOUR_REFRESH_TOKEN_HERE",
+  "logoutAll": false
+}
+```
+
+**Response Example:**
+```json
+{
+  "ok": true,
+  "data": {
+    "message": "Logged out successfully"
+  }
+}
+```
+
+**Note:** Set `logoutAll: true` to logout from all devices.
+
+#### 4. Get Current User (Me)
 ```
 GET http://localhost:5000/auth/me
 Authorization: Bearer YOUR_TOKEN_HERE
@@ -62,7 +111,7 @@ Authorization: Bearer YOUR_TOKEN_HERE
 }
 ```
 
-#### 3. Change Password
+#### 5. Change Password
 ```
 POST http://localhost:5000/auth/change-password
 Authorization: Bearer YOUR_TOKEN_HERE
@@ -79,14 +128,54 @@ Content-Type: application/json
 {
   "ok": true,
   "data": {
-    "token": "NEW_TOKEN_HERE",
+    "accessToken": "NEW_ACCESS_TOKEN",
+    "refreshToken": "NEW_REFRESH_TOKEN",
+    "expiresIn": 3600,
     "user": { ... },
     "mustChangePassword": false
   }
 }
 ```
 
-**Note:** Returns a new token after password change. Use the new token for subsequent requests.
+**Note:** Returns new tokens after password change. All other sessions are revoked.
+
+#### 6. Get Active Sessions
+```
+GET http://localhost:5000/auth/sessions
+Authorization: Bearer YOUR_TOKEN_HERE
+```
+
+**Response Example:**
+```json
+{
+  "ok": true,
+  "data": [
+    {
+      "id": "SESSION_ID",
+      "createdAt": "2026-01-19T10:00:00.000Z",
+      "userAgent": "Mozilla/5.0...",
+      "createdByIp": "192.168.1.1",
+      "expiresAt": "2026-01-26T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+#### 7. Revoke Session
+```
+DELETE http://localhost:5000/auth/sessions/SESSION_ID_HERE
+Authorization: Bearer YOUR_TOKEN_HERE
+```
+
+**Response Example:**
+```json
+{
+  "ok": true,
+  "data": {
+    "message": "Session revoked successfully"
+  }
+}
+```
 
 ---
 
