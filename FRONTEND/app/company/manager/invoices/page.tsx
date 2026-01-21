@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo } from "react"
 import { CompanySidebar } from "@/components/company-sidebar"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -11,17 +11,20 @@ import { mockInvoices } from "@/lib/mock-data"
 import { InvoiceStatusBadge, AIVerdictBadge } from "@/components/status-badge"
 import { FileText, Search, Eye } from "lucide-react"
 import Link from "next/link"
+import { useSearchFilter } from "@/hooks"
 
 export default function ManagerInvoicesPage() {
-  const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
+  // Pre-filter company invoices
+  const companyInvoices = useMemo(
+    () => mockInvoices.filter((i) => i.companyOrgId === "org-company-1"),
+    []
+  )
 
-  const companyInvoices = mockInvoices.filter((i) => i.companyOrgId === "org-company-1")
-
-  const filteredInvoices = companyInvoices.filter((inv) => {
-    const matchesSearch = inv.invoiceNo.toLowerCase().includes(search.toLowerCase())
-    const matchesStatus = statusFilter === "all" || inv.status === statusFilter
-    return matchesSearch && matchesStatus
+  // Use the search filter hook
+  const { search, setSearch, statusFilter, setStatusFilter, filteredItems: filteredInvoices } = useSearchFilter({
+    items: companyInvoices,
+    searchFields: ["invoiceNo"],
+    statusField: "status",
   })
 
   return (

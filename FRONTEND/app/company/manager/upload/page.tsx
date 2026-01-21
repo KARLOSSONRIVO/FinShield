@@ -2,45 +2,52 @@
 
 import type React from "react"
 
-import { useState } from "react"
 import { CompanySidebar } from "@/components/company-sidebar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Upload, FileText, CheckCircle } from "lucide-react"
+import { useFileUpload, useFormState, validators } from "@/hooks"
 
 export default function ManagerUploadPage() {
-  const [file, setFile] = useState<File | null>(null)
-  const [invoiceNo, setInvoiceNo] = useState("")
-  const [invoiceDate, setInvoiceDate] = useState("")
-  const [amount, setAmount] = useState("")
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadSuccess, setUploadSuccess] = useState(false)
+  // File upload hook
+  const {
+    file,
+    isUploading,
+    uploadSuccess,
+    handleFileChange,
+    handleDrop,
+    handleDragOver,
+    upload,
+    reset: resetFile,
+  } = useFileUpload({
+    acceptedTypes: [".pdf", ".png", ".jpg", ".jpeg"],
+    maxSize: 10 * 1024 * 1024, // 10MB
+  })
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0])
-    }
-  }
+  // Form state hook
+  const { values, setValue, reset: resetForm } = useFormState({
+    initialValues: {
+      invoiceNo: "",
+      invoiceDate: "",
+      amount: "",
+    },
+    validationRules: {
+      invoiceNo: validators.required("Invoice number is required"),
+      invoiceDate: validators.required("Invoice date is required"),
+      amount: validators.positive("Amount must be a positive number"),
+    },
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsUploading(true)
+    await upload()
 
-    // Simulate upload
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    setIsUploading(false)
-    setUploadSuccess(true)
-
-    // Reset after showing success
+    // Reset form after success
     setTimeout(() => {
-      setFile(null)
-      setInvoiceNo("")
-      setInvoiceDate("")
-      setAmount("")
-      setUploadSuccess(false)
+      resetFile()
+      resetForm()
     }, 3000)
   }
 
@@ -82,8 +89,8 @@ export default function ManagerUploadPage() {
                         <Input
                           id="invoiceNo"
                           placeholder="INV-2024-XXX"
-                          value={invoiceNo}
-                          onChange={(e) => setInvoiceNo(e.target.value)}
+                          value={values.invoiceNo}
+                          onChange={(e) => setValue("invoiceNo", e.target.value)}
                           required
                         />
                       </div>
@@ -92,8 +99,8 @@ export default function ManagerUploadPage() {
                         <Input
                           id="invoiceDate"
                           type="date"
-                          value={invoiceDate}
-                          onChange={(e) => setInvoiceDate(e.target.value)}
+                          value={values.invoiceDate}
+                          onChange={(e) => setValue("invoiceDate", e.target.value)}
                           required
                         />
                       </div>
@@ -106,8 +113,8 @@ export default function ManagerUploadPage() {
                         type="number"
                         placeholder="0.00"
                         step="0.01"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
+                        value={values.amount}
+                        onChange={(e) => setValue("amount", e.target.value)}
                         required
                       />
                     </div>

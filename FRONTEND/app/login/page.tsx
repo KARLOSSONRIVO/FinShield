@@ -11,13 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Link from "next/link"
 import Image from "next/image"
 import { Eye, EyeOff } from "lucide-react"
+import { usePasswordVisibility } from "@/hooks"
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [role, setRole] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
+  const { showPassword, toggle, inputType } = usePasswordVisibility()
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
@@ -97,7 +98,7 @@ export default function LoginPage() {
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={inputType}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -106,7 +107,7 @@ export default function LoginPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={toggle}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600 transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
