@@ -9,9 +9,13 @@ import authRouter from "./auth/auth.route.js";
 import sessionRouter from "./session/session.route.js";
 import assignmentRouter from "./assignment/assignment.route.js";
 import invoiceRouter from "./invoice/invoice.route.js";
+import docsRouter from "./docs/docs.route.js";
 
 
 const router = Router();
+
+// API Documentation (public)
+router.use("/api-docs", docsRouter);
 
 // Public routes (no auth required)
 router.use("/health", healthRoutes)

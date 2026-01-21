@@ -1,0 +1,43 @@
+paths:
+  /invoice/upload:
+    post:
+      summary: Upload and anchor an invoice
+      description: Upload an invoice file, store it on IPFS, and anchor its hash on the blockchain. Only COMPANY_MANAGER and COMPANY_USER can upload invoices.
+      tags:
+        - Invoices
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Invoice file (PDF, image, or document, max 10MB)
+      responses:
+        "201":
+          description: Invoice uploaded and anchored successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/Invoice"
+        "400":
+          description: Invalid file or validation error
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden - COMPANY_MANAGER or COMPANY_USER only
+        "413":
+          description: File too large (max 10MB)

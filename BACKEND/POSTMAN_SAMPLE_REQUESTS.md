@@ -1,5 +1,21 @@
 # Postman Sample Requests - Quick Reference
 
+## API Documentation
+
+### Swagger UI (Interactive)
+```
+GET http://localhost:5000/api-docs
+```
+Interactive API documentation with the ability to test endpoints directly in the browser.
+
+### OpenAPI JSON Specification
+```
+GET http://localhost:5000/api-docs/json
+```
+Raw OpenAPI 3.0 specification in JSON format.
+
+---
+
 ## Quick Copy-Paste Ready Requests
 
 ### Health Check

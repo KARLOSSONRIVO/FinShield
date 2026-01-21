@@ -27,6 +27,8 @@
     "multer": "^2.0.2",
     "node-fetch": "^3.3.2",
     "nodeman": "^1.1.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "web3": "^4.16.0",
     "zod": "^4.2.1"
   },

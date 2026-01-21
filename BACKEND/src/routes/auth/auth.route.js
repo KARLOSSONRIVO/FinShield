@@ -12,20 +12,20 @@ import * as AuthController from "../../modules/controllers/auth.controller.js";
 
 const authRouter = Router();
 
-// Public routes - no auth required
 authRouter.post("/login", validate(loginSchema), AuthController.login);
+
 authRouter.post("/refresh", validate(refreshSchema), AuthController.refresh);
 
 // Protected routes - auth required
 authRouter.use(requireAuth);
 
-// Logout (doesn't require password change check)
 authRouter.post("/logout", validate(logoutSchema), AuthController.logout);
 
 // These routes require password change enforcement
 authRouter.use(enforceMustChangePassword({ exceptPaths: ["/auth/change-password"] }));
 
 authRouter.get("/me", AuthController.me);
+
 authRouter.post("/change-password", validate(changePasswordSchema), AuthController.changePassword);
 
 export default authRouter;

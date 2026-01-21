@@ -1,0 +1,147 @@
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Enter your JWT token
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Error message
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        role:
+          type: string
+          enum: [SUPER_ADMIN, AUDITOR, REGULATOR, COMPANY_MANAGER, COMPANY_USER]
+          example: COMPANY_USER
+        organizationId:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, SUSPENDED]
+          example: ACTIVE
+        mustChangePassword:
+          type: boolean
+          example: false
+
+    Organization:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        name:
+          type: string
+          example: Acme Corporation
+        type:
+          type: string
+          enum: [COMPANY, AUDITOR, REGULATOR]
+          example: COMPANY
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE, SUSPENDED]
+          example: ACTIVE
+
+    Assignment:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        auditorOrgId:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        companyOrgId:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        status:
+          type: string
+          enum: [ACTIVE, INACTIVE]
+          example: ACTIVE
+
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        originalFilename:
+          type: string
+          example: invoice-2024-001.pdf
+        fileHash:
+          type: string
+          example: "0x1234567890abcdef..."
+        ipfsCid:
+          type: string
+          example: QmXoypizjW3WknFiJnKLwHCnL72vedxjQkDDP1mXWo6uco
+        txHash:
+          type: string
+          example: "0xabc123..."
+        anchoredAt:
+          type: string
+          format: date-time
+        organizationId:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        uploadedBy:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        userId:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        userAgent:
+          type: string
+          example: "Mozilla/5.0..."
+        createdAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Auth
+    description: Authentication endpoints (login, logout, token refresh)
+  - name: Users
+    description: User management endpoints
+  - name: Organizations
+    description: Organization management endpoints
+  - name: Assignments
+    description: Auditor-Company assignment endpoints
+  - name: Invoices
+    description: Invoice upload and blockchain anchoring endpoints
+  - name: Sessions
+    description: User session management endpoints

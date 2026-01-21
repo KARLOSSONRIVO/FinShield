@@ -11,16 +11,12 @@ const sessionRouter = Router()
 sessionRouter.use(requireAuth)
 sessionRouter.use(enforceMustChangePassword())
 
-// Get all active sessions for the current user
 sessionRouter.get("/", SessionController.getSessions)
 
-// Get session count
 sessionRouter.get("/count", SessionController.getSessionCount)
 
-// Revoke all sessions (logout from all devices)
 sessionRouter.delete("/all", SessionController.revokeAllSessions)
 
-// Revoke a specific session
 sessionRouter.delete("/:sessionId", validate(revokeSessionSchema), SessionController.revokeSession)
 
 export default sessionRouter

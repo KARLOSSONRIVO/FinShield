@@ -1,0 +1,113 @@
+paths:
+  /session:
+    get:
+      summary: Get all active sessions
+      description: Get all active sessions for the current user
+      tags:
+        - Sessions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of active sessions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Session"
+        "401":
+          description: Unauthorized
+
+  /session/count:
+    get:
+      summary: Get session count
+      description: Get the count of active sessions for the current user
+      tags:
+        - Sessions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Session count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                        example: 3
+        "401":
+          description: Unauthorized
+
+  /session/all:
+    delete:
+      summary: Revoke all sessions
+      description: Logout from all devices by revoking all active sessions
+      tags:
+        - Sessions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: All sessions revoked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: All sessions revoked
+        "401":
+          description: Unauthorized
+
+  /session/{sessionId}:
+    delete:
+      summary: Revoke a specific session
+      description: Revoke a specific session by its ID
+      tags:
+        - Sessions
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+          description: Session ID to revoke
+      responses:
+        "200":
+          description: Session revoked successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Session revoked
+        "401":
+          description: Unauthorized
+        "404":
+          description: Session not found
