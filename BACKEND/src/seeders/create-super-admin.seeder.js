@@ -12,7 +12,7 @@ async function createSuperAdmin() {
   try {
     console.log("Connecting to database...")
     await connectDB();
-
+    
     // Step 1: Check if super admin already exists
     console.log("Checking for existing super admin...")
     const existingAdmin = await UsersRepositories.findByEmail(SUPER_ADMIN_EMAIL)

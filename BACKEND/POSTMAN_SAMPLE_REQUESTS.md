@@ -139,9 +139,13 @@ Content-Type: application/json
 
 **Note:** Returns new tokens after password change. All other sessions are revoked.
 
-#### 6. Get Active Sessions
+---
+
+### Session Endpoints
+
+#### 1. Get Active Sessions
 ```
-GET http://localhost:5000/auth/sessions
+GET http://localhost:5000/session
 Authorization: Bearer YOUR_TOKEN_HERE
 ```
 
@@ -161,9 +165,41 @@ Authorization: Bearer YOUR_TOKEN_HERE
 }
 ```
 
-#### 7. Revoke Session
+#### 2. Get Session Count
 ```
-DELETE http://localhost:5000/auth/sessions/SESSION_ID_HERE
+GET http://localhost:5000/session/count
+Authorization: Bearer YOUR_TOKEN_HERE
+```
+
+**Response Example:**
+```json
+{
+  "ok": true,
+  "data": {
+    "count": 3
+  }
+}
+```
+
+#### 3. Revoke All Sessions (Logout from all devices)
+```
+DELETE http://localhost:5000/session/all
+Authorization: Bearer YOUR_TOKEN_HERE
+```
+
+**Response Example:**
+```json
+{
+  "ok": true,
+  "data": {
+    "message": "All sessions revoked successfully"
+  }
+}
+```
+
+#### 4. Revoke Specific Session
+```
+DELETE http://localhost:5000/session/SESSION_ID_HERE
 Authorization: Bearer YOUR_TOKEN_HERE
 ```
 

@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import AppError from "../../common/errors/AppErrors.js";
-import { JWT_EXPIRES_IN, JWT_SECRET, JWT_REFRESH_SECRET, JWT_REFRESH_EXPIRES_IN } from "../../config/env.js";
+import { JWT_EXPIRES_IN, JWT_SECRET, JWT_REFRESH_EXPIRES_IN } from "../../config/env.js";
 import * as UsersRepository from "../repositories/user.repositories.js";
 import * as RefreshTokenRepository from "../repositories/refreshToken.repositories.js";
 import * as TokenBlacklistRepository from "../repositories/tokenBlacklist.repositories.js";
