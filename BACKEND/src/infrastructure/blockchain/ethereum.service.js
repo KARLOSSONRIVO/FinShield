@@ -21,7 +21,7 @@ const ABI = [
             { internalType: "bytes32", name: "cidHash", type: "bytes32" },
             { internalType: "bytes32", name: "fileHash", type: "bytes32" },
         ],
-        name: "anchor",
+        name: "anchor", 
         outputs: [],
         stateMutability: "nonpayable",
         type: "function"

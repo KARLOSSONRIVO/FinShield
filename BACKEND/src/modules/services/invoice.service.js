@@ -3,6 +3,7 @@ import { sha256Hex } from "../../common/utils/hash.js";
 import { addAndPinBuffer } from "../../infrastructure/storage/ipfs.service.js";    
 import { anchorInvoice } from "../../infrastructure/blockchain/ethereum.service.js";   
 import * as InvoiceRepositories from "../repositories/invoice.repositories.js";
+import * as AssignmentRepositories from "../repositories/assignment.repositories.js";
 import { toInvoicePublic } from "../mappers/invoice.mapper.js";
 
 /**
@@ -43,6 +44,16 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
         throw new AppError("Only COMPANY_MANAGER and COMPANY_USER can upload invoices", 403, "FORBIDDEN")
     }
     if (!actor.orgId) throw new AppError("Company organization ID is required", 400, "MISSING_COMPANY_ORG_ID")
+    
+    // Check if company has at least one active auditor assigned
+    const hasAuditor = await AssignmentRepositories.hasActiveAuditor(actor.orgId)
+    if (!hasAuditor) {
+        throw new AppError(
+            "Cannot upload invoices: Your company has no auditor assigned. Please contact an administrator.",
+            403,
+            "NO_AUDITOR_ASSIGNED"
+        )
+    }
     
     // File validation is handled by validateInvoiceUpload middleware
     const fileSha = sha256Hex(file.buffer)

@@ -31,3 +31,16 @@ export async function findByAuditorId(auditorUserId, filter = {}) {
 export async function findByCompanyId(companyOrgId) {
     return Assignment.find({ companyOrgId }).populate("companyOrgId").populate("auditorUserId").populate("assignedByUserId").exec()
 }
+
+/**
+ * Check if a company has at least one active auditor assigned
+ * @param {string} companyOrgId - The company organization ID
+ * @returns {Promise<boolean>}
+ */
+export async function hasActiveAuditor(companyOrgId) {
+    const count = await Assignment.countDocuments({ 
+        companyOrgId, 
+        status: "active" 
+    })
+    return count > 0
+}

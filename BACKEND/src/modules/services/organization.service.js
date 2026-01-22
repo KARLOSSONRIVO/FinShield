@@ -1,5 +1,4 @@
 import AppError from "../../common/errors/AppErrors.js";
-import Organization from "../models/organization.model.js";
 import * as OrganizationRepositories from "../repositories/organization.repositories.js";
 import { toOrganizationPublic } from "../mappers/organization.mapper.js";
 
