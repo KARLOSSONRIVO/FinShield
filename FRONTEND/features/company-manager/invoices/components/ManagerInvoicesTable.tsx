@@ -12,16 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Eye, Clock, CheckCircle, AlertTriangle, XCircle, User } from "lucide-react"
-
-interface Invoice {
-    id: string
-    invoiceNo: string
-    vendor: string
-    amount: number
-    status: "pending" | "verified" | "flagged" | "fraudulent"
-    date: string
-    uploadedBy?: string
-}
+import { Invoice } from "@/lib/types"
 
 interface ManagerInvoicesTableProps {
     invoices: Invoice[]
@@ -66,22 +57,22 @@ export function ManagerInvoicesTable({ invoices, linkPrefix, showUploadedBy = fa
                         </TableRow>
                     ) : (
                         invoices.map((invoice) => (
-                            <TableRow key={invoice.id}>
+                            <TableRow key={invoice._id}>
                                 <TableCell className="font-medium">{invoice.invoiceNo}</TableCell>
-                                <TableCell>{invoice.vendor}</TableCell>
-                                <TableCell>{new Date(invoice.date).toLocaleDateString()}</TableCell>
-                                <TableCell>${invoice.amount.toLocaleString()}</TableCell>
+                                <TableCell>{invoice.companyName || "N/A"}</TableCell>
+                                <TableCell>{new Date(invoice.invoiceDate).toLocaleDateString()}</TableCell>
+                                <TableCell>${invoice.totals_total.toLocaleString()}</TableCell>
                                 {showUploadedBy && (
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             <User className="h-4 w-4 text-muted-foreground" />
-                                            <span>{invoice.uploadedBy || "Unknown"}</span>
+                                            <span>{invoice.uploadedByName || "Unknown"}</span>
                                         </div>
                                     </TableCell>
                                 )}
                                 <TableCell>{getStatusBadge(invoice.status)}</TableCell>
                                 <TableCell className="text-right">
-                                    <Link href={`${linkPrefix}/${invoice.id}`}>
+                                    <Link href={`${linkPrefix}/${invoice._id}`}>
                                         <Button variant="ghost" size="sm">
                                             <Eye className="h-4 w-4 mr-1" />
                                             View

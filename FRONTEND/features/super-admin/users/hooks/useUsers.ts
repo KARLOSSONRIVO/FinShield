@@ -57,6 +57,10 @@ export function useUsers() {
                 // @ts-ignore
                 const bValue = b[sortConfig.key]
 
+                if (aValue === bValue) return 0
+                if (aValue === undefined || aValue === null) return 1
+                if (bValue === undefined || bValue === null) return -1
+
                 if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1
                 if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1
                 return 0
