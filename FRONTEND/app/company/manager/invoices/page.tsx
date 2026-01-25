@@ -1,17 +1,14 @@
 "use client"
 
 import { useMemo } from "react"
-import { CompanySidebar } from "@/components/company-sidebar"
+import { ManagerSidebar } from "@/features/company-manager/navigation-bar/ManagerSidebar"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
 import { mockInvoices } from "@/lib/mock-data"
-import { InvoiceStatusBadge, AIVerdictBadge } from "@/components/status-badge"
-import { FileText, Search, Eye } from "lucide-react"
-import Link from "next/link"
+import { FileText, Search } from "lucide-react"
 import { useSearchFilter } from "@/hooks"
+import { ManagerInvoicesTable } from "@/features/company-manager/invoices/components/ManagerInvoicesTable"
 
 export default function ManagerInvoicesPage() {
   // Pre-filter company invoices
@@ -29,7 +26,7 @@ export default function ManagerInvoicesPage() {
 
   return (
     <div className="flex h-screen">
-      <CompanySidebar role="COMPANY_MANAGER" />
+      <ManagerSidebar />
       <main className="flex-1 overflow-auto">
         <div className="p-6">
           <div className="mb-6">
@@ -67,43 +64,11 @@ export default function ManagerInvoicesPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Invoice No</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Uploaded By</TableHead>
-                    <TableHead>AI Analysis</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredInvoices.map((invoice) => (
-                    <TableRow key={invoice._id}>
-                      <TableCell className="font-medium">{invoice.invoiceNo}</TableCell>
-                      <TableCell>{new Date(invoice.invoiceDate).toLocaleDateString()}</TableCell>
-                      <TableCell>${invoice.totals_total.toLocaleString()}</TableCell>
-                      <TableCell>{invoice.uploadedByName}</TableCell>
-                      <TableCell>
-                        <AIVerdictBadge verdict={invoice.ai_verdict} score={invoice.ai_riskScore} />
-                      </TableCell>
-                      <TableCell>
-                        <InvoiceStatusBadge status={invoice.status} />
-                      </TableCell>
-                      <TableCell>
-                        <Link href={`/company/manager/invoices/${invoice._id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <ManagerInvoicesTable
+                invoices={filteredInvoices}
+                linkPrefix="/company/manager/invoices"
+                showUploadedBy={true}
+              />
             </CardContent>
           </Card>
         </div>

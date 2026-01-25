@@ -20,6 +20,7 @@ export interface Organization {
   type: OrganizationType
   name: string
   status: OrganizationStatus
+  employees: number
   createdAt: Date
   updatedAt: Date
 }
@@ -50,6 +51,8 @@ export interface CompanyAssignment {
   assignedByUserId: string
   assignedAt: Date
   notes?: string
+  taskName: string
+  dueDate: Date
 }
 
 export interface Invoice {

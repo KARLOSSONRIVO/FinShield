@@ -1,7 +1,7 @@
 "use client"
 
 import { use } from "react"
-import { AdminSidebar } from "@/components/admin-sidebar"
+import { RegulatorSidebar } from "@/features/regulator/navigation-bar/RegulatorSidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -18,7 +18,7 @@ export default function RegulatorInvoiceViewPage({ params }: { params: Promise<{
   if (!invoice) {
     return (
       <div className="flex h-screen">
-        <AdminSidebar role="REGULATOR" />
+        <RegulatorSidebar />
         <main className="flex-1 flex items-center justify-center">
           <p>Invoice not found</p>
         </main>
@@ -28,7 +28,7 @@ export default function RegulatorInvoiceViewPage({ params }: { params: Promise<{
 
   return (
     <div className="flex h-screen">
-      <AdminSidebar role="REGULATOR" />
+      <RegulatorSidebar />
       <main className="flex-1 overflow-auto">
         <div className="p-6">
           <Link href="/admin/regulator/invoices">
@@ -97,13 +97,12 @@ export default function RegulatorInvoiceViewPage({ params }: { params: Promise<{
                   <p className="text-sm text-muted-foreground mb-2">Risk Score</p>
                   <div className="w-full bg-background rounded-full h-4">
                     <div
-                      className={`h-4 rounded-full ${
-                        invoice.ai_riskScore > 0.7
-                          ? "bg-destructive"
-                          : invoice.ai_riskScore > 0.4
-                            ? "bg-warning"
-                            : "bg-primary"
-                      }`}
+                      className={`h-4 rounded-full ${invoice.ai_riskScore > 0.7
+                        ? "bg-destructive"
+                        : invoice.ai_riskScore > 0.4
+                          ? "bg-warning"
+                          : "bg-primary"
+                        }`}
                       style={{ width: `${invoice.ai_riskScore * 100}%` }}
                     />
                   </div>

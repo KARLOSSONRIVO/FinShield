@@ -1,77 +1,68 @@
 "use client"
 
-import { AdminSidebar } from "@/components/admin-sidebar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { mockInvoices } from "@/lib/mock-data"
-import { InvoiceStatusBadge, AIVerdictBadge } from "@/components/status-badge"
-import { AlertTriangle, Eye } from "lucide-react"
-import Link from "next/link"
+import { Input } from "@/components/ui/input"
+import { Search } from "lucide-react"
+import { AllInvoicesTable } from "@/features/super-admin/invoices/components/AllInvoicesTable"
+import { useFlaggedQueue } from "@/features/super-admin/flagged/hooks/useFlaggedQueue"
+import { Pagination } from "@/components/ui/pagination-custom"
+import { InvoiceFilter } from "@/features/super-admin/invoices/components/InvoiceFilter"
 
 export default function FlaggedQueuePage() {
-  const flaggedInvoices = mockInvoices.filter((i) => i.status === "flagged" || i.ai_verdict === "flagged")
+  const {
+    search,
+    setSearch,
+    statusFilter,
+    setStatusFilter,
+    invoices,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    sortConfig,
+    requestSort
+  } = useFlaggedQueue()
 
   return (
-    <div className="flex h-screen">
-      <AdminSidebar role="SUPER_ADMIN" />
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <AlertTriangle className="h-6 w-6 text-warning" />
-              Flagged Queue
-            </h1>
-            <p className="text-muted-foreground">Invoices requiring immediate attention</p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-normal tracking-tight">Flagged Invoices</h2>
+      </div>
+
+      <div>
+        <div className="flex gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search Invoices..."
+              className="pl-9 bg-background border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>High Risk Invoices</CardTitle>
-              <CardDescription>{flaggedInvoices.length} invoices flagged by AI or marked for review</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Invoice No</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>AI Analysis</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {flaggedInvoices.map((invoice) => (
-                    <TableRow key={invoice._id}>
-                      <TableCell className="font-medium">{invoice.invoiceNo}</TableCell>
-                      <TableCell>{invoice.companyName}</TableCell>
-                      <TableCell>${invoice.totals_total.toLocaleString()}</TableCell>
-                      <TableCell>
-                        <AIVerdictBadge verdict={invoice.ai_verdict} score={invoice.ai_riskScore} />
-                      </TableCell>
-                      <TableCell>
-                        <InvoiceStatusBadge status={invoice.status} />
-                      </TableCell>
-                      <TableCell>{new Date(invoice.invoiceDate).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <Link href={`/admin/super-admin/invoices/${invoice._id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4 mr-1" />
-                            Review
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <InvoiceFilter
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            sortConfig={sortConfig}
+            onSortChange={requestSort}
+          />
         </div>
-      </main>
+      </div>
+
+      <div className="mt-4">
+        <AllInvoicesTable
+          invoices={invoices}
+          sortConfig={sortConfig}
+          onSort={requestSort}
+        />
+      </div>
+
+      <div className="mt-4 flex justify-center">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
     </div>
   )
 }

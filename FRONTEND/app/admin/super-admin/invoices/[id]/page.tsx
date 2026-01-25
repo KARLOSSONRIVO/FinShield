@@ -1,188 +1,172 @@
 "use client"
 
-import { use } from "react"
-import { AdminSidebar } from "@/components/admin-sidebar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { mockInvoices, mockReviews } from "@/lib/mock-data"
-import { InvoiceStatusBadge, AIVerdictBadge, DecisionBadge } from "@/components/status-badge"
-import { ArrowLeft, FileText, Brain, Link2, ClipboardCheck } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ArrowLeft, FileText, Blocks, History, ShieldAlert } from "lucide-react"
 import Link from "next/link"
+import { use } from "react"
+import { mockInvoices } from "@/lib/mock-data"
 
-export default function InvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function InvoiceDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const invoice = mockInvoices.find((i) => i._id === id)
-  const reviews = mockReviews.filter((r) => r.invoiceId === id)
+  const invoice = mockInvoices.find(i => i._id === id)
 
   if (!invoice) {
-    return (
-      <div className="flex h-screen">
-        <AdminSidebar role="SUPER_ADMIN" />
-        <main className="flex-1 flex items-center justify-center">
-          <p>Invoice not found</p>
-        </main>
-      </div>
-    )
+    return <div className="p-6">Invoice not found</div>
   }
 
   return (
-    <div className="flex h-screen">
-      <AdminSidebar role="SUPER_ADMIN" />
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
-          <Link href="/admin/super-admin/invoices">
-            <Button variant="ghost" className="mb-4">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Invoices
-            </Button>
-          </Link>
-
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <FileText className="h-6 w-6 text-primary" />
-                {invoice.invoiceNo}
-              </h1>
-              <p className="text-muted-foreground">{invoice.companyName}</p>
-            </div>
-            <InvoiceStatusBadge status={invoice.status} />
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-4">
+          <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center border border-border">
+            <FileText className="h-6 w-6 text-gray-500" />
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Invoice Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Invoice Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Invoice Number</p>
-                    <p className="font-medium">{invoice.invoiceNo}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Invoice Date</p>
-                    <p className="font-medium">{new Date(invoice.invoiceDate).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Amount</p>
-                    <p className="font-medium text-lg">${invoice.totals_total.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Uploaded By</p>
-                    <p className="font-medium">{invoice.uploadedByName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Created At</p>
-                    <p className="font-medium">{new Date(invoice.createdAt).toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Last Updated</p>
-                    <p className="font-medium">{new Date(invoice.updatedAt).toLocaleString()}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* AI Analysis */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Brain className="h-5 w-5 text-primary" />
-                  AI Fraud Analysis
-                </CardTitle>
-                <CardDescription>Automated anomaly detection results</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg">
-                  <span className="text-sm text-muted-foreground">AI Verdict</span>
-                  <AIVerdictBadge verdict={invoice.ai_verdict} score={invoice.ai_riskScore} />
-                </div>
-                <div className="p-4 bg-secondary/50 rounded-lg">
-                  <p className="text-sm text-muted-foreground mb-2">Risk Score</p>
-                  <div className="w-full bg-background rounded-full h-4">
-                    <div
-                      className={`h-4 rounded-full transition-all ${
-                        invoice.ai_riskScore > 0.7
-                          ? "bg-destructive"
-                          : invoice.ai_riskScore > 0.4
-                            ? "bg-warning"
-                            : "bg-primary"
-                      }`}
-                      style={{ width: `${invoice.ai_riskScore * 100}%` }}
-                    />
-                  </div>
-                  <p className="text-right text-sm mt-1 font-mono">{(invoice.ai_riskScore * 100).toFixed(0)}%</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Blockchain Verification */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Link2 className="h-5 w-5 text-primary" />
-                  Blockchain Verification
-                </CardTitle>
-                <CardDescription>Tamper-proof ledger record</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {invoice.blockchain_txHash ? (
-                  <>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Transaction Hash</p>
-                      <p className="font-mono text-sm break-all bg-secondary/50 p-2 rounded mt-1">
-                        {invoice.blockchain_txHash}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Anchored At</p>
-                      <p className="font-medium">
-                        {invoice.blockchain_anchoredAt ? new Date(invoice.blockchain_anchoredAt).toLocaleString() : "-"}
-                      </p>
-                    </div>
-                    <Badge variant="default" className="bg-primary text-primary-foreground">
-                      Verified on Blockchain
-                    </Badge>
-                  </>
-                ) : (
-                  <p className="text-muted-foreground">Pending blockchain verification</p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Review History */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ClipboardCheck className="h-5 w-5 text-primary" />
-                  Review History
-                </CardTitle>
-                <CardDescription>Auditor decisions and notes</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {reviews.length > 0 ? (
-                  <div className="space-y-4">
-                    {reviews.map((review) => (
-                      <div key={review._id} className="p-4 bg-secondary/50 rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-medium">{review.reviewerName}</span>
-                          <DecisionBadge decision={review.decision} />
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-2">{review.notes}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(review.createdAt).toLocaleString()}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No reviews yet</p>
-                )}
-              </CardContent>
-            </Card>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-black">{invoice.invoiceNo}</h2>
+            <p className="text-muted-foreground font-medium">FinShield Platform</p>
           </div>
         </div>
-      </main>
+        <Link href="/admin/super-admin/invoices">
+          <Button variant="ghost" className="gap-2 text-black font-bold hover:bg-transparent hover:underline">
+            <ArrowLeft className="h-4 w-4" />
+            Go Back
+          </Button>
+        </Link>
+      </div>
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {/* Card 1: Invoice Details */}
+        <Card className="border-2 border-border shadow-sm rounded-xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg font-bold">
+              <FileText className="h-5 w-5" />
+              Invoice Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-4">
+            <div className="grid grid-cols-2 gap-y-4">
+              <div>
+                <p className="text-xs font-bold text-black uppercase">Invoice Number</p>
+                <p className="text-sm font-medium mt-1">{invoice.invoiceNo}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-black uppercase">Invoice Date</p>
+                <p className="text-sm font-medium mt-1">{new Date(invoice.invoiceDate).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-black uppercase">Total Amount</p>
+                <p className="text-xl font-extrabold text-black mt-1">${invoice.totals_total.toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-black uppercase">Uploaded By</p>
+                <p className="text-sm font-medium mt-1">{invoice.uploadedByName || "Unknown"}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-black uppercase">Created At</p>
+                <p className="text-sm font-medium mt-1">{new Date(invoice.createdAt).toLocaleString()}</p>
+              </div>
+              <div>
+                <p className="text-xs font-bold text-black uppercase">Last Updated</p>
+                <p className="text-sm font-medium mt-1">{new Date(invoice.updatedAt).toLocaleString()}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 2: AI Fraud Analysis */}
+        <Card className="border-2 border-border shadow-sm rounded-xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg font-bold">
+              <ShieldAlert className="h-5 w-5" />
+              AI Fraud Analysis
+            </CardTitle>
+            <p className="text-xs text-muted-foreground font-medium">Automated anomalous detection results</p>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-4">
+            <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-border">
+              <span className="font-bold text-sm">AI Verdict</span>
+              <Badge className={`${invoice.ai_verdict === 'clean' ? 'bg-emerald-600' :
+                invoice.ai_verdict === 'flagged' ? 'bg-yellow-500 text-black' : 'bg-red-600'
+                } hover:opacity-90 rounded-md px-4 capitalize`}>
+                {invoice.ai_verdict}
+              </Badge>
+            </div>
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-bold text-sm">Risk Score</span>
+                <span className="font-bold text-sm">{Math.round(invoice.ai_riskScore * 100)}%</span>
+              </div>
+              <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden border border-border">
+                <div
+                  className={`h-full ${invoice.ai_riskScore < 0.3 ? 'bg-emerald-500' :
+                      invoice.ai_riskScore < 0.79 ? 'bg-yellow-500' : 'bg-red-600'
+                    } transition-all duration-500`}
+                  style={{ width: `${invoice.ai_riskScore * 100}%` }}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 3: Blockchain Verification */}
+        <Card className="border-2 border-border shadow-sm rounded-xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg font-bold">
+              <Blocks className="h-5 w-5" />
+              Blockchain Verification
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-4">
+            <div>
+              <p className="text-xs font-bold text-black mb-1">Tamper-proof ledger record</p>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-500 mb-1">Transaction Hash</p>
+              <div className="bg-gray-100 p-2 rounded border border-border text-xs font-mono text-gray-600 truncate">
+                {invoice.blockchain_txHash || "Pending Blockchain Anchor"}
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-500 mb-1">Anchored At</p>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sm">{invoice.blockchain_anchoredAt ? new Date(invoice.blockchain_anchoredAt).toLocaleString() : "N/A"}</span>
+                {invoice.blockchain_anchoredAt && (
+                  <Badge variant="outline" className="text-emerald-600 border-emerald-600 bg-emerald-50 text-[10px] font-bold">Verified on Blockchain</Badge>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Card 4: Review History */}
+        <Card className="border-2 border-border shadow-sm rounded-xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg font-bold">
+              <History className="h-5 w-5" />
+              Review History
+            </CardTitle>
+            <p className="text-xs text-muted-foreground font-medium">Auditor decisions and notes</p>
+          </CardHeader>
+          <CardContent className="space-y-4 pt-4">
+            <div className="border border-border rounded-lg p-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-bold text-sm">Auditor 1</span>
+                <Badge className="bg-emerald-600 text-white text-[10px] capitalize">{invoice.status}</Badge>
+              </div>
+              <p className="text-xs font-medium text-black">
+                {invoice.status === 'verified' ? 'All documentation verified. Invoice matches purchase order.' : 'Pending review.'}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-2">{new Date(invoice.updatedAt).toLocaleString()}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+      </div>
     </div>
   )
 }

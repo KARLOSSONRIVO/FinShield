@@ -1,11 +1,11 @@
 import Link from "next/link"
-import { CompanySidebar } from "@/components/company-sidebar"
+import { EmployeeSidebar } from "@/features/company-employee/navigation-bar/EmployeeSidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { mockInvoices, mockReviews } from "@/lib/mock-data"
 import { ArrowLeft, FileText, Shield, Clock, CheckCircle, AlertTriangle, XCircle } from "lucide-react"
-import { InvoiceStatusBadge, AIVerdictBadge } from "@/components/status-badge"
+import { InvoiceStatusBadge, AIVerdictBadge, DecisionBadge } from "@/components/status-badge"
 
 export default async function EmployeeInvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -15,7 +15,7 @@ export default async function EmployeeInvoiceDetailPage({ params }: { params: Pr
   if (!invoice) {
     return (
       <div className="flex h-screen">
-        <CompanySidebar role="COMPANY_USER" />
+        <EmployeeSidebar />
         <main className="flex-1 overflow-auto p-6">
           <p>Invoice not found</p>
         </main>
@@ -38,7 +38,7 @@ export default async function EmployeeInvoiceDetailPage({ params }: { params: Pr
 
   return (
     <div className="flex h-screen">
-      <CompanySidebar role="COMPANY_USER" />
+      <EmployeeSidebar />
       <main className="flex-1 overflow-auto">
         <div className="p-6">
           <div className="mb-6">
@@ -131,7 +131,7 @@ export default async function EmployeeInvoiceDetailPage({ params }: { params: Pr
                       <div key={review._id} className="p-3 bg-secondary/50 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-medium text-sm">{review.reviewerName}</span>
-                          <InvoiceStatusBadge status={review.decision} />
+                          <DecisionBadge decision={review.decision} />
                         </div>
                         {review.notes && <p className="text-sm text-muted-foreground">{review.notes}</p>}
                         <p className="text-xs text-muted-foreground mt-2">

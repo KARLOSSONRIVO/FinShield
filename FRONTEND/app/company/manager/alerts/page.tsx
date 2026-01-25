@@ -1,10 +1,10 @@
-import { CompanySidebar } from "@/components/company-sidebar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+"use client"
+
+import { ManagerSidebar } from "@/features/company-manager/navigation-bar/ManagerSidebar"
+import { AlertTriangle, XCircle, Clock, TrendingUp } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { ManagerAlertSection } from "@/features/company-manager/alerts/components/ManagerAlertSection"
 import { mockInvoices } from "@/lib/mock-data"
-import { AlertTriangle, XCircle, Clock, Info, TrendingUp } from "lucide-react"
-import { AIVerdictBadge, InvoiceStatusBadge } from "@/components/status-badge"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
 
 export default function ManagerAlertsPage() {
   const companyInvoices = mockInvoices.filter((i) => i.companyOrgId === "org-company-1")
@@ -15,7 +15,7 @@ export default function ManagerAlertsPage() {
 
   return (
     <div className="flex h-screen">
-      <CompanySidebar role="COMPANY_MANAGER" />
+      <ManagerSidebar />
       <main className="flex-1 overflow-auto">
         <div className="p-6">
           <div className="mb-6">
@@ -75,113 +75,33 @@ export default function ManagerAlertsPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Fraudulent */}
-            <Card className="border-destructive/50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-destructive">
-                  <XCircle className="h-5 w-5" />
-                  Fraudulent Invoices
-                </CardTitle>
-                <CardDescription>Confirmed fraudulent by auditors</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {fraudulentInvoices.length > 0 ? (
-                  <div className="space-y-4">
-                    {fraudulentInvoices.map((invoice) => (
-                      <div
-                        key={invoice._id}
-                        className="flex items-center justify-between p-3 bg-destructive/10 rounded-lg border-l-2 border-destructive"
-                      >
-                        <div>
-                          <p className="font-medium">{invoice.invoiceNo}</p>
-                          <p className="text-sm text-muted-foreground">
-                            by {invoice.uploadedByName} - ${invoice.totals_total.toLocaleString()}
-                          </p>
-                        </div>
-                        <Link href={`/company/manager/invoices/${invoice._id}`}>
-                          <Button variant="outline" size="sm">
-                            View
-                          </Button>
-                        </Link>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-4">No fraudulent invoices</p>
-                )}
-              </CardContent>
-            </Card>
+            <ManagerAlertSection
+              title="Fraudulent Invoices"
+              description="Confirmed fraudulent by auditors"
+              icon={XCircle}
+              invoices={fraudulentInvoices}
+              variant="destructive"
+              linkPrefix="/company/manager/invoices"
+            />
 
-            {/* Flagged */}
-            <Card className="border-warning/50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-warning">
-                  <AlertTriangle className="h-5 w-5" />
-                  AI Flagged Invoices
-                </CardTitle>
-                <CardDescription>Flagged for potential issues</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {flaggedInvoices.length > 0 ? (
-                  <div className="space-y-4">
-                    {flaggedInvoices.map((invoice) => (
-                      <div
-                        key={invoice._id}
-                        className="flex items-center justify-between p-3 bg-warning/10 rounded-lg border-l-2 border-warning"
-                      >
-                        <div>
-                          <p className="font-medium">{invoice.invoiceNo}</p>
-                          <p className="text-sm text-muted-foreground">by {invoice.uploadedByName}</p>
-                          <AIVerdictBadge verdict={invoice.ai_verdict} score={invoice.ai_riskScore} />
-                        </div>
-                        <Link href={`/company/manager/invoices/${invoice._id}`}>
-                          <Button variant="outline" size="sm">
-                            View
-                          </Button>
-                        </Link>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-4">No flagged invoices</p>
-                )}
-              </CardContent>
-            </Card>
+            <ManagerAlertSection
+              title="AI Flagged Invoices"
+              description="Flagged for potential issues"
+              icon={AlertTriangle}
+              invoices={flaggedInvoices}
+              variant="warning"
+              linkPrefix="/company/manager/invoices"
+            />
 
-            {/* Pending */}
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Pending Review
-                </CardTitle>
-                <CardDescription>Company invoices awaiting auditor review</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {pendingInvoices.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {pendingInvoices.map((invoice) => (
-                      <div
-                        key={invoice._id}
-                        className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium">{invoice.invoiceNo}</p>
-                          <p className="text-sm text-muted-foreground">by {invoice.uploadedByName}</p>
-                          <p className="text-sm font-medium">${invoice.totals_total.toLocaleString()}</p>
-                        </div>
-                        <InvoiceStatusBadge status={invoice.status} />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 justify-center py-4 text-muted-foreground">
-                    <Info className="h-4 w-4" />
-                    All invoices have been reviewed
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <div className="lg:col-span-2">
+              <ManagerAlertSection
+                title="Pending Review"
+                description="Company invoices awaiting auditor review"
+                icon={Clock}
+                invoices={pendingInvoices}
+                linkPrefix="/company/manager/invoices"
+              />
+            </div>
           </div>
         </div>
       </main>

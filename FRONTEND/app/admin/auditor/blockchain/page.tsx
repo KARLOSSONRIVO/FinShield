@@ -1,4 +1,4 @@
-import { AdminSidebar } from "@/components/admin-sidebar"
+import { AuditorSidebar } from "@/features/auditor/navigation-bar/AuditorSidebar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -16,7 +16,7 @@ export default function AuditorBlockchainPage() {
 
   return (
     <div className="flex h-screen">
-      <AdminSidebar role="AUDITOR" />
+      <AuditorSidebar />
       <main className="flex-1 overflow-auto">
         <div className="p-6">
           <div className="mb-6">

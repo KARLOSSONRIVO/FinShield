@@ -1,39 +1,26 @@
 "use client"
 
-import { useState } from "react"
-import { AdminSidebar } from "@/components/admin-sidebar"
+import { AuditorSidebar } from "@/features/auditor/navigation-bar/AuditorSidebar"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { mockInvoices, mockAssignments } from "@/lib/mock-data"
-import { InvoiceStatusBadge, AIVerdictBadge } from "@/components/status-badge"
-import { FileText, Search, Eye } from "lucide-react"
-import Link from "next/link"
+import { FileText, Search } from "lucide-react"
+
+import { AuditorInvoiceTable } from "@/features/auditor/invoices/components/AuditorInvoiceTable"
+import { useAuditorInvoices, InvoiceStatusFilter } from "@/features/auditor/invoices/hooks/useAuditorInvoices"
 
 export default function AuditorInvoicesPage() {
-  const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-
-  // Get assigned companies for auditor 1
-  const assignedCompanyIds = mockAssignments
-    .filter((a) => a.auditorUserId === "user-auditor-1" && a.status === "active")
-    .map((a) => a.companyOrgId)
-
-  const assignedInvoices = mockInvoices.filter((i) => assignedCompanyIds.includes(i.companyOrgId))
-
-  const filteredInvoices = assignedInvoices.filter((inv) => {
-    const matchesSearch =
-      inv.invoiceNo.toLowerCase().includes(search.toLowerCase()) ||
-      inv.companyName?.toLowerCase().includes(search.toLowerCase())
-    const matchesStatus = statusFilter === "all" || inv.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
+  const {
+    search,
+    setSearch,
+    statusFilter,
+    setStatusFilter,
+    filteredInvoices
+  } = useAuditorInvoices()
 
   return (
     <div className="flex h-screen">
-      <AdminSidebar role="AUDITOR" />
+      <AuditorSidebar />
       <main className="flex-1 overflow-auto">
         <div className="p-6">
           <div className="mb-6">
@@ -56,7 +43,7 @@ export default function AuditorInvoicesPage() {
                     className="pl-9"
                   />
                 </div>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as InvoiceStatusFilter)}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
@@ -71,43 +58,7 @@ export default function AuditorInvoicesPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Invoice No</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>AI Analysis</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredInvoices.map((invoice) => (
-                    <TableRow key={invoice._id}>
-                      <TableCell className="font-medium">{invoice.invoiceNo}</TableCell>
-                      <TableCell>{invoice.companyName}</TableCell>
-                      <TableCell>{new Date(invoice.invoiceDate).toLocaleDateString()}</TableCell>
-                      <TableCell>${invoice.totals_total.toLocaleString()}</TableCell>
-                      <TableCell>
-                        <AIVerdictBadge verdict={invoice.ai_verdict} score={invoice.ai_riskScore} />
-                      </TableCell>
-                      <TableCell>
-                        <InvoiceStatusBadge status={invoice.status} />
-                      </TableCell>
-                      <TableCell>
-                        <Link href={`/admin/auditor/invoices/${invoice._id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4 mr-1" />
-                            Review
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <AuditorInvoiceTable invoices={filteredInvoices} />
             </CardContent>
           </Card>
         </div>

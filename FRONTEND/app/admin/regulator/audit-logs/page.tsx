@@ -1,32 +1,27 @@
 "use client"
 
-import { useState } from "react"
-import { AdminSidebar } from "@/components/admin-sidebar"
+import { RegulatorSidebar } from "@/features/regulator/navigation-bar/RegulatorSidebar"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { mockAuditLogs } from "@/lib/mock-data"
 import { ScrollText, Search } from "lucide-react"
 
-export default function RegulatorAuditLogsPage() {
-  const [search, setSearch] = useState("")
-  const [entityFilter, setEntityFilter] = useState("all")
+import { RegulatorAuditLogTable } from "@/features/regulator/audit-logs/components/RegulatorAuditLogTable"
+import { useRegulatorAuditLogs } from "@/features/regulator/audit-logs/hooks/useRegulatorAuditLogs"
 
-  const filteredLogs = mockAuditLogs
-    .filter((log) => {
-      const matchesSearch =
-        log.action.toLowerCase().includes(search.toLowerCase()) ||
-        log.actorName?.toLowerCase().includes(search.toLowerCase())
-      const matchesEntity = entityFilter === "all" || log.entity_type === entityFilter
-      return matchesSearch && matchesEntity
-    })
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+export default function RegulatorAuditLogsPage() {
+  const {
+    search,
+    setSearch,
+    entityFilter,
+    setEntityFilter,
+    filteredLogs
+  } = useRegulatorAuditLogs()
 
   return (
     <div className="flex h-screen">
-      <AdminSidebar role="REGULATOR" />
+      <RegulatorSidebar />
       <main className="flex-1 overflow-auto">
         <div className="p-6">
           <div className="mb-6">
@@ -68,37 +63,7 @@ export default function RegulatorAuditLogsPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Timestamp</TableHead>
-                    <TableHead>Actor</TableHead>
-                    <TableHead>Action</TableHead>
-                    <TableHead>Entity Type</TableHead>
-                    <TableHead>Entity ID</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredLogs.map((log) => (
-                    <TableRow key={log._id}>
-                      <TableCell className="font-mono text-sm">{new Date(log.createdAt).toLocaleString()}</TableCell>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{log.actorName}</p>
-                          <p className="text-xs text-muted-foreground">{log.actorEmail}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{log.action.replace(/_/g, " ")}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{log.entity_type}</Badge>
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">{log.entity_id}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <RegulatorAuditLogTable logs={filteredLogs} />
             </CardContent>
           </Card>
         </div>
