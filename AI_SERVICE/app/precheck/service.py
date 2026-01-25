@@ -1,8 +1,10 @@
 import tempfile
 import os
+
 from app.shared.ocr.extractor import extract_text
 from app.shared.ocr.quality import is_image_blurry
 from app.shared.ocr.constants import MIN_TEXT_LENGTH
+from app.shared.ocr.invoice_detector import is_likely_invoice
 from app.precheck.schemas import PreCheckResponse
 
 SUPPORTED_EXTENSIONS = (".png", ".jpg", ".jpeg", ".pdf", ".docx")
@@ -22,7 +24,7 @@ async def run_precheck(file):
         path = tmp.name
 
     try:
-        # Image blur check (images only)
+        # 1️⃣ Image blur check (images only)
         if filename.endswith((".png", ".jpg", ".jpeg")):
             if is_image_blurry(path):
                 return PreCheckResponse(
@@ -30,7 +32,7 @@ async def run_precheck(file):
                     reason="IMAGE_TOO_BLURRY"
                 )
 
-        # Extract text (OCR or parsing)
+        # 2️⃣ Extract text (OCR or parsing)
         try:
             text = extract_text(path, filename)
         except Exception:
@@ -39,15 +41,22 @@ async def run_precheck(file):
                 reason="TEXT_EXTRACTION_FAILED"
             )
 
+        # 3️⃣ Minimum text viability
         if not text or len(text.strip()) < MIN_TEXT_LENGTH:
             return PreCheckResponse(
                 processable=False,
                 reason="INSUFFICIENT_TEXT"
             )
 
+        # 4️⃣ Invoice-likeness decision (THIS WAS MISSING)
+        if not is_likely_invoice(text):
+            return PreCheckResponse(
+                processable=False,
+                reason="DOCUMENT_NOT_INVOICE"
+            )
+
+        # 5️⃣ Optional warnings (non-blocking)
         warnings = []
-        if "invoice" not in text.lower():
-            warnings.append("NOT_INVOICE_LIKE")
 
         return PreCheckResponse(
             processable=True,

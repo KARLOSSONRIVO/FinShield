@@ -1,9 +1,8 @@
 import mongoose from "mongoose";
 
-
 export const ANCHOR_STATUS  = ["pending", "anchored", "failed"]
 export const INVOICE_STATUS = ["pending", "verified", "flagged","fraudulent"]
-export const AI_VERDICT = ["cleean","flagged"]
+export const AI_VERDICT = ["clean","flagged"]
 
 
 const InvoiceSchema = new mongoose.Schema({
