@@ -23,6 +23,8 @@ const InvoiceSchema = new mongoose.Schema({
     totalAmount: {type:Number, default: null},
     ipfsCid: { type: String, required: true, index: true },
     fileHashSha256: { type: String, required: true, index: true },
+    originalFileName: { type: String, default: null },
+    mimeType: { type: String, default: null },
     anchorTxHash: { type: String, index: true },
     anchorBlockNumber: { type: Number, default: null },
     anchoredAt: { type: Date, default: null },

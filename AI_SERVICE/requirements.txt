@@ -1,6 +1,9 @@
 fastapi
 uvicorn
 python-multipart
+requests
+pymongo
+dnspython
 pytesseract
 pillow
 pdfplumber

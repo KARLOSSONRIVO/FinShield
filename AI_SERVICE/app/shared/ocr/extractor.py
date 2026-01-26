@@ -1,15 +1,18 @@
-from .image_ocr import extract_text_from_image
-from .pdf_ocr import extract_text_from_pdf
-from .docs_ocr import extract_text_from_doc
+from app.shared.ocr.image_ocr import extract_text_from_image
+from app.shared.ocr.pdf_ocr import extract_text_from_pdf
+from app.shared.ocr.docs_ocr import extract_text_from_doc
 
-def extract_text(path: str, filename: str) -> str:
-    if filename.endswith(".pdf"):
-        return extract_text_from_pdf(path)
+def extract_text(path: str, filename: str):
+    name = filename.lower()
 
-    if filename.endswith(".docx"):
-        return extract_text_from_doc(path)
-
-    if filename.endswith((".png", ".jpg", ".jpeg")):
+    if name.endswith((".png", ".jpg", ".jpeg")):
+        # returns (text, words)
         return extract_text_from_image(path)
 
-    raise ValueError("Unsupported file type")
+    if name.endswith(".pdf"):
+        return extract_text_from_pdf(path), None
+
+    if name.endswith(".docx"):
+        return extract_text_from_doc(path), None
+
+    raise ValueError("UNSUPPORTED_FILE_TYPE")

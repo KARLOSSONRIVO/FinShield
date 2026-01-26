@@ -3,6 +3,7 @@ import { sha256Hex } from "../../common/utils/hash.js";
 import { addAndPinBuffer } from "../../infrastructure/storage/ipfs.service.js";
 import { anchorInvoice } from "../../infrastructure/blockchain/ethereum.service.js";
 import { runInvoicePrecheck } from "../../infrastructure/ai/precheck_client.js";
+import { triggerOcr } from "../../infrastructure/ai/ocr_client.js";
 import * as InvoiceRepositories from "../repositories/invoice.repositories.js";
 import * as AssignmentRepositories from "../repositories/assignment.repositories.js";
 import { toInvoicePublic } from "../mappers/invoice.mapper.js";
@@ -25,6 +26,11 @@ async function anchorInvoiceInBackground(invoiceId, ipfsCid, fileSha) {
             anchoredAt: new Date(),
             anchorStatus: "anchored",
         })
+        
+        // ✅ AUTO OCR AFTER ANCHOR
+        triggerOcr(invoiceId).catch((e) => {
+        console.error(`❌ OCR trigger failed for ${invoiceId}:`, e?.message || e);
+        });
 
         console.log(`✅ Invoice ${invoiceId} anchored successfully: ${anchored.txHash}`)
     } catch (e) {
@@ -87,11 +93,23 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
      * STEP 4: CREATE INVOICE
      * ============================ */
     const invoice = await InvoiceRepositories.createInvoice({
-        orgId: actor.orgId,
+       orgId: actor.orgId,
         uploadedByUserId: actor.sub,
         ipfsCid: ipfs.cid,
         fileHashSha256: fileSha,
-        invoiceNumber: null, // populated later by AI
+
+        // ✅ metadata for OCR routing
+        originalFileName: file.originalname || null,
+        mimeType: file.mimetype || null,
+
+        // extracted later by OCR/AI
+        invoiceNumber: null,
+        invoiceDate: null,
+        totalAmount: null,
+
+        aiRiskScore: null,
+        aiVerdict: null,
+
         anchorStatus: "pending",
         status: "pending",
     });
