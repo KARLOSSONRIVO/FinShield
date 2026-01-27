@@ -34,7 +34,8 @@ async def run_precheck(file):
 
         # 2️⃣ Extract text (OCR or parsing)
         try:
-            text = extract_text(path, filename)
+            result = extract_text(path, filename)
+            text = result["text"]
         except Exception:
             return PreCheckResponse(
                 processable=False,

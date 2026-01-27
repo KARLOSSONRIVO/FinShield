@@ -10,4 +10,5 @@ const upload = multer ({ storage: multer.memoryStorage(), limits:{fileSize: 10 *
 
 invoiceRouter.post("/upload", upload.single("file"), validateInvoiceUpload, allowRoles("COMPANY_MANAGER", "COMPANY_USER"), InvoiceController.uploadAndAnchorInvoice)
 
+
 export default invoiceRouter

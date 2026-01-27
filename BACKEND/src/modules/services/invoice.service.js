@@ -6,118 +6,167 @@ import { runInvoicePrecheck } from "../../infrastructure/ai/precheck_client.js";
 import { triggerOcr } from "../../infrastructure/ai/ocr_client.js";
 import * as InvoiceRepositories from "../repositories/invoice.repositories.js";
 import * as AssignmentRepositories from "../repositories/assignment.repositories.js";
+import { isImage, isDocument } from "../../common/utils/fileTypHelpers.js";
 import { toInvoicePublic } from "../mappers/invoice.mapper.js";
 
-/**
- * Anchors an invoice on the blockchain (runs in background)
- * Updates the invoice record with the result
- */
-async function anchorInvoiceInBackground(invoiceId, ipfsCid, fileSha) {
-    try {
-        const anchored = await anchorInvoice({
-            invoiceMongoId: invoiceId,
-            ipfsCid: ipfsCid,
-            sha256Hex: fileSha,
-        })
+/* ============================
+ * BACKGROUND ANCHOR
+ * ============================ */
+export async function anchorInvoiceInBackground(
+  invoiceId,
+  ipfsCid,
+  fileSha,
+  allowAutoOcr
+) {
+  try {
+    const anchored = await anchorInvoice({
+      invoiceMongoId: invoiceId,
+      ipfsCid,
+      sha256Hex: fileSha,
+    });
 
-        await InvoiceRepositories.updateInvoice(invoiceId, {
-            anchorTxHash: anchored.txHash,
-            anchorBlockNumber: anchored.blockNumber,
-            anchoredAt: new Date(),
-            anchorStatus: "anchored",
-        })
-        
-        // ✅ AUTO OCR AFTER ANCHOR
-        triggerOcr(invoiceId).catch((e) => {
+    await InvoiceRepositories.updateInvoice(invoiceId, {
+      anchorTxHash: anchored.txHash,
+      anchorBlockNumber: anchored.blockNumber,
+      anchoredAt: new Date(),
+      anchorStatus: "anchored",
+    });
+
+    // ✅ OCR ONLY FOR DOCUMENTS
+    if (allowAutoOcr) {
+      triggerOcr(invoiceId).catch((e) => {
         console.error(`❌ OCR trigger failed for ${invoiceId}:`, e?.message || e);
-        });
-
-        console.log(`✅ Invoice ${invoiceId} anchored successfully: ${anchored.txHash}`)
-    } catch (e) {
-        await InvoiceRepositories.updateInvoice(invoiceId, {
-            anchorStatus: "failed",
-            anchorError: e?.message ? String(e.message) : "Anchor failed",
-        })
-
-        console.error(`❌ Invoice ${invoiceId} anchor failed:`, e.message)
+      });
     }
+
+    console.log(`✅ Invoice ${invoiceId} anchored: ${anchored.txHash}`);
+  } catch (e) {
+    await InvoiceRepositories.updateInvoice(invoiceId, {
+      anchorStatus: "failed",
+      anchorError: e?.message || "Anchor failed",
+    });
+
+    console.error(`❌ Anchor failed for ${invoiceId}:`, e.message);
+  }
 }
 
-export async function uploadToIpfsAndAnchor({ actor, file }) {
-    if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
+/* ============================
+ * MAIN UPLOAD SERVICE
+ * ============================ */
+export async function uploadToIpfsAndAnchor({ actor, file, fields }) {
+  if (!actor) throw new AppError("Unauthorized", 401);
 
-    if (actor.role !== "COMPANY_MANAGER" && actor.role !== "COMPANY_USER") {
-        throw new AppError("Only COMPANY_MANAGER and COMPANY_USER can upload invoices", 403, "FORBIDDEN");
+  if (!["COMPANY_MANAGER", "COMPANY_USER"].includes(actor.role)) {
+    throw new AppError("Forbidden", 403);
+  }
+
+  if (!actor.orgId) {
+    throw new AppError("Missing organization", 400);
+  }
+
+  const hasAuditor = await AssignmentRepositories.hasActiveAuditor(actor.orgId);
+  if (!hasAuditor) {
+    throw new AppError("No auditor assigned", 403);
+  }
+
+  /* ============================
+   * STEP 1: PRECHECK
+   * ============================ */
+  const precheck = await runInvoicePrecheck(file);
+  if (!precheck.processable) {
+    throw new AppError(
+      "Invoice rejected during pre-check",
+      400,
+      precheck.reason || "PRECHECK_FAILED"
+    );
+  }
+
+  /* ============================
+   * STEP 2: FILE TYPE
+   * ============================ */
+  const mimeType = file.mimetype || "";
+  const imageFile = isImage(mimeType);
+  const documentFile = isDocument(mimeType);
+
+  if (!imageFile && !documentFile) {
+    throw new AppError("Unsupported file type", 400);
+  }
+
+  /* ============================
+   * STEP 3: MANUAL FIELDS (IMAGES ONLY)  ← NEW
+   * ============================ */
+  let invoiceNumber = null;
+  let invoiceDate = null;
+  let totalAmount = null;
+
+  if (imageFile) {
+    if (
+      !fields?.invoiceNumber ||
+      !fields?.invoiceDate ||
+      !fields?.totalAmount
+    ) {
+      throw new AppError(
+        "invoiceNumber, invoiceDate, and totalAmount are required for image invoices",
+        400
+      );
     }
 
-    if (!actor.orgId) {
-        throw new AppError("Company organization ID is required", 400, "MISSING_COMPANY_ORG_ID");
+    invoiceNumber = String(fields.invoiceNumber).trim();
+    invoiceDate = String(fields.invoiceDate).trim();
+    totalAmount = Number(fields.totalAmount);
+
+    if (Number.isNaN(totalAmount)) {
+      throw new AppError("totalAmount must be a valid number", 400);
     }
+  }
 
-    const hasAuditor = await AssignmentRepositories.hasActiveAuditor(actor.orgId);
-    if (!hasAuditor) {
-        throw new AppError(
-            "Cannot upload invoices: Your company has no auditor assigned.",
-            403,
-            "NO_AUDITOR_ASSIGNED"
-        );
-    }
+  /* ============================
+   * STEP 4: HASH + IPFS
+   * ============================ */
+  const fileSha = sha256Hex(file.buffer);
 
-    /* ============================
-     * ✅ STEP 1: PRE-CHECK (OCR)
-     * ============================ */
-    const precheck = await runInvoicePrecheck(file);
+  const ipfs = await addAndPinBuffer({
+    buffer: file.buffer,
+    fileName: file.originalname || `invoice-${Date.now()}`
+  });
 
-    if (!precheck.processable) {
-        throw new AppError(
-            "Invoice rejected during pre-check",
-            400,
-            precheck.reason || "PRECHECK_FAILED"
-        );
-    }
+  /* ============================
+   * STEP 5: CREATE INVOICE
+   * ============================ */
+  const invoice = await InvoiceRepositories.createInvoice({
+    orgId: actor.orgId,
+    uploadedByUserId: actor.sub,
 
-    /* ============================
-     * STEP 2: FILE HASH
-     * ============================ */
-    const fileSha = sha256Hex(file.buffer);
+    ipfsCid: ipfs.cid,
+    fileHashSha256: fileSha,
 
-    /* ============================
-     * STEP 3: IPFS UPLOAD
-     * ============================ */
-    const ipfs = await addAndPinBuffer({
-        buffer: file.buffer,
-        fileName: file.originalname || `invoice-${Date.now()}`
-    });
+    originalFileName: file.originalname || null,
+    mimeType,
 
-    /* ============================
-     * STEP 4: CREATE INVOICE
-     * ============================ */
-    const invoice = await InvoiceRepositories.createInvoice({
-       orgId: actor.orgId,
-        uploadedByUserId: actor.sub,
-        ipfsCid: ipfs.cid,
-        fileHashSha256: fileSha,
+    // ✅ IMAGE: manual values | DOC: null
+    invoiceNumber,
+    invoiceDate,
+    totalAmount,
 
-        // ✅ metadata for OCR routing
-        originalFileName: file.originalname || null,
-        mimeType: file.mimetype || null,
+    status: imageFile ? "pending" : "pending",
+    anchorStatus: "pending",
 
-        // extracted later by OCR/AI
-        invoiceNumber: null,
-        invoiceDate: null,
-        totalAmount: null,
+    aiRiskScore: null,
+    aiVerdict: null,
+  });
 
-        aiRiskScore: null,
-        aiVerdict: null,
+  /* ============================
+   * STEP 6: BACKGROUND ANCHOR
+   * ============================ */
+  anchorInvoiceInBackground(
+    invoice._id,
+    ipfs.cid,
+    fileSha,
+    documentFile // OCR only for docs
+  );
 
-        anchorStatus: "pending",
-        status: "pending",
-    });
-
-    /* ============================
-     * STEP 5: BACKGROUND ANCHOR
-     * ============================ */
-    anchorInvoiceInBackground(invoice._id, ipfs.cid, fileSha);
-
-    return toInvoicePublic(invoice);
+  return {
+    ...toInvoicePublic(invoice),
+    requiresManualInput: imageFile
+  };
 }
