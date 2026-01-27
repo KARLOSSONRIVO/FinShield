@@ -6,7 +6,7 @@ import { runInvoicePrecheck } from "../../infrastructure/ai/precheck_client.js";
 import { triggerOcr } from "../../infrastructure/ai/ocr_client.js";
 import * as InvoiceRepositories from "../repositories/invoice.repositories.js";
 import * as AssignmentRepositories from "../repositories/assignment.repositories.js";
-import { isImage, isDocument } from "../../common/utils/fileTypHelpers.js";
+import { isDocument } from "../../common/utils/fileTypHelpers.js";
 import { toInvoicePublic } from "../mappers/invoice.mapper.js";
 
 /* ============================
@@ -85,43 +85,13 @@ export async function uploadToIpfsAndAnchor({ actor, file, fields }) {
    * STEP 2: FILE TYPE
    * ============================ */
   const mimeType = file.mimetype || "";
-  const imageFile = isImage(mimeType);
-  const documentFile = isDocument(mimeType);
 
-  if (!imageFile && !documentFile) {
-    throw new AppError("Unsupported file type", 400);
+  if (!isDocument(mimeType)) {
+    throw new AppError("Unsupported file type. Only PDF and DOCX are allowed.", 400);
   }
 
   /* ============================
-   * STEP 3: MANUAL FIELDS (IMAGES ONLY)  ← NEW
-   * ============================ */
-  let invoiceNumber = null;
-  let invoiceDate = null;
-  let totalAmount = null;
-
-  if (imageFile) {
-    if (
-      !fields?.invoiceNumber ||
-      !fields?.invoiceDate ||
-      !fields?.totalAmount
-    ) {
-      throw new AppError(
-        "invoiceNumber, invoiceDate, and totalAmount are required for image invoices",
-        400
-      );
-    }
-
-    invoiceNumber = String(fields.invoiceNumber).trim();
-    invoiceDate = String(fields.invoiceDate).trim();
-    totalAmount = Number(fields.totalAmount);
-
-    if (Number.isNaN(totalAmount)) {
-      throw new AppError("totalAmount must be a valid number", 400);
-    }
-  }
-
-  /* ============================
-   * STEP 4: HASH + IPFS
+   * STEP 3: HASH + IPFS
    * ============================ */
   const fileSha = sha256Hex(file.buffer);
 
@@ -131,7 +101,7 @@ export async function uploadToIpfsAndAnchor({ actor, file, fields }) {
   });
 
   /* ============================
-   * STEP 5: CREATE INVOICE
+   * STEP 4: CREATE INVOICE
    * ============================ */
   const invoice = await InvoiceRepositories.createInvoice({
     orgId: actor.orgId,
@@ -143,12 +113,12 @@ export async function uploadToIpfsAndAnchor({ actor, file, fields }) {
     originalFileName: file.originalname || null,
     mimeType,
 
-    // ✅ IMAGE: manual values | DOC: null
-    invoiceNumber,
-    invoiceDate,
-    totalAmount,
+    // OCR will populate these fields
+    invoiceNumber: null,
+    invoiceDate: null,
+    totalAmount: null,
 
-    status: imageFile ? "pending" : "pending",
+    status: "pending",
     anchorStatus: "pending",
 
     aiRiskScore: null,
@@ -156,17 +126,14 @@ export async function uploadToIpfsAndAnchor({ actor, file, fields }) {
   });
 
   /* ============================
-   * STEP 6: BACKGROUND ANCHOR
+   * STEP 5: BACKGROUND ANCHOR
    * ============================ */
   anchorInvoiceInBackground(
     invoice._id,
     ipfs.cid,
     fileSha,
-    documentFile // OCR only for docs
+    true // Always trigger OCR for documents
   );
 
-  return {
-    ...toInvoicePublic(invoice),
-    requiresManualInput: imageFile
-  };
+  return toInvoicePublic(invoice);
 }

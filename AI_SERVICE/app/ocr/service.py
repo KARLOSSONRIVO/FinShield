@@ -39,15 +39,6 @@ async def run_ocr_for_invoice(invoice_id: str):
 
     try:
         extracted = extract_text(tmp_path, filename)
-
-        # 🔒 IMAGE → DO NOT OCR
-        if extracted["source"] == "image":
-            return {
-                "invoiceId": invoice_id,
-                "skipped": True,
-                "reason": "manual_input_required"
-            }
-
         text = extracted["text"]
 
         parsed = parse_invoice_fields(text)
