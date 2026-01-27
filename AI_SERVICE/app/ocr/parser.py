@@ -2,6 +2,10 @@ import re
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 
+# =============================================================================
+# MONTH MAP
+# =============================================================================
+
 MONTH_MAP = {
     "jan": 1, "january": 1,
     "feb": 2, "february": 2,
@@ -17,35 +21,23 @@ MONTH_MAP = {
     "dec": 12, "december": 12,
 }
 
-def normalize_invoice_number(raw: str) -> str | None:
-    if not raw:
-        return None
-
-    s = raw.upper().strip().replace(" ", "")
-    s = s.replace("—", "-").replace("_", "-")
-
-    m = re.match(r"^([A-Z]{2,10})-?([A-Z0-9]+)$", s)
-    if not m:
-        return None
-
-    prefix, tail = m.groups()
-    digits = re.sub(r"\D", "", tail)
-
-    if not digits:
-        return None
-
-    return f"{prefix}-{digits}"
-
+# =============================================================================
+# HELPERS
+# =============================================================================
 
 def parse_money(raw: str) -> Decimal | None:
     if not raw:
         return None
 
-    s = re.sub(r"[^\d,.\-]", "", raw.strip())
+    s = raw.strip()
+    s = re.sub(r"[^\d,.\-]", "", s)
 
+    # EU format: 1.234,56
     if re.match(r"^\d{1,3}(\.\d{3})+,\d{2}$", s):
         s = s.replace(".", "").replace(",", ".")
-    elif re.match(r"^\d{1,3}(,\d{3})+(\.\d{2})$", s):
+
+    # US format: 1,234.56 or 2,044
+    if re.match(r"^\d{1,3}(,\d{3})+(\.\d{2})?$", s):
         s = s.replace(",", "")
 
     try:
@@ -54,83 +46,106 @@ def parse_money(raw: str) -> Decimal | None:
         return None
 
 
+def parse_numeric_date(raw: str) -> datetime | None:
+    raw = raw.replace("-", "/")
+    for fmt in ("%m/%d/%Y", "%d/%m/%Y", "%m/%d/%y", "%d/%m/%y"):
+        try:
+            return datetime.strptime(raw, fmt)
+        except ValueError:
+            continue
+    return None
+
+
+def parse_text_date(day: str, month: str, year: str) -> datetime | None:
+    try:
+        m = MONTH_MAP[month.lower()[:3]]
+        y = int(year)
+        if y < 100:
+            y += 2000
+        return datetime(y, m, int(day))
+    except Exception:
+        return None
+
+
+# =============================================================================
+# MAIN PARSER
+# =============================================================================
+
 def parse_invoice_fields(text: str) -> dict:
+    if isinstance(text, tuple):
+        text = text[0] if text and isinstance(text[0], str) else ""
+
     result = {
         "invoiceNumber": None,
         "invoiceDate": None,
         "totalAmount": None,
+        "confidence": {},
+        "meta": {}
     }
 
-    # ---------------- INVOICE NUMBER ----------------
-    inv_patterns = [
-        r"\binvoice\s*(?:number|no\.?|#)\s*[:\-]?\s*([A-Z]{2,10}[-]?[A-Z0-9]{2,})",
-        r"\b([A-Z]{2,10}-\d{1,10})\b",
+    # -------------------------------------------------------------------------
+    # INVOICE NUMBER (DIGITS ONLY)
+    # -------------------------------------------------------------------------
+    invoice_patterns = [
+        r"\binvoice\s*(?:number|no\.?|#)\s*[:\-]?\s*(\d{3,})",
+        r"\bno\.?\s*[:\-]?\s*(\d{3,})",
     ]
 
-    for pat in inv_patterns:
+    for pat in invoice_patterns:
         m = re.search(pat, text, re.IGNORECASE)
         if m:
-            norm = normalize_invoice_number(m.group(1))
-            if norm:
-                result["invoiceNumber"] = norm
-                break
+            result["invoiceNumber"] = m.group(1)
+            result["confidence"]["invoiceNumber"] = 0.90
+            result["meta"]["invoiceNumberSource"] = "labeled_numeric"
+            break
 
-    # ---------------- INVOICE DATE ----------------
+    # -------------------------------------------------------------------------
+    # INVOICE DATE
+    # -------------------------------------------------------------------------
     date_patterns = [
-        r"(?:invoice\s*date|date)\s*[:\-]?\s*([0-9]{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+([0-9]{4})",
-        r"(?:invoice\s*date|date)\s*[:\-]?\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+([0-9]{1,2}),?\s+([0-9]{4})",
-        r"\b([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{4})\b",
+        r"(?:invoice\s*date|issue\s*date|date)\s*[:\-]?\s*([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{2,4})",
+        r"(?:invoice\s*date|issue\s*date|date)\s*[:\-]?\s*([0-9]{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+([0-9]{4})",
+        r"(?:invoice\s*date|issue\s*date|date)\s*[:\-]?\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+([0-9]{1,2}),?\s+([0-9]{4})",
     ]
 
     for pat in date_patterns:
         m = re.search(pat, text, re.IGNORECASE)
         if not m:
             continue
-        try:
-            if m.group(2).isalpha():
-                day, month, year = m.group(1), m.group(2), m.group(3)
-                result["invoiceDate"] = datetime(
-                    int(year), MONTH_MAP[month.lower()[:3]], int(day)
-                ).strftime("%Y-%m-%d")
-            else:
-                dt = datetime.strptime(m.group(1), "%m/%d/%Y")
-                result["invoiceDate"] = dt.strftime("%Y-%m-%d")
+
+        if len(m.groups()) == 3 and m.group(2).isalpha():
+            parsed = parse_text_date(m.group(1), m.group(2), m.group(3))
+        elif len(m.groups()) == 3 and m.group(1).isalpha():
+            parsed = parse_text_date(m.group(2), m.group(1), m.group(3))
+        else:
+            parsed = parse_numeric_date(m.group(1))
+
+        if parsed:
+            result["invoiceDate"] = parsed.strftime("%Y-%m-%d")
+            result["confidence"]["invoiceDate"] = 0.85
+            result["meta"]["invoiceDateSource"] = "pattern"
             break
-        except:
+
+    # -------------------------------------------------------------------------
+    # TOTAL AMOUNT (STRICT PRIORITY)
+    # -------------------------------------------------------------------------
+    TOTAL_PATTERNS = [
+        ("grand_total", r"\bgrand\s*total\b[^\d]{0,40}([$€£₱]?\s*\d[\d,]*(?:\.\d{2})?)"),
+        ("balance_due", r"\bbalance\s*due\b[^\d]{0,40}([$€£₱]?\s*\d[\d,]*(?:\.\d{2})?)"),
+        ("amount_due",  r"\bamount\s*due\b[^\d]{0,40}([$€£₱]?\s*\d[\d,]*(?:\.\d{2})?)"),
+        ("total",       r"\btotal\b(?!\s*%)\b[^\d]{0,40}([$€£₱]?\s*\d[\d,]*(?:\.\d{2})?)"),
+    ]
+
+    for label, pat in TOTAL_PATTERNS:
+        m = re.search(pat, text, re.IGNORECASE)
+        if not m:
             continue
 
-    # ---------------- TOTAL AMOUNT ----------------
-    TOTAL = re.compile(
-        r"\b(total|grand\s*total|amount\s*due|balance\s*due)\b[^\d]{0,20}"
-        r"([$€£₱]?\s*\d{1,3}(?:,\d{3})*(?:\.\d{2}))",
-        re.IGNORECASE
-    )
-
-    SUBTOTAL = re.compile(
-        r"\bsub\s*total\b[^\d]{0,20}([$€£₱]?\s*\d{1,3}(?:,\d{3})*(?:\.\d{2}))",
-        re.IGNORECASE
-    )
-
-    TAX = re.compile(
-        r"\btax\b(?!\s*rate|\s*%)\s*[^\d]{0,20}([$€£₱]?\s*\d{1,3}(?:,\d{3})*(?:\.\d{2}))",
-        re.IGNORECASE
-    )
-
-    totals = TOTAL.findall(text)
-    picked = None
-
-    if totals:
-        picked = parse_money(totals[-1][1])
-
-    sub = parse_money(SUBTOTAL.search(text).group(1)) if SUBTOTAL.search(text) else None
-    tax = parse_money(TAX.search(text).group(1)) if TAX.search(text) else None
-
-    if sub and tax:
-        computed = sub + tax
-        if not picked or abs(picked - computed) > Decimal("2.00"):
-            picked = computed
-
-    if picked:
-        result["totalAmount"] = float(picked)
+        amt = parse_money(m.group(1))
+        if amt is not None:
+            result["totalAmount"] = float(amt)
+            result["confidence"]["totalAmount"] = 0.92
+            result["meta"]["totalAmountSource"] = label
+            break
 
     return result
