@@ -56,12 +56,9 @@ paths:
                   type: string
                   format: password
                   example: Password123!
-                firstName:
+                username:
                   type: string
-                  example: John
-                lastName:
-                  type: string
-                  example: Doe
+                  example: Jon Doe
                 role:
                   type: string
                   enum: [SUPER_ADMIN, AUDITOR, REGULATOR, COMPANY_MANAGER, COMPANY_USER]
