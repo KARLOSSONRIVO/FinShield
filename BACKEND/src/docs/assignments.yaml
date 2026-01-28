@@ -15,15 +15,15 @@ paths:
               type: object
               required:
                 - auditorUserId
-                - companyUserId
+                - companyOrgId
               properties:
                 auditorUserId:
                   type: string
                   description: ID of the auditor user
                   example: "507f1f77bcf86cd799439011"
-                companyUserId:
+                companyOrgId:
                   type: string
-                  description: ID of the company user
+                  description: ID of the company organization
                   example: "507f1f77bcf86cd799439012"
       responses:
         "201":
