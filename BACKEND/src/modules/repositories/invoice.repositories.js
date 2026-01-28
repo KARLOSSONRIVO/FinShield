@@ -23,3 +23,7 @@ export async function findByStatus(status) {
 export async function findPendingAnchors() {
     return Invoice.find({ anchorStatus: "pending" }).sort({ createdAt: 1 })
 }
+
+export async function findInvoiceByCid(fileSha) {
+  return await Invoice.findOne({ fileHashSha256: fileSha });
+}

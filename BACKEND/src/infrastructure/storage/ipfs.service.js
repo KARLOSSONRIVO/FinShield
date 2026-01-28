@@ -136,3 +136,23 @@ export async function getPinStatus(cid) {
         throw new AppError(`IPFS status check failed: ${error.message}`, 500, "IPFS_STATUS_FAILED")
     }
 }
+
+//Remove file from IPFS (unpin from Pinata).
+export async function removeFromIpfs(cid) {
+  try {
+    const response = await axios.delete(`${PINATA_API_URL}/pinning/unpin/${cid}`, {
+      headers: {
+        "Authorization": `Bearer ${PINATA_JWT}`,
+      }
+    });
+
+    if (response.status === 200) {
+      return { success: true };
+    } else {
+      throw new Error(`Failed to unpin from IPFS: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error("Error removing from IPFS:", error);
+    throw new AppError(`Failed to unpin from IPFS: ${error.message}`, 500, "IPFS_UNPIN_FAILED");
+  }
+}
