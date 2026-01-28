@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, User, Settings, LogOut, Wallet, ChevronDown, ChevronUp } from "lucide-react"
+import { Bell, User, Wallet, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -23,7 +23,7 @@ interface TopBarProps {
     userName?: string;
 }
 
-export function TopBar({ title, organizationName = "Company Position", userName = "Username" }: TopBarProps) {
+export function RegulatorTopBar({ title, organizationName = "Regulatory Body", userName = "Regulator User" }: TopBarProps) {
     return (
         <header className="h-20 border-b border-border bg-background px-6 flex items-center justify-between">
             {/* Page Title */}
@@ -44,14 +44,14 @@ export function TopBar({ title, organizationName = "Company Position", userName 
                         </div>
                         <div className="p-0">
                             {/* Mock Notifications */}
-                            {[1, 2, 3].map((_, i) => (
+                            {[1, 2].map((_, i) => (
                                 <div key={i} className="p-4 border-b border-border last:border-0 hover:bg-muted/50 transition-colors cursor-pointer">
                                     <div className="flex justify-between items-start mb-1">
-                                        <span className="font-medium text-sm">New Fraud Alert</span>
-                                        <span className="text-xs text-muted-foreground">2m ago</span>
+                                        <span className="font-medium text-sm">Action Required</span>
+                                        <span className="text-xs text-muted-foreground">2h ago</span>
                                     </div>
                                     <p className="text-xs text-muted-foreground">
-                                        Invoice INV-2024-{100 + i} tagged for review.
+                                        Compliance report for Provider {100 + i} is ready.
                                     </p>
                                 </div>
                             ))}
@@ -76,7 +76,7 @@ export function TopBar({ title, organizationName = "Company Position", userName 
                     <DropdownMenuContent align="end" className="w-56">
                         <DropdownMenuLabel>My Account</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <Link href="/admin/super-admin/settings">
+                        <Link href="/admin/regulator/settings">
                             <DropdownMenuItem className="cursor-pointer">
                                 <User className="mr-2 h-4 w-4" />
                                 <span>Profile</span>
@@ -89,6 +89,6 @@ export function TopBar({ title, organizationName = "Company Position", userName 
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-        </header >
+        </header>
     )
 }

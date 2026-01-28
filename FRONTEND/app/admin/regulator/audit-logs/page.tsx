@@ -1,14 +1,20 @@
 "use client"
 
-import { RegulatorSidebar } from "@/features/regulator/navigation-bar/RegulatorSidebar"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { ScrollText, Search } from "lucide-react"
-
+import { Search, Filter } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { RegulatorAuditLogTable } from "@/features/regulator/audit-logs/components/RegulatorAuditLogTable"
-import { useRegulatorAuditLogs } from "@/features/regulator/audit-logs/hooks/useRegulatorAuditLogs"
+import { useRegulatorAuditLogs, EntityFilter } from "@/features/regulator/audit-logs/hooks/useRegulatorAuditLogs"
+import { Pagination } from "@/components/ui/pagination-custom"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 
 export default function RegulatorAuditLogsPage() {
   const {
@@ -16,58 +22,74 @@ export default function RegulatorAuditLogsPage() {
     setSearch,
     entityFilter,
     setEntityFilter,
-    filteredLogs
+    logs,
+    currentPage,
+    totalPages,
+    setCurrentPage
   } = useRegulatorAuditLogs()
 
+  const FilterItem = ({ label, value }: { label: string, value: EntityFilter }) => (
+    <DropdownMenuItem
+      onClick={() => setEntityFilter(value)}
+      className={cn("justify-between", entityFilter === value && "bg-accent font-medium")}
+    >
+      {label}
+      {entityFilter === value && <div className="h-2 w-2 rounded-full bg-emerald-600" />}
+    </DropdownMenuItem>
+  )
+
   return (
-    <div className="flex h-screen">
-      <RegulatorSidebar />
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <ScrollText className="h-6 w-6 text-primary" />
-              Audit Logs
-            </h1>
-            <p className="text-muted-foreground">Complete system activity history</p>
-            <Badge variant="outline" className="mt-2">
-              Read-Only Access
-            </Badge>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-normal tracking-tight">System History</h2>
+      </div>
+
+      <div>
+        <div className="flex gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search Loggings..."
+              className="pl-9 bg-background border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
 
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1 max-w-sm">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search logs..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <Select value={entityFilter} onValueChange={setEntityFilter}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by entity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Entities</SelectItem>
-                    <SelectItem value="organization">Organization</SelectItem>
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="assignment">Assignment</SelectItem>
-                    <SelectItem value="invoice">Invoice</SelectItem>
-                    <SelectItem value="review">Review</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <RegulatorAuditLogTable logs={filteredLogs} />
-            </CardContent>
-          </Card>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2 border-2 border-black/10 text-base px-6 w-[200px] justify-between">
+                <span className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  Filter
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Filter by Entity</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <FilterItem label="All Entities" value="all" />
+              <FilterItem label="Invoices" value="invoice" />
+              <FilterItem label="Users" value="user" />
+              <FilterItem label="Assignments" value="assignment" />
+              <FilterItem label="Organizations" value="organization" />
+              <FilterItem label="Reviews" value="review" />
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </main>
+      </div>
+
+      <div className="mt-4">
+        <RegulatorAuditLogTable logs={logs} />
+      </div>
+
+      <div className="mt-4 flex justify-center">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
     </div>
   )
 }

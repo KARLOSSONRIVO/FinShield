@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { FinShieldLogo } from "@/components/finshield-logo"
 import { Button } from "@/components/ui/button"
 import {
     LayoutDashboard,
@@ -13,44 +12,57 @@ import {
     LogOut,
     ChevronLeft,
     ChevronRight,
+    Shield,
 } from "lucide-react"
-import { useState } from "react"
 
 const auditorLinks = [
     { href: "/admin/auditor", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/admin/auditor/invoices", label: "Assigned Invoices", icon: FileText },
+    { href: "/admin/auditor/invoices", label: "All Invoices", icon: FileText },
     { href: "/admin/auditor/flagged", label: "Flagged Queue", icon: AlertTriangle },
     { href: "/admin/auditor/blockchain", label: "Blockchain Ledger", icon: Link2 },
 ]
 
-export function AuditorSidebar() {
+interface AuditorSidebarProps {
+    collapsed: boolean
+    setCollapsed: (collapsed: boolean) => void
+}
+
+// ... imports remain the same
+
+export function AuditorSidebar({ collapsed, setCollapsed }: AuditorSidebarProps) {
     const pathname = usePathname()
-    const [collapsed, setCollapsed] = useState(false)
 
     return (
         <aside
             className={cn(
-                "h-screen bg-sidebar border-r border-sidebar-border flex flex-col transition-all duration-300",
-                collapsed ? "w-16" : "w-64",
+                "hidden md:flex flex-col h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 text-sidebar-foreground shadow-sm fixed top-0 left-0 z-50",
+                collapsed ? "w-20" : "w-72",
             )}
         >
-            <div
-                className={cn(
-                    "p-4 border-b border-sidebar-border flex items-center",
-                    collapsed ? "justify-center" : "justify-between",
+            <div className="h-20 flex items-center justify-between px-4 border-b border-sidebar-border">
+                {!collapsed && (
+                    <div className="flex items-center gap-3">
+                        {/* Shield Icon - Green Box with White Outline */}
+                        <div className="flex items-center justify-center bg-emerald-600 rounded-lg h-9 w-9 shadow-sm">
+                            <Shield className="h-5 w-5 text-white" fill="none" strokeWidth={2.5} />
+                        </div>
+                        <span className="font-bold text-xl tracking-tight text-sidebar-foreground">FinShield</span>
+                    </div>
                 )}
-            >
-                {!collapsed && <FinShieldLogo />}
-                <Button variant="ghost" size="icon" onClick={() => setCollapsed(!collapsed)} className="h-8 w-8">
-                    {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-                </Button>
+                <div className="flex items-center gap-1">
+                    <button
+                        onClick={() => setCollapsed(!collapsed)}
+                        className={cn(
+                            "p-1.5 rounded-full hover:bg-sidebar-accent/50 transition-colors text-sidebar-foreground",
+                            collapsed && "mx-auto"
+                        )}
+                    >
+                        {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+                    </button>
+                </div>
             </div>
 
-            {!collapsed && (
-                <div className="px-4 py-2 text-xs text-muted-foreground uppercase tracking-wider">Auditor Portal</div>
-            )}
-
-            <nav className="flex-1 px-2 py-2 space-y-1">
+            <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
                 {auditorLinks.map((link) => {
                     const isActive = pathname === link.href
                     return (
@@ -58,27 +70,33 @@ export function AuditorSidebar() {
                             key={link.href}
                             href={link.href}
                             className={cn(
-                                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                                "flex items-center gap-4 px-4 py-3.5 rounded-xl text-sm font-medium transition-all group",
                                 isActive
-                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
                                     : "text-sidebar-foreground hover:bg-sidebar-accent/50",
-                                collapsed && "justify-center",
+                                collapsed && "justify-center px-2",
                             )}
                             title={collapsed ? link.label : undefined}
                         >
-                            <link.icon className="h-5 w-5 shrink-0" />
-                            {!collapsed && <span>{link.label}</span>}
+                            <link.icon className={cn(
+                                "h-5 w-5 shrink-0 transition-colors",
+                                isActive ? "text-sidebar-accent-foreground" : "text-sidebar-foreground group-hover:text-sidebar-foreground"
+                            )} strokeWidth={2.5} />
+                            {!collapsed && <span className="whitespace-nowrap font-semibold">{link.label}</span>}
                         </Link>
                     )
                 })}
             </nav>
 
-            <div className="p-4 border-t border-sidebar-border">
+            <div className="p-4 border-t border-sidebar-border mt-auto">
                 <Link href="/">
-                    <Button variant="ghost" className={cn("w-full", collapsed ? "px-0" : "justify-start")}>
-                        <LogOut className="h-5 w-5" />
-                        {!collapsed && <span className="ml-2">Logout</span>}
-                    </Button>
+                    <button className={cn(
+                        "flex items-center gap-4 w-full px-4 py-3.5 rounded-xl text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all",
+                        collapsed && "justify-center px-2"
+                    )}>
+                        <LogOut className="h-5 w-5 shrink-0" strokeWidth={2.5} />
+                        {!collapsed && <span className="font-semibold">Sign out</span>}
+                    </button>
                 </Link>
             </div>
         </aside>

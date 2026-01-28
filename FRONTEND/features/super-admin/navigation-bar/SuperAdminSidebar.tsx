@@ -18,9 +18,8 @@ import {
     ChevronLeft,
     ChevronRight,
     Shield, // Assuming Shield is used for the logo icon
+    Settings,
 } from "lucide-react"
-import { useState } from "react"
-import { ModeToggle } from "@/app/mode-toggle"
 
 const superAdminLinks = [
     { href: "/admin/super-admin", label: "Dashboard", icon: LayoutDashboard },
@@ -60,7 +59,6 @@ export function SuperAdminSidebar({ collapsed, setCollapsed }: SuperAdminSidebar
                     </div>
                 )}
                 <div className="flex items-center gap-1">
-                    <ModeToggle />
                     <button
                         onClick={() => setCollapsed(!collapsed)}
                         className={cn(

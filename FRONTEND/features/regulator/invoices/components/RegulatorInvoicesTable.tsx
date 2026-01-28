@@ -11,16 +11,16 @@ import {
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Invoice } from "@/lib/types"
-import { SortConfig } from "../hooks/useInvoices"
-import { ArrowUpDown } from "lucide-react"
+import { SortConfig } from "../hooks/useRegulatorInvoices"
+import { ArrowUpDown, Eye } from "lucide-react"
 
-interface AllInvoicesTableProps {
+interface RegulatorInvoicesTableProps {
     invoices: Invoice[]
     sortConfig: SortConfig
     onSort: (key: keyof Invoice) => void
 }
 
-export function AllInvoicesTable({ invoices, sortConfig, onSort }: AllInvoicesTableProps) {
+export function RegulatorInvoicesTable({ invoices, sortConfig, onSort }: RegulatorInvoicesTableProps) {
     const getAiBadgeColor = (verdict: string) => {
         switch (verdict) {
             case "clean": return "bg-emerald-600";
@@ -37,13 +37,6 @@ export function AllInvoicesTable({ invoices, sortConfig, onSort }: AllInvoicesTa
             case "flagged": return "bg-yellow-500 text-black";
             default: return "bg-gray-500";
         }
-    }
-
-    const getSortIcon = (key: keyof Invoice) => {
-        if (sortConfig?.key === key) {
-            return <ArrowUpDown className={`ml-2 h-4 w-4 ${sortConfig.direction === "asc" ? "text-primary" : "text-primary/70"}`} />
-        }
-        return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground/30" />
     }
 
     return (
@@ -85,8 +78,12 @@ export function AllInvoicesTable({ invoices, sortConfig, onSort }: AllInvoicesTa
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-6 text-center">
-                                    <Link href={`/admin/super-admin/invoices/${row._id}`}>
-                                        <Button size="sm" className="bg-[#3b82f6] hover:bg-[#3b82f6]/90 text-white font-bold h-8 px-6 rounded-md text-xs shadow-none">View</Button>
+                                    {/* Link to regulator invoice details if we had one, for now linking to nowhere or maybe just a disabled button explaining it's readonly */}
+                                    <Link href={`#`}>
+                                        <Button size="sm" variant="outline" className="gap-2 font-bold h-8 px-6 rounded-md text-xs shadow-none">
+                                            <Eye className="h-3 w-3" />
+                                            View
+                                        </Button>
                                     </Link>
                                 </TableCell>
                             </TableRow>

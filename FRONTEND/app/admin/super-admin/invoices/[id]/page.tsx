@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, FileText, Blocks, History, ShieldAlert } from "lucide-react"
+import { ArrowLeft, FileText, Blocks, History, ShieldAlert, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 import { use } from "react"
 import { mockInvoices } from "@/lib/mock-data"
@@ -104,7 +104,7 @@ export default function InvoiceDetailsPage({ params }: { params: Promise<{ id: s
               <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden border border-border">
                 <div
                   className={`h-full ${invoice.ai_riskScore < 0.3 ? 'bg-emerald-500' :
-                      invoice.ai_riskScore < 0.79 ? 'bg-yellow-500' : 'bg-red-600'
+                    invoice.ai_riskScore < 0.79 ? 'bg-yellow-500' : 'bg-red-600'
                     } transition-all duration-500`}
                   style={{ width: `${invoice.ai_riskScore * 100}%` }}
                 />
@@ -114,31 +114,46 @@ export default function InvoiceDetailsPage({ params }: { params: Promise<{ id: s
         </Card>
 
         {/* Card 3: Blockchain Verification */}
-        <Card className="border-2 border-border shadow-sm rounded-xl">
+        <Card className="border-2 border-border shadow-sm rounded-xl h-full">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-lg font-bold">
               <Blocks className="h-5 w-5" />
               Blockchain Verification
             </CardTitle>
+            <p className="text-xs text-muted-foreground font-medium">Tamper-proof ledger record</p>
           </CardHeader>
           <CardContent className="space-y-4 pt-4">
             <div>
-              <p className="text-xs font-bold text-black mb-1">Tamper-proof ledger record</p>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-gray-500 mb-1">Transaction Hash</p>
-              <div className="bg-gray-100 p-2 rounded border border-border text-xs font-mono text-gray-600 truncate">
-                {invoice.blockchain_txHash || "Pending Blockchain Anchor"}
+              <p className="text-xs font-bold text-muted-foreground mb-1">Transaction Hash</p>
+              <div className="bg-muted p-2 rounded border border-border text-xs font-mono text-muted-foreground truncate">
+                {(invoice.ai_verdict === 'flagged' || invoice.status === 'fraudulent' || invoice.status === 'flagged')
+                  ? "None"
+                  : "0x1234567890abcdef1234567890abcdef12345678"
+                }
               </div>
             </div>
-            <div>
-              <p className="text-xs font-bold text-gray-500 mb-1">Anchored At</p>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-sm">{invoice.blockchain_anchoredAt ? new Date(invoice.blockchain_anchoredAt).toLocaleString() : "N/A"}</span>
-                {invoice.blockchain_anchoredAt && (
-                  <Badge variant="outline" className="text-emerald-600 border-emerald-600 bg-emerald-50 text-[10px] font-bold">Verified on Blockchain</Badge>
-                )}
+            <div className="pt-2">
+              <p className="text-xs font-bold text-muted-foreground mb-1">Anchored At</p>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="font-bold text-sm">
+                  {(invoice.ai_verdict === 'flagged' || invoice.status === 'fraudulent' || invoice.status === 'flagged')
+                    ? "-/-/-, --:--:00 AM"
+                    : "12/2/2024, 10:30:00 AM"
+                  }
+                </span>
               </div>
+
+              {(invoice.ai_verdict === 'flagged' || invoice.status === 'fraudulent' || invoice.status === 'flagged') ? (
+                <Badge className="bg-red-600 hover:bg-red-700 border-none text-white px-3 flex items-center gap-1 w-fit">
+                  <ShieldAlert className="h-3 w-3" />
+                  Unverified on Blockchain
+                </Badge>
+              ) : (
+                <Badge className="bg-emerald-600 hover:bg-emerald-700 border-none text-white px-3 flex items-center gap-1 w-fit">
+                  <ShieldCheck className="h-3 w-3" />
+                  Verified on Blockchain
+                </Badge>
+              )}
             </div>
           </CardContent>
         </Card>

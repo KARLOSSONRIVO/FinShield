@@ -25,13 +25,11 @@ export default function BlockchainLedgerPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-normal tracking-tight">Blockchain Ledger</h2>
-      </div>
-
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-normal tracking-tight">Blockchain Transactions</h3>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-normal tracking-tight">Blockchain Transactions</h2>
+          </div>
           <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold">
             <Wallet className="h-4 w-4" />
             Connect Wallet

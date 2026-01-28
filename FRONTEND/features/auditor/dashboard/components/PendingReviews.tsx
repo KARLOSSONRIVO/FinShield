@@ -1,23 +1,21 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AIVerdictBadge } from "@/components/status-badge"
 import { FileText } from "lucide-react"
-import type { Invoice } from "@/lib/types"
 
 interface PendingReviewsProps {
-    invoices: Invoice[]
+    invoices: any[] // Using any to accept mock data structure readily
 }
 
 export function PendingReviews({ invoices }: PendingReviewsProps) {
     return (
         <Card>
-            <CardHeader>
+            <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5" />
                     Pending Reviews
                 </CardTitle>
-                <CardDescription>Invoices awaiting your decision</CardDescription>
+                <CardDescription>Latest invoice submissions for your decision</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
@@ -25,15 +23,27 @@ export function PendingReviews({ invoices }: PendingReviewsProps) {
                         invoices.slice(0, 5).map((invoice) => (
                             <div
                                 key={invoice._id}
-                                className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg"
+                                className="flex items-center justify-between p-4 bg-card border rounded-lg hover:shadow-sm transition-shadow"
                             >
-                                <div>
-                                    <p className="font-medium">{invoice.invoiceNo}</p>
-                                    <p className="text-sm text-muted-foreground">{invoice.companyName}</p>
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-lg bg-emerald-600/10 flex items-center justify-center text-emerald-600">
+                                        <FileText className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-base">{invoice.invoiceNo}</p>
+                                        <p className="text-sm text-muted-foreground">{invoice.companyName}</p>
+                                    </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-medium">${invoice.totals_total.toLocaleString()}</p>
-                                    <AIVerdictBadge verdict={invoice.ai_verdict} score={invoice.ai_riskScore} />
+                                    <p className="font-bold text-lg mb-1">${invoice.totals_total.toLocaleString()}</p>
+                                    <div className="flex items-center justify-end gap-2">
+                                        <span className="inline-flex items-center rounded-md bg-emerald-600 px-2 py-1 text-xs font-medium text-white ring-1 ring-inset ring-emerald-600/10">
+                                            {invoice.status}
+                                        </span>
+                                        <span className="text-xs font-semibold text-muted-foreground">
+                                            Risk: {invoice.ai_riskScore}%
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         ))

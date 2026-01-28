@@ -1,71 +1,80 @@
-import { AuditorSidebar } from "@/features/auditor/navigation-bar/AuditorSidebar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { mockInvoices, mockAssignments } from "@/lib/mock-data"
-import { Link2, CheckCircle } from "lucide-react"
+"use client"
+
+import { Input } from "@/components/ui/input"
+import { Search, Filter, Wallet } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { AuditorBlockchainTable } from "@/features/auditor/blockchain/components/AuditorBlockchainTable"
+import { useAuditorBlockchain } from "@/features/auditor/blockchain/hooks/useAuditorBlockchain"
+import { Pagination } from "@/components/ui/pagination-custom"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export default function AuditorBlockchainPage() {
-  const assignedCompanyIds = mockAssignments
-    .filter((a) => a.auditorUserId === "user-auditor-1" && a.status === "active")
-    .map((a) => a.companyOrgId)
-
-  const verifiedInvoices = mockInvoices.filter(
-    (i) => assignedCompanyIds.includes(i.companyOrgId) && i.blockchain_txHash,
-  )
+  const {
+    search,
+    setSearch,
+    invoices,
+    currentPage,
+    totalPages,
+    setCurrentPage
+  } = useAuditorBlockchain()
 
   return (
-    <div className="flex h-screen">
-      <AuditorSidebar />
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Link2 className="h-6 w-6 text-primary" />
-              Blockchain Ledger
-            </h1>
-            <p className="text-muted-foreground">Verified records from assigned companies</p>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold tracking-tight">Blockchain Ledger</h2>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-normal tracking-tight">Blockchain Transactions</h3>
+          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold">
+            <Wallet className="h-4 w-4" />
+            Connect Wallet
+          </Button>
+        </div>
+
+        <div className="flex gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search Blockchains..."
+              className="pl-9 bg-background border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Blockchain Verified Invoices</CardTitle>
-              <CardDescription>{verifiedInvoices.length} invoices anchored on blockchain</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Invoice No</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Transaction Hash</TableHead>
-                    <TableHead>Anchored At</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {verifiedInvoices.map((invoice) => (
-                    <TableRow key={invoice._id}>
-                      <TableCell className="font-medium">{invoice.invoiceNo}</TableCell>
-                      <TableCell>{invoice.companyName}</TableCell>
-                      <TableCell className="font-mono text-xs max-w-xs truncate">{invoice.blockchain_txHash}</TableCell>
-                      <TableCell>
-                        {invoice.blockchain_anchoredAt ? new Date(invoice.blockchain_anchoredAt).toLocaleString() : "-"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="default" className="bg-primary text-primary-foreground">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Verified
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2 border-2 border-black/10 text-base px-6">
+                <Filter className="h-4 w-4" />
+                Filter
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>All Transactions</DropdownMenuItem>
+              <DropdownMenuItem>Verified Only</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </main>
+      </div>
+
+      <div className="mt-4">
+        <AuditorBlockchainTable invoices={invoices} />
+      </div>
+
+      <div className="mt-4 flex justify-center">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
     </div>
   )
 }

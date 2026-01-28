@@ -41,12 +41,10 @@ export default function AuditLogsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-normal tracking-tight">Audit Logs</h2>
+        <h2 className="text-2xl font-normal tracking-tight">System History</h2>
       </div>
 
       <div>
-        <h3 className="text-xl font-normal tracking-tight mb-4">System History</h3>
-
         <div className="flex gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

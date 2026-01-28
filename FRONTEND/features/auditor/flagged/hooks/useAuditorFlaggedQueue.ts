@@ -1,17 +1,10 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { mockInvoices } from "@/lib/mock-data"
-import { Invoice, InvoiceStatus } from "@/lib/types"
+import { MOCK_AUDITOR_INVOICES } from "@/hooks/mock-data"
+import { AuditorInvoice, SortConfig, InvoiceStatusFilter } from "@/features/auditor/invoices/hooks/useAuditorInvoices"
 
-export type SortConfig = {
-    key: keyof Invoice
-    direction: "asc" | "desc"
-} | null
-
-export type InvoiceStatusFilter = "all" | InvoiceStatus
-
-export function useFlaggedQueue() {
+export function useAuditorFlaggedQueue() {
     const [search, setSearch] = useState("")
     const [statusFilter, setStatusFilter] = useState<InvoiceStatusFilter>("all")
 
@@ -20,7 +13,7 @@ export function useFlaggedQueue() {
     const [itemsPerPage] = useState(5)
     const [sortConfig, setSortConfig] = useState<SortConfig>(null)
 
-    const requestSort = (key: keyof Invoice) => {
+    const requestSort = (key: keyof AuditorInvoice) => {
         let direction: "asc" | "desc" = "asc"
         if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
             direction = "desc"
@@ -28,18 +21,14 @@ export function useFlaggedQueue() {
         setSortConfig({ key, direction })
     }
 
+    // Base Set: Invoices that are AI Flagged or have High Risk or Status Flagged
     const flaggedInvoices = useMemo(() => {
-        // Base Set: Invoices that are AI Flagged or have High Risk or Status Flagged
-        // Basically anything that needs attention. 
-        // Logic: AI Verdict = Flagged OR Risk Score > 0.5 (example) OR Status = Flagged/Fraud
-        // The screenshot shows "Pending", "Fraud", "Flagged".
-        // It seems to be a queue of "Suspicious" items.
-        // Let's stick to: AI Verdict == 'flagged' OR AI Risk >= 0.7 OR Status == 'flagged' OR Status == 'fraudulent'
-        return mockInvoices.filter(i =>
-            i.ai_verdict === 'flagged' ||
-            i.status === 'flagged' ||
-            i.status === 'fraudulent' ||
-            i.ai_riskScore >= 0.7
+        return MOCK_AUDITOR_INVOICES.filter(i =>
+            i.ai_verdict === 'Flagged' ||
+            i.status === 'Flagged' ||
+            i.status === 'Fraud' ||
+            i.status === 'Fraudulent' ||
+            i.ai_riskScore >= 60 // Mock data uses 0-100 score? Let's check. Yes, 65, 85.
         )
     }, [])
 
@@ -48,15 +37,16 @@ export function useFlaggedQueue() {
 
         // Filter by Search
         if (search) {
+            const lowerSearch = search.toLowerCase()
             processed = processed.filter(inv =>
-                inv.invoiceNo.toLowerCase().includes(search.toLowerCase()) ||
-                (inv.companyName && inv.companyName.toLowerCase().includes(search.toLowerCase()))
+                inv.invoiceNo.toLowerCase().includes(lowerSearch) ||
+                (inv.companyName && inv.companyName.toLowerCase().includes(lowerSearch))
             )
         }
 
         // Filter by Status (Dropdown)
         if (statusFilter !== "all") {
-            processed = processed.filter(inv => inv.status === statusFilter)
+            processed = processed.filter(inv => inv.status.toLowerCase() === statusFilter.toLowerCase())
         }
 
         // Sort
@@ -68,6 +58,14 @@ export function useFlaggedQueue() {
                 if (aValue === bValue) return 0
                 if (aValue === undefined || aValue === null) return 1
                 if (bValue === undefined || bValue === null) return -1
+
+                if (sortConfig.key === 'date') {
+                    const dateA = new Date(aValue as string).getTime()
+                    const dateB = new Date(bValue as string).getTime()
+                    if (dateA < dateB) return sortConfig.direction === "asc" ? -1 : 1
+                    if (dateA > dateB) return sortConfig.direction === "asc" ? 1 : -1
+                    return 0
+                }
 
                 if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1
                 if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1

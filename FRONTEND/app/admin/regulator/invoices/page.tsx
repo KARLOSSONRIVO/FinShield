@@ -1,14 +1,11 @@
 "use client"
 
-import { RegulatorSidebar } from "@/features/regulator/navigation-bar/RegulatorSidebar"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { FileText, Search } from "lucide-react"
-
-import { RegulatorInvoiceTable } from "@/features/regulator/invoices/components/RegulatorInvoiceTable"
-import { useRegulatorInvoices, InvoiceStatusFilter } from "@/features/regulator/invoices/hooks/useRegulatorInvoices"
+import { Search } from "lucide-react"
+import { RegulatorInvoicesTable } from "@/features/regulator/invoices/components/RegulatorInvoicesTable"
+import { useRegulatorInvoices } from "@/features/regulator/invoices/hooks/useRegulatorInvoices"
+import { Pagination } from "@/components/ui/pagination-custom"
+import { RegulatorInvoiceFilter } from "@/features/regulator/invoices/components/RegulatorInvoiceFilter"
 
 export default function RegulatorInvoicesPage() {
   const {
@@ -16,57 +13,52 @@ export default function RegulatorInvoicesPage() {
     setSearch,
     statusFilter,
     setStatusFilter,
-    filteredInvoices
+    invoices,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    sortConfig,
+    requestSort
   } = useRegulatorInvoices()
 
   return (
-    <div className="flex h-screen">
-      <RegulatorSidebar />
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <FileText className="h-6 w-6 text-primary" />
-              All Invoices
-            </h1>
-            <p className="text-muted-foreground">Read-only view of all platform invoices</p>
-            <Badge variant="outline" className="mt-2">
-              Read-Only Access
-            </Badge>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-normal tracking-tight">Invoice Oversight</h2>
+      </div>
 
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1 max-w-sm">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search invoices..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as InvoiceStatusFilter)}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter by status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="verified">Verified</SelectItem>
-                    <SelectItem value="flagged">Flagged</SelectItem>
-                    <SelectItem value="fraudulent">Fraudulent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <RegulatorInvoiceTable invoices={filteredInvoices} />
-            </CardContent>
-          </Card>
+      <div className="flex gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search Invoices..."
+            className="pl-9 bg-background border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-      </main>
+
+        <RegulatorInvoiceFilter
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          sortConfig={sortConfig}
+          onSortChange={requestSort}
+        />
+      </div>
+
+      <RegulatorInvoicesTable
+        invoices={invoices}
+        sortConfig={sortConfig}
+        onSort={requestSort}
+      />
+
+      <div className="mt-4 flex justify-center">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
     </div>
   )
 }
