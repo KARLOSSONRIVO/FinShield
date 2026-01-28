@@ -16,7 +16,7 @@ export async function addAndPinBuffer({ buffer, fileName = 'file' }) {
 
     try {
         const formData = new FormData()
-        
+
         // Add file to form data
         formData.append('file', buffer, {
             filename: fileName,
@@ -47,7 +47,7 @@ export async function addAndPinBuffer({ buffer, fileName = 'file' }) {
                 },
             }, (err, res) => {
                 if (err) return reject(err)
-                
+
                 let data = ''
                 res.on('data', chunk => data += chunk)
                 res.on('end', () => {
@@ -135,24 +135,4 @@ export async function getPinStatus(cid) {
         if (error instanceof AppError) throw error
         throw new AppError(`IPFS status check failed: ${error.message}`, 500, "IPFS_STATUS_FAILED")
     }
-}
-
-//Remove file from IPFS (unpin from Pinata).
-export async function removeFromIpfs(cid) {
-  try {
-    const response = await axios.delete(`${PINATA_API_URL}/pinning/unpin/${cid}`, {
-      headers: {
-        "Authorization": `Bearer ${PINATA_JWT}`,
-      }
-    });
-
-    if (response.status === 200) {
-      return { success: true };
-    } else {
-      throw new Error(`Failed to unpin from IPFS: ${response.statusText}`);
-    }
-  } catch (error) {
-    console.error("Error removing from IPFS:", error);
-    throw new AppError(`Failed to unpin from IPFS: ${error.message}`, 500, "IPFS_UNPIN_FAILED");
-  }
 }

@@ -1,14 +1,15 @@
 import AppError from "../../common/errors/AppErrors.js";
 import { sha256Hex } from "../../common/utils/hash.js";
-import { addAndPinBuffer, removeFromIpfs } from "../../infrastructure/storage/ipfs.service.js";
+import { addAndPinBuffer, unpinByCid } from "../../infrastructure/storage/ipfs.service.js";
 import { anchorInvoice } from "../../infrastructure/blockchain/ethereum.service.js";
 import { runInvoicePrecheck } from "../../infrastructure/ai/precheck_client.js";
 import * as InvoiceRepositories from "../repositories/invoice.repositories.js";
 import * as AssignmentRepositories from "../repositories/assignment.repositories.js";
-import { isDocument } from "../../common/utils/fileTypHelpers.js"; 
+import { triggerOcr } from "../../infrastructure/ai/ocr_client.js";
+import { isDocument } from "../../common/utils/fileTypHelpers.js";
 import { toInvoicePublic } from "../mappers/invoice.mapper.js";
 
-/* ============================
+/* ============================X
  * BACKGROUND ANCHOR
  * ============================ */
 async function anchorInvoiceInBackground(invoiceId, ipfsCid, fileSha, allowAutoOcr) {
@@ -39,6 +40,16 @@ async function anchorInvoiceInBackground(invoiceId, ipfsCid, fileSha, allowAutoO
       anchorStatus: "failed",
       anchorError: e?.message || "Anchor failed",
     });
+
+    // 🗑️ Remove file from IPFS when anchoring fails
+    try {
+      await unpinByCid(ipfsCid);
+
+      // ✅ Set ipfsCid and fileHashSha256 to null after successful unpin
+      await InvoiceRepositories.updateInvoice(invoiceId, { ipfsCid: null, fileHashSha256: null });
+    } catch (ipfsError) {
+      console.error(`⚠️ Failed to remove IPFS file ${ipfsCid}:`, ipfsError.message);
+    }
 
     console.error(`❌ Anchor failed for ${invoiceId}:`, e.message);
   }
@@ -142,30 +153,15 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
     status: "pending",
   });
 
-  try {
-    /* ============================
-     * STEP 5: BACKGROUND ANCHOR
-     * ============================ */
-    await anchorInvoiceInBackground(
-      invoice._id,
-      ipfsCid,
-      fileSha,
-      documentFile // ← only process OCR for docs
-    );
-
-  } catch (error) {
-    // If Blockchain anchoring failed, mark invoice as failed and remove the file from IPFS
-    await InvoiceRepositories.updateInvoice(invoice._id, {
-      anchorStatus: "failed",
-      anchorError: "Blockchain anchoring failed: " + error.message,
-    });
-
-    // Remove file from IPFS in case of failure
-    await removeFromIpfs(ipfsCid);
-
-    // Throw error to stop further processing
-    throw new AppError("Blockchain anchoring failed. Invoice marked as failed.", 500);
-  }
+  /* ============================
+   * STEP 5: BACKGROUND ANCHOR
+   * ============================ */
+  await anchorInvoiceInBackground(
+    invoice._id,
+    ipfsCid,
+    fileSha,
+    documentFile // ← only process OCR for docs
+  );
 
   return {
     ...toInvoicePublic(invoice),
