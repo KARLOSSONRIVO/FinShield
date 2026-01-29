@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
-import { RegulatorBlockchainTable } from "@/features/regulator/blockchain/components/RegulatorBlockchainTable"
+import { BlockchainTable } from "@/features/blockchain/components/BlockchainTable"
 import { useRegulatorBlockchain } from "@/features/regulator/blockchain/hooks/useRegulatorBlockchain"
 import { Pagination } from "@/components/ui/pagination-custom"
 
@@ -34,7 +34,7 @@ export default function RegulatorBlockchainPage() {
         </div>
       </div>
 
-      <RegulatorBlockchainTable invoices={invoices} />
+      <BlockchainTable invoices={invoices} />
 
       <div className="mt-4 flex justify-center">
         <Pagination

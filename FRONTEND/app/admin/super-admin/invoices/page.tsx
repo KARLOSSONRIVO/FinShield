@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Search, Filter } from "lucide-react"
-import { AllInvoicesTable } from "@/features/super-admin/invoices/components/AllInvoicesTable"
+import { InvoiceTable } from "@/features/invoices/components/InvoiceTable"
 import { useInvoices, InvoiceStatusFilter } from "@/features/super-admin/invoices/hooks/useInvoices"
 import { Pagination } from "@/components/ui/pagination-custom"
 import { InvoiceFilter } from "@/features/super-admin/invoices/components/InvoiceFilter"
@@ -47,10 +47,10 @@ export default function AllInvoicesPage() {
         />
       </div>
 
-      <AllInvoicesTable
+      <InvoiceTable
         invoices={invoices}
-        sortConfig={sortConfig}
-        onSort={requestSort}
+        mode="super-admin"
+        baseUrl="/admin/super-admin/invoices"
       />
 
       <div className="mt-4 flex justify-center">

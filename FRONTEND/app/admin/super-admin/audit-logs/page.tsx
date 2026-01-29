@@ -3,9 +3,11 @@
 import { Input } from "@/components/ui/input"
 import { Search, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { AuditLogTable } from "@/features/super-admin/audit-logs/components/AuditLogTable"
+
+import { AuditLogTable } from "@/features/audit-logs/components/AuditLogTable"
 import { useAuditLogs, EntityFilter } from "@/features/super-admin/audit-logs/hooks/useAuditLogs"
 import { Pagination } from "@/components/ui/pagination-custom"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,7 +43,7 @@ export default function AuditLogsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-normal tracking-tight">System History</h2>
+        <h2 className="text-2xl font-normal tracking-tight">System Audit Logs</h2>
       </div>
 
       <div>
@@ -49,7 +51,7 @@ export default function AuditLogsPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search Loggings..."
+              placeholder="Search Logs (action, actor, entity ID)..."
               className="pl-9 bg-background border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -58,9 +60,11 @@ export default function AuditLogsPage() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2 border-2 border-black/10 text-base px-6">
-                <Filter className="h-4 w-4" />
-                Filter
+              <Button variant="outline" className="gap-2 border-2 border-black/10 text-base px-6 w-[200px] justify-between">
+                <span className="flex items-center gap-2">
+                  <Filter className="h-4 w-4" />
+                  Filter
+                </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">

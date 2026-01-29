@@ -30,8 +30,8 @@ export function useAssignments() {
             // User said: "get the most recent one in the unfinished pile" (Unfinished = Active)
             const activeAssignments = auditorAssignments.filter(a => a.status === 'active')
 
-            // Sort by assignedAt descending (newest first)
-            activeAssignments.sort((a, b) => new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime())
+            // Sort by dueDate ascending (earliest due date first) - showing the "oldest" unfinished task
+            activeAssignments.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
 
             const latestActive = activeAssignments[0]
 

@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
-import { AllInvoicesTable } from "@/features/super-admin/invoices/components/AllInvoicesTable"
+import { InvoiceTable } from "@/features/invoices/components/InvoiceTable"
 import { useFlaggedQueue } from "@/features/super-admin/flagged/hooks/useFlaggedQueue"
 import { Pagination } from "@/components/ui/pagination-custom"
 import { InvoiceFilter } from "@/features/super-admin/invoices/components/InvoiceFilter"
@@ -17,8 +17,8 @@ export default function FlaggedQueuePage() {
     currentPage,
     totalPages,
     setCurrentPage,
-    sortConfig,
-    requestSort
+    sortConfig, // eslint-disable-line @typescript-eslint/no-unused-vars
+    requestSort // eslint-disable-line @typescript-eslint/no-unused-vars
   } = useFlaggedQueue()
 
   return (
@@ -49,10 +49,10 @@ export default function FlaggedQueuePage() {
       </div>
 
       <div className="mt-4">
-        <AllInvoicesTable
+        <InvoiceTable
           invoices={invoices}
-          sortConfig={sortConfig}
-          onSort={requestSort}
+          mode="super-admin"
+          baseUrl="/admin/super-admin/invoices"
         />
       </div>
 

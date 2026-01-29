@@ -3,7 +3,8 @@
 import { Input } from "@/components/ui/input"
 import { Search, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { RegulatorAuditLogTable } from "@/features/regulator/audit-logs/components/RegulatorAuditLogTable"
+
+import { AuditLogTable } from "@/features/audit-logs/components/AuditLogTable"
 import { useRegulatorAuditLogs, EntityFilter } from "@/features/regulator/audit-logs/hooks/useRegulatorAuditLogs"
 import { Pagination } from "@/components/ui/pagination-custom"
 import {
@@ -80,7 +81,7 @@ export default function RegulatorAuditLogsPage() {
       </div>
 
       <div className="mt-4">
-        <RegulatorAuditLogTable logs={logs} />
+        <AuditLogTable logs={logs} />
       </div>
 
       <div className="mt-4 flex justify-center">

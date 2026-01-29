@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
-import { RegulatorInvoicesTable } from "@/features/regulator/invoices/components/RegulatorInvoicesTable"
+import { InvoiceTable } from "@/features/invoices/components/InvoiceTable"
 import { useRegulatorInvoices } from "@/features/regulator/invoices/hooks/useRegulatorInvoices"
 import { Pagination } from "@/components/ui/pagination-custom"
 import { RegulatorInvoiceFilter } from "@/features/regulator/invoices/components/RegulatorInvoiceFilter"
@@ -46,10 +46,10 @@ export default function RegulatorInvoicesPage() {
         />
       </div>
 
-      <RegulatorInvoicesTable
+      <InvoiceTable
         invoices={invoices}
-        sortConfig={sortConfig}
-        onSort={requestSort}
+        mode="regulator"
+        baseUrl="/admin/regulator/invoices"
       />
 
       <div className="mt-4 flex justify-center">

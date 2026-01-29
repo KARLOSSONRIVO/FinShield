@@ -1,19 +1,23 @@
 "use client"
 
-import { usePathname } from "next/navigation"
-import { RegulatorSidebar } from "@/features/regulator/navigation-bar/RegulatorSidebar"
-import { RegulatorTopBar } from "@/features/regulator/navigation-bar/TopBar"
-
 import { useState } from "react"
+import { AppSidebar, NavLink } from "@/components/layout/AppSidebar"
+import { RegulatorTopBar } from "@/features/regulator/navigation-bar/TopBar"
+import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import {
+    LayoutDashboard,
+    FileText,
+    Link2,
+    ScrollText,
+} from "lucide-react"
 
-const PATH_TITLES: Record<string, string> = {
-    "/admin/regulator": "Dashboard",
-    "/admin/regulator/invoices": "Assigned Invoices",
-    "/admin/regulator/blockchain": "Blockchain Ledger",
-    "/admin/regulator/audit-logs": "Audit Logs",
-    "/admin/regulator/settings": "Settings",
-}
+const regulatorLinks: NavLink[] = [
+    { href: "/admin/regulator", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/admin/regulator/invoices", label: "Invoices", icon: FileText },
+    { href: "/admin/regulator/blockchain", label: "Ledger", icon: Link2 },
+    { href: "/admin/regulator/audit-logs", label: "Audit Logs", icon: ScrollText },
+]
 
 export default function RegulatorLayout({
     children,
@@ -23,22 +27,23 @@ export default function RegulatorLayout({
     const pathname = usePathname()
     const [collapsed, setCollapsed] = useState(false)
 
-    // Determine title
-    let title = "Dashboard"
-    if (PATH_TITLES[pathname]) {
-        title = PATH_TITLES[pathname]
-    } else {
-        const sortedKeys = Object.keys(PATH_TITLES).sort((a, b) => b.length - a.length)
-        const match = sortedKeys.find(key => pathname.startsWith(key))
-        if (match) {
-            title = PATH_TITLES[match]
-        }
+    // Determine title based on path
+    const getPageTitle = (path: string) => {
+        if (path === "/admin/regulator") return "Regulator Dashboard"
+        return "FinShield Regulator"
     }
+
+    const title = getPageTitle(pathname)
 
     return (
         <div className="flex min-h-screen bg-muted/20 relative">
             {/* Sidebar with fixed positioning */}
-            <RegulatorSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+            <AppSidebar
+                links={regulatorLinks}
+                collapsed={collapsed}
+                setCollapsed={setCollapsed}
+                title="Regulator"
+            />
 
             {/* Main content wrapper */}
             <div

@@ -2,20 +2,35 @@
 
 import { useState, useMemo } from "react"
 import { MOCK_AUDITOR_INVOICES } from "@/hooks/mock-data"
-import { InvoiceStatus } from "@/lib/types"
+import { Invoice } from "@/lib/types"
 
-// Create a local type for Auditor Invoice if strict typing is needed, 
-// or imply it from the mock data. The mock data has specific fields.
-// MOCK_AUDITOR_INVOICES has keys: _id, invoiceNo, companyName, date, totals_total, ai_verdict, status
-
-export type AuditorInvoice = typeof MOCK_AUDITOR_INVOICES[0]
+// Map mock data to Invoice type
+const mappedInvoices: Invoice[] = MOCK_AUDITOR_INVOICES.map(inv => ({
+    _id: inv._id,
+    invoiceNo: inv.invoiceNo,
+    companyName: inv.companyName || "Unknown Company",
+    invoiceDate: new Date(inv.date || new Date().toISOString()), // Ensure Date object
+    totals_total: inv.totals_total,
+    ai_verdict: (['clean', 'flagged'].includes(inv.ai_verdict) ? inv.ai_verdict : 'flagged') as "clean" | "flagged",
+    status: (inv.status.toLowerCase() as any) || "pending",
+    // Defaults for missing fields
+    companyOrgId: "mock-org-id",
+    uploadedByUserId: "mock-user-id",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    items: [],
+    ai_riskScore: 0,
+    ai_analysis: "",
+    blockchain_txHash: "",
+    blockchain_anchoredAt: ""
+}))
 
 export type SortConfig = {
-    key: keyof AuditorInvoice
+    key: keyof Invoice
     direction: "asc" | "desc"
 } | null
 
-export type InvoiceStatusFilter = "all" | string // MOCK_AUDITOR_INVOICES uses "Verified", "Pending", "Flagged", "Fraud", "Fraudulent"
+export type InvoiceStatusFilter = "all" | string
 
 export function useAuditorInvoices() {
     const [search, setSearch] = useState("")
@@ -26,7 +41,7 @@ export function useAuditorInvoices() {
     const [itemsPerPage] = useState(5)
     const [sortConfig, setSortConfig] = useState<SortConfig>(null)
 
-    const requestSort = (key: keyof AuditorInvoice) => {
+    const requestSort = (key: keyof Invoice) => {
         let direction: "asc" | "desc" = "asc"
         if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
             direction = "desc"
@@ -35,7 +50,7 @@ export function useAuditorInvoices() {
     }
 
     const filteredAndSortedInvoices = useMemo(() => {
-        let processed = [...MOCK_AUDITOR_INVOICES]
+        let processed = [...mappedInvoices]
 
         // Filter by Search
         if (search) {
@@ -47,11 +62,7 @@ export function useAuditorInvoices() {
         }
 
         // Filter by Status
-        // Note: Mock data has capitalized statuses "Verified", "Pending" etc.
-        // We should handle case insensitivity or match exactly.
         if (statusFilter !== "all") {
-            // The filter value from UI might be lowercase "verified", mock is "Verified"
-            // Let's normalize to lowercase for comparison
             processed = processed.filter(inv => inv.status.toLowerCase() === statusFilter.toLowerCase())
         }
 
@@ -65,9 +76,9 @@ export function useAuditorInvoices() {
                 if (aValue === undefined || aValue === null) return 1
                 if (bValue === undefined || bValue === null) return -1
 
-                if (sortConfig.key === 'date') {
-                    const dateA = new Date(aValue as string).getTime()
-                    const dateB = new Date(bValue as string).getTime()
+                if (sortConfig.key === 'invoiceDate' || sortConfig.key === 'createdAt') {
+                    const dateA = new Date(aValue as string | Date).getTime()
+                    const dateB = new Date(bValue as string | Date).getTime()
                     if (dateA < dateB) return sortConfig.direction === "asc" ? -1 : 1
                     if (dateA > dateB) return sortConfig.direction === "asc" ? 1 : -1
                     return 0

@@ -8,7 +8,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { AuditLog } from "@/lib/types"
 
 interface AuditLogTableProps {
@@ -43,7 +42,7 @@ export function AuditLogTable({ logs }: AuditLogTableProps) {
                                 </TableCell>
                                 <TableCell className="px-6">
                                     <div className="flex flex-col">
-                                        <span className="font-bold text-black text-base">{row.actorName || "Union System"}</span>
+                                        <span className="font-bold text-black text-base">{row.actorName || "System"}</span>
                                         <span className="text-xs text-muted-foreground">{row.actorEmail}</span>
                                     </div>
                                 </TableCell>

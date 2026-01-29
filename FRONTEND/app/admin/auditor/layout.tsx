@@ -1,18 +1,23 @@
 "use client"
 
-import { AuditorSidebar } from "@/features/auditor/navigation-bar/AuditorSidebar"
-import { TopBar } from "@/features/auditor/navigation-bar/TopBar"
-import { usePathname } from "next/navigation"
 import { useState } from "react"
+import { AppSidebar, NavLink } from "@/components/layout/AppSidebar"
+import { TopBar as AuditorTopBar } from "@/features/auditor/navigation-bar/TopBar"
+import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import {
+    LayoutDashboard,
+    FileText,
+    AlertTriangle,
+    Link2,
+} from "lucide-react"
 
-const PATH_TITLES: Record<string, string> = {
-    "/admin/auditor": "Dashboard",
-    "/admin/auditor/invoices": "Assigned Invoices",
-    "/admin/auditor/flagged": "Flagged Queue",
-    "/admin/auditor/blockchain": "Blockchain Ledger",
-    "/admin/auditor/settings": "Settings",
-}
+const auditorLinks: NavLink[] = [
+    { href: "/admin/auditor", label: "Dashboard", icon: LayoutDashboard },
+    { href: "/admin/auditor/invoices", label: "All Invoices", icon: FileText },
+    { href: "/admin/auditor/flagged", label: "Flagged Queue", icon: AlertTriangle },
+    { href: "/admin/auditor/blockchain", label: "Blockchain Ledger", icon: Link2 },
+]
 
 export default function AuditorLayout({
     children,
@@ -22,22 +27,26 @@ export default function AuditorLayout({
     const pathname = usePathname()
     const [collapsed, setCollapsed] = useState(false)
 
-    // Determine title
-    let title = "Dashboard"
-    if (PATH_TITLES[pathname]) {
-        title = PATH_TITLES[pathname]
-    } else {
-        const sortedKeys = Object.keys(PATH_TITLES).sort((a, b) => b.length - a.length)
-        const match = sortedKeys.find(key => pathname.startsWith(key))
-        if (match) {
-            title = PATH_TITLES[match]
-        }
+    // Determine title based on path
+    const getPageTitle = (path: string) => {
+        if (path === "/admin/auditor") return "Auditor Dashboard"
+        if (path.includes("/invoices")) return "Invoice Auditing"
+        if (path.includes("/flagged")) return "Flagged Queue"
+        if (path.includes("/blockchain")) return "Blockchain Ledger"
+        return "FinShield Auditor"
     }
+
+    const title = getPageTitle(pathname)
 
     return (
         <div className="flex min-h-screen bg-muted/20 relative">
             {/* Sidebar with fixed positioning */}
-            <AuditorSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+            <AppSidebar
+                links={auditorLinks}
+                collapsed={collapsed}
+                setCollapsed={setCollapsed}
+                title="FinShield"
+            />
 
             {/* Main content wrapper */}
             <div
@@ -48,7 +57,7 @@ export default function AuditorLayout({
             >
                 {/* Top Navigation Bar - Sticky */}
                 <div className="sticky top-0 z-40">
-                    <TopBar title={title} />
+                    <AuditorTopBar title={title} />
                 </div>
 
                 {/* Main Content */}

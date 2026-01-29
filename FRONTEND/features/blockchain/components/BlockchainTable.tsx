@@ -8,14 +8,13 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 import { Invoice } from "@/lib/types"
 
-interface RegulatorBlockchainTableProps {
+interface BlockchainTableProps {
     invoices: Invoice[]
 }
 
-export function RegulatorBlockchainTable({ invoices }: RegulatorBlockchainTableProps) {
+export function BlockchainTable({ invoices }: BlockchainTableProps) {
     return (
         <div className="rounded-xl border border-border bg-card shadow-sm">
             <Table>

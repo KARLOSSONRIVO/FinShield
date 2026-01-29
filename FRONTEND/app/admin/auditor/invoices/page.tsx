@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { InvoiceFilter } from "@/features/auditor/invoices/components/InvoiceFilter"
-import { AuditorInvoiceTable } from "@/features/auditor/invoices/components/AuditorInvoiceTable"
+import { InvoiceTable } from "@/features/invoices/components/InvoiceTable"
 import { useAuditorInvoices } from "@/features/auditor/invoices/hooks/useAuditorInvoices"
 
 export default function AuditorInvoicesPage() {
@@ -34,7 +34,11 @@ export default function AuditorInvoicesPage() {
         onSortChange={requestSort}
       />
 
-      <AuditorInvoiceTable invoices={invoices} />
+      <InvoiceTable
+        invoices={invoices}
+        mode="auditor"
+        baseUrl="/admin/auditor/invoices"
+      />
 
       {/* Pagination Controls */}
       <div className="mt-8 flex items-center justify-center gap-2">

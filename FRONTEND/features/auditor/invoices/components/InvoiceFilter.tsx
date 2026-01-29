@@ -6,7 +6,8 @@ import { Search, Filter, ChevronUp, ChevronDown } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
-import { AuditorInvoice, InvoiceStatusFilter, SortConfig } from "../hooks/useAuditorInvoices"
+import { InvoiceStatusFilter, SortConfig } from "../hooks/useAuditorInvoices"
+import { Invoice } from "@/lib/types"
 
 interface InvoiceFilterProps {
     search: string
@@ -14,7 +15,7 @@ interface InvoiceFilterProps {
     statusFilter: InvoiceStatusFilter
     onStatusFilterChange: (value: InvoiceStatusFilter) => void
     sortConfig: SortConfig
-    onSortChange: (key: keyof AuditorInvoice) => void
+    onSortChange: (key: keyof Invoice) => void
 }
 
 export function InvoiceFilter({
@@ -27,7 +28,7 @@ export function InvoiceFilter({
 }: InvoiceFilterProps) {
 
     // Helper for Sort selection
-    const SortItem = ({ label, sortKey, direction }: { label: string, sortKey: keyof AuditorInvoice, direction?: "asc" | "desc" }) => {
+    const SortItem = ({ label, sortKey, direction }: { label: string, sortKey: keyof Invoice, direction?: "asc" | "desc" }) => {
         const isActive = sortConfig?.key === sortKey && (!direction || sortConfig.direction === direction)
 
         return (
@@ -98,7 +99,7 @@ export function InvoiceFilter({
                         {/* Sort Sections */}
                         <div className="px-3 py-2 text-sm font-medium text-black">Sort By Date</div>
                         <div className="px-1">
-                            <SortItem label="Invoice Date" sortKey="date" />
+                            <SortItem label="Invoice Date" sortKey="invoiceDate" />
                         </div>
 
                         <Separator className="my-2" />
