@@ -2,7 +2,7 @@ paths:
   /organization/createOrganization:
     post:
       summary: Create a new organization
-      description: Create a new organization (SUPER_ADMIN only)
+      description: Create a new organization with optional invoice template upload (SUPER_ADMIN only)
       tags:
         - Organizations
       security:
@@ -10,7 +10,7 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               required:
@@ -19,11 +19,22 @@ paths:
               properties:
                 name:
                   type: string
+                  description: Organization name
                   example: Acme Corporation
                 type:
                   type: string
-                  enum: [COMPANY, AUDITOR, REGULATOR]
-                  example: COMPANY
+                  description: Organization type
+                  enum: [platform, company]
+                  example: company
+                status:
+                  type: string
+                  description: Organization status
+                  enum: [active, inactive]
+                  example: active
+                invoiceTemplate:
+                  type: string
+                  format: binary
+                  description: Optional invoice template file (PDF or DOCX, max 10MB)
       responses:
         "201":
           description: Organization created successfully
@@ -32,17 +43,39 @@ paths:
               schema:
                 type: object
                 properties:
-                  success:
+                  ok:
                     type: boolean
                     example: true
+                  message:
+                    type: string
+                    example: Organization created successfully
                   data:
                     $ref: "#/components/schemas/Organization"
         "400":
-          description: Validation error
+          description: Validation error or invalid file type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
         "403":
           description: Forbidden - SUPER_ADMIN only
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Server error (S3 not configured, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 
   /organization/listOrganizations:
     get:

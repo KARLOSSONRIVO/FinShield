@@ -9,3 +9,6 @@ pillow
 pdfplumber
 opencv-python
 python-docx
+sentence-transformers
+pandas
+dotenv
