@@ -80,9 +80,6 @@ components:
               type: string
               format: date-time
               example: "2026-01-29T12:00:00.000Z"
-            embeddingId:
-              type: string
-              example: "507f9876543210fedcba98765"
         createdAt:
           type: string
           format: date-time

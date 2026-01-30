@@ -11,7 +11,6 @@ const OrganizationSchema = new mongoose.Schema({
         s3Key: { type: String, default: null },
         fileName: { type: String, default: null },
         uploadedAt: { type: Date, default: null },
-        embeddingId: { type: String, default: null },
     },
     createdAt: { type: Date, default: Date.now, },
     updatedAt: { type: Date, default: Date.now, },

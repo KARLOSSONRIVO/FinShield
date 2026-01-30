@@ -17,6 +17,7 @@ export async function findMany(filter) {
 }
 
 export async function updateOrganizationTemplate(orgId, templateData) {
+    // templateData expects: { s3Key, fileName, uploadedAt }
     return Organization.findByIdAndUpdate(
         orgId,
         {
