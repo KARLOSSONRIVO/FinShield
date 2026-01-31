@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 
-export const ANCHOR_STATUS  = ["pending", "anchored", "failed"]
-export const INVOICE_STATUS = ["pending", "verified", "flagged","fraudulent"]
-export const AI_VERDICT = ["clean","flagged"]
+export const ANCHOR_STATUS = ["pending", "anchored", "failed"]
+export const INVOICE_STATUS = ["pending", "verified", "flagged", "fraudulent"]
+export const AI_VERDICT = ["clean", "flagged"]
 
 
 const InvoiceSchema = new mongoose.Schema({
@@ -19,8 +19,9 @@ const InvoiceSchema = new mongoose.Schema({
         index: true
     },
     invoiceNumber: { type: String, default: null, index: true },
-    invoiceDate: {type:Date, default: null},
-    totalAmount: {type:Number, default: null},
+    invoiceDate: { type: Date, default: null },
+    totalAmount: { type: Number, default: null },
+    issuedTo: { type: String, default: null },
     ipfsCid: { type: String, required: true, index: true },
     fileHashSha256: { type: String, required: true, index: true },
     originalFileName: { type: String, default: null },
@@ -28,11 +29,11 @@ const InvoiceSchema = new mongoose.Schema({
     anchorTxHash: { type: String, index: true },
     anchorBlockNumber: { type: Number, default: null },
     anchoredAt: { type: Date, default: null },
-    anchorStatus: { type: String, enum: ANCHOR_STATUS , default: "pending", index: true },
+    anchorStatus: { type: String, enum: ANCHOR_STATUS, default: "pending", index: true },
     anchorError: { type: String, default: null },
-    aiRiskScore:{type:Number, default: null},
-    aiVerdict:{type:String, enum: AI_VERDICT, default: null},
-    status:{type:String, enum: INVOICE_STATUS, default: "pending", index: true},    
+    aiRiskScore: { type: Number, default: null },
+    aiVerdict: { type: String, enum: AI_VERDICT, default: null },
+    status: { type: String, enum: INVOICE_STATUS, default: "pending", index: true },
 
     reviewedByUserId: {
         type: mongoose.Schema.Types.ObjectId,

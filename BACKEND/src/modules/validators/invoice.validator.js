@@ -17,7 +17,7 @@ const fileSchema = z.object({
     encoding: z.string().optional(),
     mimetype: z.string().refine(
         (mime) => !mime || ALLOWED_MIME_TYPES.includes(mime),
-        { message: `File type not allowed. Allowed types: ${ALLOWED_MIME_TYPES.join(", ")}` }
+        { message: "File type not allowed. Allowed types: PDF and DOCX only" }
     ).optional(),
     size: z.number()
         .min(1, { message: "File cannot be empty" })

@@ -9,7 +9,7 @@ from bson import ObjectId
 from app.core.config import IPFS_GATEWAY_BASE
 from app.db.mongo import invoices
 from app.engines.tesseract.extractor import extract_text_simple
-from app.services.parser_service import parse_invoice_fields
+from app.utils.parser import parse_invoice_fields
 
 
 def _pick_filename(inv: dict) -> str:
@@ -67,6 +67,9 @@ async def run_ocr_for_invoice(invoice_id: str):
         if parsed.get("totalAmount") and not inv.get("totalAmount"):
             update["totalAmount"] = parsed["totalAmount"]
 
+        if parsed.get("issuedTo") and not inv.get("issuedTo"):
+            update["issuedTo"] = parsed["issuedTo"]
+
         if update:
             invoices.update_one(
                 {"_id": ObjectId(invoice_id)},
@@ -78,6 +81,7 @@ async def run_ocr_for_invoice(invoice_id: str):
             "invoiceNumber": update.get("invoiceNumber"),
             "invoiceDate": update.get("invoiceDate"),
             "totalAmount": update.get("totalAmount"),
+            "issuedTo": update.get("issuedTo"),
         }
 
     finally:

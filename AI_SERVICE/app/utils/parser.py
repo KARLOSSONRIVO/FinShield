@@ -1,5 +1,5 @@
 """
-Parser Service - Invoice field parsing from extracted text.
+Invoice field parsing utility from extracted text.
 """
 import re
 from datetime import datetime
@@ -81,6 +81,7 @@ def parse_invoice_fields(text: str) -> dict:
         "invoiceNumber": None,
         "invoiceDate": None,
         "totalAmount": None,
+        "issuedTo": None,
         "confidence": {},
         "meta": {}
     }
@@ -143,5 +144,50 @@ def parse_invoice_fields(text: str) -> dict:
             result["confidence"]["totalAmount"] = 0.92
             result["meta"]["totalAmountSource"] = label
             break
+
+    # Issued To / Bill To
+    issued_to_patterns = [
+        r"(?:issued|bill(?:ed)?)\s*to\s*[:\-]?\s*([^\n]+)",
+    ]
+
+    for pat in issued_to_patterns:
+        m = re.search(pat, text, re.IGNORECASE)
+        if m:
+            content = m.group(1).strip()
+            # If the same line is empty or just special chars, look at the next line
+            # (This is a simplified approach; robust multiline extraction might need more context)
+            if not content or len(content) < 3:
+                # Try to find the match again but capture the next line
+                # We need to find the position and look ahead
+                pass  
+            else:
+                # Check if the extracted content contains secondary labels (multi-column)
+                # e.g. "Values Invoice Number 123" -> "Values"
+                # Look for common column headers
+                split_pat = r"\s{2,}(?:invoice|date|no\.|number|total|amount|balance|due)\b"
+                split_match = re.search(split_pat, content, re.IGNORECASE)
+                if split_match:
+                     content = content[:split_match.start()].strip()
+                
+                # Also checks for "Invoice Number" specifically even with single space
+                rigid_pat = r"\s+(?:invoice\s+(?:number|no|#)|date\s*:)\b"
+                split_match_rigid = re.search(rigid_pat, content, re.IGNORECASE)
+                if split_match_rigid:
+                     content = content[:split_match_rigid.start()].strip()
+
+                result["issuedTo"] = content
+                result["confidence"]["issuedTo"] = 0.85
+                result["meta"]["issuedToSource"] = "label_text"
+                break
+    
+    # Fallback: if 'Issued to' is found but text is on next line
+    if not result.get("issuedTo"):
+        # Look for the label, then capture the next non-empty line
+        multiline_pat = r"(?:issued|bill(?:ed)?)\s*to\s*[:\-]?\s*\n+\s*([^\n]+)"
+        m = re.search(multiline_pat, text, re.IGNORECASE | re.MULTILINE)
+        if m:
+            result["issuedTo"] = m.group(1).strip()
+            result["confidence"]["issuedTo"] = 0.80
+            result["meta"]["issuedToSource"] = "label_multiline"
 
     return result
