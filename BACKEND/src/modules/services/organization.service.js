@@ -2,6 +2,7 @@ import AppError from "../../common/errors/AppErrors.js";
 import * as OrganizationRepositories from "../repositories/organization.repositories.js";
 import { toOrganizationPublic } from "../mappers/organization.mapper.js";
 import { uploadTemplate, deleteTemplate, isS3Configured } from "../../infrastructure/storage/s3.service.js";
+import { processTemplate } from "../../infrastructure/ai/template_client.js";
 
 export async function createOrganization({ actor, payload, file }) {
     if (!actor || actor.role !== "SUPER_ADMIN") {
@@ -31,7 +32,7 @@ export async function createOrganization({ actor, payload, file }) {
 }
 
 /**
- * Process invoice template upload - uploads directly to S3
+ * Process invoice template upload - uploads to S3 and extracts text using PaddleOCR
  * @private
  */
 async function processInvoiceTemplate(orgId, file) {
@@ -61,11 +62,32 @@ async function processInvoiceTemplate(orgId, file) {
         orgId: String(orgId),
     });
 
-    // Update organization with template metadata
+    // Extract text and layout using PaddleOCR via AI_SERVICE
+    let extractedText = null;
+    let layoutSignature = null;
+    let totalElements = 0;
+    let source = null;
+
+    try {
+        const extractionResult = await processTemplate(file.buffer, file.originalname);
+        extractedText = extractionResult.text;
+        layoutSignature = extractionResult.layoutSignature;
+        totalElements = extractionResult.totalElements;
+        source = extractionResult.source;
+    } catch (err) {
+        console.error("Template OCR extraction failed:", err.message);
+        // Continue without extracted text - template is still uploaded to S3
+    }
+
+    // Update organization with template metadata and layout signature
     await OrganizationRepositories.updateOrganizationTemplate(orgId, {
         s3Key: s3Upload.s3Key,
         fileName: file.originalname,
         uploadedAt: new Date(),
+        extractedText: extractedText,
+        layoutSignature: layoutSignature,
+        totalElements: totalElements,
+        source: source,
     });
 }
 

@@ -12,3 +12,4 @@ python-docx
 sentence-transformers
 pandas
 dotenv
+pdf2image
