@@ -11,6 +11,7 @@ Provides:
 - Fraud detection (/fraud) [placeholder]
 """
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 
 # Import routers from api package
 from app.api.precheck import router as precheck_router
@@ -20,10 +21,25 @@ from app.api.search import router as search_router
 from app.api.anomaly import router as anomaly_router
 from app.api.fraud import router as fraud_router
 
+# Import scheduler
+from scripts.scheduler import start_scheduler, stop_scheduler
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Handle startup and shutdown events"""
+    # Startup
+    start_scheduler()
+    yield
+    # Shutdown
+    stop_scheduler()
+
+
 app = FastAPI(
     title="FinShield AI Service",
     description="AI/ML microservice for invoice processing, fraud detection, and semantic search",
     version="2.0.0",
+    lifespan=lifespan,
 )
 
 # Register all routers

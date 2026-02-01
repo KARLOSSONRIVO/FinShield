@@ -15,6 +15,8 @@ from app.pipelines.verification.stages.anomaly import AnomalyDetectionLayer
 from app.pipelines.verification.stages.fraud import FraudDetectionLayer
 
 
+from app.db.mongo import db
+
 @dataclass
 class PipelineResult:
     """Result from the complete verification pipeline."""
@@ -38,7 +40,7 @@ class VerificationPipeline:
     def __init__(self):
         self.stages = [
             LayoutDetectionLayer(),
-            AnomalyDetectionLayer(),
+            AnomalyDetectionLayer(db=db),
             FraudDetectionLayer(),
         ]
     

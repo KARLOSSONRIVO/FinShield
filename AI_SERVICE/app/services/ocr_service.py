@@ -126,7 +126,9 @@ async def run_ocr_for_invoice(invoice_id: str) -> Dict[str, Any]:
             "extracted_layout": invoice_layout,
             "template_layout": template_layout or {},
             "extracted_text": text,
+            "raw_text": text,           # Added for Anomaly Layer
             "parsed_fields": parsed,
+            "invoice_data": parsed,     # Added for Anomaly Layer
         })
 
         # Step 6: Build update payload

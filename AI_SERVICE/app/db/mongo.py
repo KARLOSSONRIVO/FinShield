@@ -6,12 +6,16 @@ Collections:
 - organizations: Organization records with templates (shared with BACKEND)
 """
 from pymongo import MongoClient
-from app.core.config import MONGO_URI, MONGO_DB
+from app.core.config import settings
 
-client = MongoClient(MONGO_URI)
-db = client[MONGO_DB]
+client = MongoClient(settings.MONGO_URI)
+db = client[settings.MONGO_DB]
 
 # Collections
 invoices = db["invoices"]
 organizations = db["organizations"]
 
+
+def get_database():
+    """Get MongoDB database instance"""
+    return db
