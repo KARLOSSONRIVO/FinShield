@@ -4,6 +4,7 @@ Invoice field parsing utility from extracted text.
 import re
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
+from app.engines.anomaly.line_item_parser import LineItemParser
 
 
 MONTH_MAP = {
@@ -72,7 +73,8 @@ def parse_invoice_fields(text: str) -> dict:
     Extract structured fields from invoice text.
     
     Returns:
-        dict with invoiceNumber, invoiceDate, totalAmount, confidence, meta
+        dict with invoiceNumber, invoiceDate, totalAmount, subtotalAmount, taxAmount, 
+        lineItems, issuedTo, confidence, meta
     """
     if isinstance(text, tuple):
         text = text[0] if text and isinstance(text[0], str) else ""
@@ -81,6 +83,9 @@ def parse_invoice_fields(text: str) -> dict:
         "invoiceNumber": None,
         "invoiceDate": None,
         "totalAmount": None,
+        "subtotalAmount": None,
+        "taxAmount": None,
+        "lineItems": [],
         "issuedTo": None,
         "confidence": {},
         "meta": {}
@@ -144,6 +149,27 @@ def parse_invoice_fields(text: str) -> dict:
             result["confidence"]["totalAmount"] = 0.92
             result["meta"]["totalAmountSource"] = label
             break
+
+    # Subtotal and Tax Amount - Use LineItemParser for accurate extraction
+    parser = LineItemParser()
+    totals = parser.extract_totals(text)
+    
+    if totals.get('subtotal'):
+        result["subtotalAmount"] = float(totals['subtotal'])
+        result["confidence"]["subtotalAmount"] = 0.95
+        result["meta"]["subtotalAmountSource"] = "line_item_parser"
+    
+    if totals.get('tax'):
+        result["taxAmount"] = float(totals['tax'])
+        result["confidence"]["taxAmount"] = 0.95
+        result["meta"]["taxAmountSource"] = "line_item_parser"
+    
+    # Line Items - Use LineItemParser for accurate extraction
+    line_items = parser.parse_line_items(text)
+    if line_items:
+        result["lineItems"] = line_items
+        result["confidence"]["lineItems"] = 0.95
+        result["meta"]["lineItemsSource"] = "line_item_parser"
 
     # Issued To / Bill To
     issued_to_patterns = [

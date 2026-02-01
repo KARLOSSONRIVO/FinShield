@@ -119,16 +119,26 @@ async def run_ocr_for_invoice(invoice_id: str) -> Dict[str, Any]:
         # Step 5: Get org template and run MCP Pipeline
         template_layout = _get_org_template_layout(org_id)
         
+        # Build invoice_data in the format expected by anomaly layer
+        invoice_data = {
+            'total': parsed.get('totalAmount', 0),
+            'subtotal': parsed.get('subtotalAmount', 0),
+            'tax': parsed.get('taxAmount', 0),
+            'date': parsed.get('invoiceDate', ''),
+            'lineItems': parsed.get('lineItems', [])
+        }
+        
         pipeline = VerificationPipeline()
         pipeline_result = await pipeline.run({
             "invoice_id": invoice_id,
             "org_id": org_id,
+            "organization_id": org_id,  # Anomaly layer expects this
             "extracted_layout": invoice_layout,
             "template_layout": template_layout or {},
             "extracted_text": text,
-            "raw_text": text,           # Added for Anomaly Layer
+            "raw_text": text,           # For Anomaly Layer line item parser
             "parsed_fields": parsed,
-            "invoice_data": parsed,     # Added for Anomaly Layer
+            "invoice_data": invoice_data,  # Mapped format for Anomaly Layer
         })
 
         # Step 6: Build update payload
@@ -143,9 +153,22 @@ async def run_ocr_for_invoice(invoice_id: str) -> Dict[str, Any]:
 
         if parsed.get("totalAmount") and not inv.get("totalAmount"):
             update["totalAmount"] = float(parsed["totalAmount"])
+        
+        if parsed.get("subtotalAmount") and not inv.get("subtotalAmount"):
+            update["subtotalAmount"] = float(parsed["subtotalAmount"])
+        
+        if parsed.get("taxAmount") and not inv.get("taxAmount"):
+            update["taxAmount"] = float(parsed["taxAmount"])
+        
+        if parsed.get("lineItems") and not inv.get("lineItems"):
+            update["lineItems"] = parsed["lineItems"]
 
         if parsed.get("issuedTo") and not inv.get("issuedTo"):
             update["issuedTo"] = parsed["issuedTo"]
+
+        # Store extracted OCR text for anomaly detection line item parser
+        if text:
+            update["ocrText"] = text
 
         # Combined AI results from all 3 layers
         # aiRiskScore: 0-100 (higher = riskier), derived from overall_score (0-1, higher = better)

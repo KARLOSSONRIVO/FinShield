@@ -16,19 +16,24 @@ class LineItemParser:
     
     # Keywords that indicate total/summary lines (not line items)
     TOTAL_KEYWORDS = [
-        'total',
         'subtotal',
         'sub total',
         'sub-total',
-        'tax',
-        'amount due',
-        'balance',
+        'total:',
+        'total amount',
         'grand total',
+        'amount due',
+        'balance due',
+        'balance',
         'sum',
         'payment',
-        'discount',
-        'shipping',
-        'handling'
+        'discount:',
+        'shipping:',
+        'handling:',
+        'tax:',
+        'tax(',
+        'gst:',
+        'vat:',
     ]
     
     def parse_line_items(self, text: str) -> List[Dict]:
@@ -63,44 +68,67 @@ class LineItemParser:
             return line_items
         
         try:
-            # Split text into lines
             lines = text.split('\n')
             
-            # Pattern: matches currency amounts
-            # Matches: $100.00, $1,234.56, 100.00, 1234.56
-            amount_pattern = r'\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)'
+            # Pattern: matches currency amounts (decimal format)
+            # Matches the last amount on a line like: "Item 50.00 1 56.00"
+            amount_pattern = r'(\d+\.\d{2})\s*$'
+            
+            # Find the line items section (between header and totals)
+            in_items_section = False
+            header_keywords = ['description', 'item', 'product', 'service', 'qty', 'quantity', 'unit cost', 'amount']
             
             for line in lines:
-                line = line.strip()
+                line_stripped = line.strip()
+                line_lower = line_stripped.lower()
                 
-                # Skip empty lines and total lines
-                if not line or self._is_total_line(line):
+                # Skip empty lines
+                if not line_stripped:
                     continue
                 
-                # Find all amounts in the line
-                matches = list(re.finditer(amount_pattern, line))
+                # Check if we're entering the line items section (header row)
+                if not in_items_section and any(kw in line_lower for kw in header_keywords):
+                    in_items_section = True
+                    continue
                 
-                if matches:
-                    # Use the last amount found (usually the line total)
-                    last_match = matches[-1]
-                    amount_str = last_match.group(1).replace(',', '')
-                    
-                    try:
-                        amount = float(amount_str)
-                        
-                        # Only add if amount is reasonable (avoid parsing errors)
-                        if 0 < amount < 1000000:
-                            # Extract description (text before amount)
-                            description = line[:last_match.start()].strip()
-                            
-                            # Only add if description exists
-                            if description:
-                                line_items.append({
-                                    'description': description,
-                                    'amount': amount
-                                })
-                    except ValueError:
+                # Check if we've reached the totals section (exit line items)
+                if in_items_section and self._is_total_line(line_stripped):
+                    break
+                
+                # Parse line items only if we're in the items section
+                if in_items_section:
+                    # Skip if line looks like a date, phone, or address
+                    if self._is_header_content(line_stripped):
                         continue
+                    
+                    # Find amounts in the line
+                    matches = list(re.finditer(amount_pattern, line_stripped))
+                    
+                    if matches:
+                        # Use the last amount (usually the line total)
+                        last_match = matches[-1]
+                        amount_str = last_match.group(1).replace(',', '')
+                        
+                        try:
+                            amount = float(amount_str)
+                            
+                            # Filter out unreasonably small amounts (likely noise)
+                            if amount >= 1.0 and amount < 1000000:
+                                # Extract description (text before the amounts)
+                                description = line_stripped[:last_match.start()].strip()
+                                
+                                # Clean up description (remove extra pipes, numbers)
+                                description = re.sub(r'\|', ' ', description).strip()
+                                description = re.sub(r'\s+', ' ', description)
+                                
+                                # Only add if description is meaningful (not just numbers)
+                                if description and not description.replace('.', '').replace(',', '').isdigit():
+                                    line_items.append({
+                                        'description': description,
+                                        'amount': amount
+                                    })
+                        except ValueError:
+                            continue
             
             logger.debug(f"Parsed {len(line_items)} line items from text")
             return line_items
@@ -108,6 +136,44 @@ class LineItemParser:
         except Exception as e:
             logger.error(f"Error parsing line items: {e}")
             return []
+    
+    def _is_header_content(self, line: str) -> bool:
+        """
+        Check if line is header/footer content (addresses, phones, dates)
+        
+        Args:
+            line: Text line to check
+        
+        Returns:
+            True if line looks like header content
+        """
+        line_lower = line.lower()
+        
+        # Phone numbers
+        if re.search(r'\(\d{3}\)\s*\d{3}-\d{4}', line):
+            return True
+        
+        # Email/website
+        if '@' in line or 'www.' in line or '.com' in line:
+            return True
+        
+        # Dates (various formats)
+        if re.search(r'\d{1,2}/\d{1,2}/\d{2,4}', line) and 'date:' not in line_lower:
+            return True
+        
+        # Invoice numbers
+        if line_lower.startswith('no:') or line_lower.startswith('invoice'):
+            return True
+        
+        # Addresses (street numbers)
+        if re.search(r'\d+\s+(street|avenue|ave|road|rd|drive|dr|boulevard|blvd)', line_lower):
+            return True
+        
+        # State/ZIP codes
+        if re.search(r',\s*[A-Z]{2}\s*\d{5}', line):
+            return True
+        
+        return False
     
     def _is_total_line(self, line: str) -> bool:
         """
@@ -153,14 +219,20 @@ class LineItemParser:
         try:
             lines = text.split('\n')
             
-            # Pattern for amounts
-            amount_pattern = r'\$?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)'
+            # Pattern for amounts - prefer amounts at end of line with decimals
+            amount_pattern = r'(\d{1,3}(?:,\d{3})*\.\d{2})\s*$'
+            # Fallback pattern for amounts without decimals
+            fallback_pattern = r'(\d{1,3}(?:,\d{3})*)\s*$'
             
             for line in lines:
                 line_lower = line.lower()
                 
-                # Find amount in line
+                # Find amount in line (prefer decimal amounts at end)
                 amount_match = re.search(amount_pattern, line)
+                if not amount_match:
+                    # Try fallback for whole numbers
+                    amount_match = re.search(fallback_pattern, line)
+                
                 if not amount_match:
                     continue
                 
