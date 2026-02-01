@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 export const ANCHOR_STATUS = ["pending", "anchored", "failed"]
 export const INVOICE_STATUS = ["pending", "verified", "flagged", "fraudulent"]
 export const AI_VERDICT = ["clean", "flagged"]
+export const AI_RISK_LEVEL = ["low", "medium", "high"]
 
 
 const InvoiceSchema = new mongoose.Schema({
@@ -33,6 +34,8 @@ const InvoiceSchema = new mongoose.Schema({
     anchorError: { type: String, default: null },
     aiRiskScore: { type: Number, default: null },
     aiVerdict: { type: String, enum: AI_VERDICT, default: null },
+    aiSummary: { type: String, default: null },
+    riskLevel: { type: String, enum: AI_RISK_LEVEL, default: null },
     status: { type: String, enum: INVOICE_STATUS, default: "pending", index: true },
 
     reviewedByUserId: {
