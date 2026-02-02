@@ -1,4 +1,4 @@
-import SettingsPage from "@/features/super-admin/settings/page"
+import { SettingsPage } from "@/components/settings/SettingsPage"
 
 export default function Page() {
     return <SettingsPage />

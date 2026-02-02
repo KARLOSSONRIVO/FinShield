@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input"
 import { Search, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-import { AuditLogTable } from "@/features/audit-logs/components/AuditLogTable"
-import { useRegulatorAuditLogs, EntityFilter } from "@/features/regulator/audit-logs/hooks/useRegulatorAuditLogs"
+import { AuditLogTable } from "@/components/audit-logs/AuditLogTable"
+import { useRegulatorAuditLogs, EntityFilter } from "@/hooks/audit-logs/use-regulator-audit-logs"
 import { Pagination } from "@/components/ui/pagination-custom"
 import {
   DropdownMenu,

@@ -1,11 +1,11 @@
 "use client"
 
-import { StatsCard } from "@/features/super-admin/dashboard/components/StatsCard"
+import { StatsCard } from "@/components/dashboard/StatsCard"
 import { Building2, FileText, AlertTriangle, CheckCircle } from "lucide-react"
 
-import { RecentInvoices } from "@/features/super-admin/dashboard/components/RecentInvoices"
-import { RecentActivity } from "@/features/super-admin/dashboard/components/RecentActivity"
-import { useDashboard } from "@/features/super-admin/dashboard/hooks/useDashboard"
+import { RecentInvoices } from "@/components/dashboard/RecentInvoices"
+import { RecentActivity } from "@/components/dashboard/RecentActivity"
+import { useSuperAdminDashboard } from "@/hooks/dashboard/use-super-admin-dashboard"
 
 export default function SuperAdminDashboard() {
   const {
@@ -16,7 +16,7 @@ export default function SuperAdminDashboard() {
     flaggedCount,
     recentLogs,
     recentInvoices
-  } = useDashboard()
+  } = useSuperAdminDashboard()
 
   return (
     <>

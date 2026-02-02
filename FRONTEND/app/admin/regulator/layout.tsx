@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { AppSidebar, NavLink } from "@/components/layout/AppSidebar"
-import { RegulatorTopBar } from "@/features/regulator/navigation-bar/TopBar"
+import { TopBar } from "@/components/layout/TopBar"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
@@ -54,7 +54,15 @@ export default function RegulatorLayout({
             >
                 {/* Top Navigation Bar - Sticky */}
                 <div className="sticky top-0 z-40">
-                    <RegulatorTopBar title={title} />
+                    <TopBar
+                        title={title}
+                        userName="Regulator User"
+                        organizationName="Regulatory Body"
+                        profileLink="/admin/regulator/settings"
+                        notifications={[
+                            { title: "Action Required", time: "2h ago", message: "Compliance report for Provider 100 is ready." }
+                        ]}
+                    />
                 </div>
 
                 {/* Main Content */}

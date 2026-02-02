@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { AppSidebar, NavLink } from "@/components/layout/AppSidebar"
-import { TopBar as AuditorTopBar } from "@/features/auditor/navigation-bar/TopBar"
+import { TopBar } from "@/components/layout/TopBar"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
@@ -57,7 +57,16 @@ export default function AuditorLayout({
             >
                 {/* Top Navigation Bar - Sticky */}
                 <div className="sticky top-0 z-40">
-                    <AuditorTopBar title={title} />
+                    <TopBar
+                        title={title}
+                        userName="Auditor User"
+                        organizationName="Auditor Role"
+                        profileLink="/admin/auditor/settings"
+                        notifications={[
+                            { title: "New Assignment", time: "1h ago", message: "You have been assigned to review Company 100." },
+                            { title: "New Assignment", time: "2h ago", message: "You have been assigned to review Company 101." }
+                        ]}
+                    />
                 </div>
 
                 {/* Main Content */}

@@ -1,11 +1,9 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
-import { Search } from "lucide-react"
-import { InvoiceTable } from "@/features/invoices/components/InvoiceTable"
-import { useRegulatorInvoices } from "@/features/regulator/invoices/hooks/useRegulatorInvoices"
+import { InvoiceTable } from "@/components/invoices/InvoiceTable"
+import { useRegulatorInvoices } from "@/hooks/invoices/use-regulator-invoices"
 import { Pagination } from "@/components/ui/pagination-custom"
-import { RegulatorInvoiceFilter } from "@/features/regulator/invoices/components/RegulatorInvoiceFilter"
+import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 
 export default function RegulatorInvoicesPage() {
   const {
@@ -27,24 +25,14 @@ export default function RegulatorInvoicesPage() {
         <h2 className="text-2xl font-normal tracking-tight">Invoice Oversight</h2>
       </div>
 
-      <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search Invoices..."
-            className="pl-9 bg-background border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <RegulatorInvoiceFilter
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          sortConfig={sortConfig}
-          onSortChange={requestSort}
-        />
-      </div>
+      <InvoiceFilter
+        search={search}
+        onSearchChange={setSearch}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        sortConfig={sortConfig}
+        onSortChange={requestSort}
+      />
 
       <InvoiceTable
         invoices={invoices}

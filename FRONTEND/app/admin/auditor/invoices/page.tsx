@@ -2,9 +2,22 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
-import { InvoiceFilter } from "@/features/auditor/invoices/components/InvoiceFilter"
-import { InvoiceTable } from "@/features/invoices/components/InvoiceTable"
-import { useAuditorInvoices } from "@/features/auditor/invoices/hooks/useAuditorInvoices"
+import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
+import { InvoiceTable } from "@/components/invoices/InvoiceTable"
+import { MOCK_AUDITOR_INVOICES } from "@/hooks/mock-data"
+import { useAuditorInvoices } from "@/hooks/invoices/use-auditor-invoices"
+import type { Invoice } from "@/lib/types"
+
+// Map mock data to Invoice type
+const mappedInvoices = MOCK_AUDITOR_INVOICES.map((inv: any) => ({
+  ...inv,
+  companyOrgId: "mock-org",
+  uploadedByUserId: "mock-user",
+  invoiceDate: new Date(inv.date || new Date()),
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  ai_verdict: (['clean', 'flagged'].includes(inv.ai_verdict) ? inv.ai_verdict : 'flagged') as "clean" | "flagged",
+})) as Invoice[]
 
 export default function AuditorInvoicesPage() {
   const {
@@ -18,7 +31,7 @@ export default function AuditorInvoicesPage() {
     setCurrentPage,
     sortConfig,
     requestSort
-  } = useAuditorInvoices()
+  } = useAuditorInvoices(mappedInvoices)
 
   return (
     <div className="bg-transparent space-y-6">

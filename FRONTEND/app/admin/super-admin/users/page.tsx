@@ -3,9 +3,9 @@
 import { Input } from "@/components/ui/input"
 import { Plus, Search, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { UserTable } from "@/features/super-admin/users/components/UserTable"
-import { useUsers } from "@/features/super-admin/users/hooks/useUsers"
-import { CreateUserDialog } from "@/features/super-admin/users/components/CreateUserDialog"
+import { UserTable } from "@/components/users/UserTable"
+import { useUsers } from "@/hooks/users/use-users"
+import { CreateUserDialog } from "@/components/users/CreateUserDialog"
 import { Pagination } from "@/components/ui/pagination-custom"
 import {
   DropdownMenu,

@@ -1,9 +1,9 @@
 "use client"
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { InvoiceFilter } from "@/features/auditor/invoices/components/InvoiceFilter"
-import { InvoiceTable } from "@/features/invoices/components/InvoiceTable"
-import { useAuditorFlaggedQueue } from "@/features/auditor/flagged/hooks/useAuditorFlaggedQueue"
+import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
+import { InvoiceTable } from "@/components/invoices/InvoiceTable"
+import { useAuditorFlaggedQueue } from "@/hooks/auditor/flagged/use-auditor-flagged-queue"
 
 export default function AuditorFlaggedPage() {
   const {

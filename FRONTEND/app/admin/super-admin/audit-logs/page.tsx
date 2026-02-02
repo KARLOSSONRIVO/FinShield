@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input"
 import { Search, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-import { AuditLogTable } from "@/features/audit-logs/components/AuditLogTable"
-import { useAuditLogs, EntityFilter } from "@/features/super-admin/audit-logs/hooks/useAuditLogs"
+import { AuditLogTable } from "@/components/audit-logs/AuditLogTable"
+import { useSuperAdminAuditLogs, EntityFilter } from "@/hooks/audit-logs/use-super-admin-audit-logs"
 import { Pagination } from "@/components/ui/pagination-custom"
 
 import {
@@ -28,7 +28,7 @@ export default function AuditLogsPage() {
     currentPage,
     totalPages,
     setCurrentPage
-  } = useAuditLogs()
+  } = useSuperAdminAuditLogs()
 
   const FilterItem = ({ label, value }: { label: string, value: EntityFilter }) => (
     <DropdownMenuItem
@@ -52,7 +52,7 @@ export default function AuditLogsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search Logs (action, actor, entity ID)..."
-              className="pl-9 bg-background border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base"
+              className="pl-9 bg-white border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base w-full"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -60,11 +60,9 @@ export default function AuditLogsPage() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2 border-2 border-black/10 text-base px-6 w-[200px] justify-between">
-                <span className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  Filter
-                </span>
+              <Button variant="outline" className="gap-2 shrink-0 bg-white hover:bg-gray-50 text-foreground font-medium px-6 border-2 border-black/10 text-base">
+                <Filter className="h-4 w-4" />
+                Filter
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">

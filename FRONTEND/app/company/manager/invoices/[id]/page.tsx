@@ -1,7 +1,7 @@
 "use client"
 
 import { use } from "react"
-import { ManagerSidebar } from "@/features/company-manager/navigation-bar/ManagerSidebar"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"

@@ -7,40 +7,37 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
 import Image from "next/image"
 import { Eye, EyeOff } from "lucide-react"
 import { usePasswordVisibility } from "@/hooks"
+import { useAuth } from "@/hooks/use-auth"
+import { toast } from "sonner"
 
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [role, setRole] = useState("")
   const { showPassword, toggle, inputType } = usePasswordVisibility()
+  const { login, isLoading } = useAuth()
 
-  const handleLogin = (e: React.FormEvent) => {
+  // Local state for error handling since the hook throws
+  const [isPending, setIsPending] = useState(false)
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Mock login - redirect based on selected role
-    switch (role) {
-      case "SUPER_ADMIN":
-        router.push("/admin/super-admin")
-        break
-      case "AUDITOR":
-        router.push("/admin/auditor")
-        break
-      case "REGULATOR":
-        router.push("/admin/regulator")
-        break
-      case "COMPANY_MANAGER":
-        router.push("/company/manager")
-        break
-      case "COMPANY_USER":
-        router.push("/company/employee")
-        break
-      default:
-        alert("Please select a role")
+    setIsPending(true)
+    try {
+      await login({ email, password })
+      toast.success("Login successful")
+    } catch (error: any) {
+      console.error("Login failed", error)
+      const message = error.response?.data?.message || error.message || "Invalid credentials"
+      // Using alert for fallback if sonner not available, but usually we prefer toast
+      // alert("Login failed: " + message)
+      toast.error(`Login failed: ${message}`)
+    } finally {
+      setIsPending(false)
     }
   }
 
@@ -128,9 +125,10 @@ export default function LoginPage() {
             {/* Login Button */}
             <Button
               type="submit"
-              className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all duration-200 text-base tracking-wide shadow-lg shadow-emerald-500/25"
+              disabled={isPending || isLoading}
+              className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all duration-200 text-base tracking-wide shadow-lg shadow-emerald-500/25 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Login
+              {isPending || isLoading ? "Logging in..." : "Login"}
             </Button>
           </form>
         </div>

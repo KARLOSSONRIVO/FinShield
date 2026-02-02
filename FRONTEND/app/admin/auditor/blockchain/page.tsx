@@ -2,8 +2,8 @@
 
 import { Input } from "@/components/ui/input"
 import { Search } from "lucide-react"
-import { BlockchainTable } from "@/features/blockchain/components/BlockchainTable"
-import { useRegulatorBlockchain as useAuditorBlockchain } from "@/features/regulator/blockchain/hooks/useRegulatorBlockchain" // Reusing hook logic for now if specific one doesn't exist
+import { BlockchainTable } from "@/components/blockchain/BlockchainTable"
+import { useRegulatorBlockchain as useAuditorBlockchain } from "@/hooks/blockchain/use-regulator-blockchain" // Reusing hook logic for now if specific one doesn't exist
 import { Pagination } from "@/components/ui/pagination-custom"
 
 export default function AuditorBlockchainPage() {

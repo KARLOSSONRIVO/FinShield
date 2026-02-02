@@ -1,12 +1,9 @@
 "use client"
 
-import { ManagerSidebar } from "@/features/company-manager/navigation-bar/ManagerSidebar"
-import { Building2 } from "lucide-react"
-
-import { ManagerStats } from "@/features/company-manager/dashboard/components/ManagerStats"
-import { ManagerRecentInvoices } from "@/features/company-manager/dashboard/components/ManagerRecentInvoices"
-import { ManagerAIAlerts } from "@/features/company-manager/dashboard/components/ManagerAIAlerts"
-import { useManagerDashboard } from "@/features/company-manager/dashboard/hooks/useManagerDashboard"
+import { ManagerStats } from "@/components/dashboard/ManagerStats"
+import { ManagerRecentInvoices } from "@/components/dashboard/ManagerRecentInvoices"
+import { ManagerAIAlerts } from "@/components/dashboard/ManagerAIAlerts"
+import { useManagerDashboard } from "@/hooks/company-manager/dashboard/use-manager-dashboard"
 
 export default function CompanyManagerDashboard() {
   const {
@@ -19,31 +16,29 @@ export default function CompanyManagerDashboard() {
   } = useManagerDashboard()
 
   return (
-    <div className="flex h-screen">
-      <ManagerSidebar />
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Building2 className="h-6 w-6 text-primary" />
-              Company Manager Dashboard
-            </h1>
-            <p className="text-muted-foreground">Acme Corporation Overview</p>
-          </div>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-xl font-semibold text-foreground">Welcome back, User</h2>
+        <p className="text-sm text-muted-foreground">Here's what's happening with your invoices</p>
+      </div>
 
-          <ManagerStats
-            totalInvoices={companyInvoicesCount}
-            flaggedCount={flaggedInvoicesCount}
-            employeeCount={employeeCount}
-            totalValue={totalValue}
-          />
+      <ManagerStats
+        totalInvoices={companyInvoicesCount}
+        flaggedCount={flaggedInvoicesCount}
+        employeeCount={employeeCount}
+        totalValue={totalValue}
+      />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ManagerRecentInvoices invoices={recentInvoices} description="Latest company submissions" />
-            <ManagerAIAlerts invoices={flaggedInvoices} />
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          {/* Pending Reviews Section - Using Recent Invoices as placeholder for now, styled as 'Pending Reviews' */}
+          <ManagerRecentInvoices invoices={recentInvoices} description="Latest invoice submissions for your decision" />
         </div>
-      </main>
+        <div className="space-y-4">
+          {/* Flagged Items Section */}
+          <ManagerAIAlerts invoices={flaggedInvoices} />
+        </div>
+      </div>
     </div>
   )
 }

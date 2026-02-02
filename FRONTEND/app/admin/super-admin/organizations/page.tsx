@@ -3,9 +3,9 @@
 import { Input } from "@/components/ui/input"
 import { Building2, Search, Plus, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { OrganizationTable } from "@/features/super-admin/organizations/components/OrganizationTable"
-import { useOrganizations } from "@/features/super-admin/organizations/hooks/useOrganizations"
-import { CreateOrganizationDialog } from "@/features/super-admin/organizations/components/CreateOrganizationDialog"
+import { OrganizationTable } from "@/components/organizations/OrganizationTable"
+import { useOrganizations } from "@/hooks/organizations/use-organizations"
+import { CreateOrganizationDialog } from "@/components/organizations/CreateOrganizationDialog"
 import { Pagination } from "@/components/ui/pagination-custom"
 import {
   DropdownMenu,

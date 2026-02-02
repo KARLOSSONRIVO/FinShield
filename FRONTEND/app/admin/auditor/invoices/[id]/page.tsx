@@ -4,7 +4,7 @@ import { use } from "react"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { InvoiceDetails } from "@/features/auditor/invoices/components/InvoiceDetails"
+import { InvoiceDetails } from "@/components/invoices/AuditorInvoiceDetails"
 import { MOCK_AUDITOR_INVOICES } from "@/hooks/mock-data"
 
 export default function AuditorInvoiceViewPage({ params }: { params: Promise<{ id: string }> }) {

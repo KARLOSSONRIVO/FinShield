@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { QueryProvider } from "@/components/providers/QueryProvider"
+import { AuthProvider } from "@/components/providers/auth-provider"
 
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -30,8 +32,11 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-
-          {children}
+          <QueryProvider>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </QueryProvider>
         </ThemeProvider>
         <Analytics />
       </body>

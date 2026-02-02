@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { AppSidebar, NavLink } from "@/components/layout/AppSidebar"
-import { TopBar as SuperAdminTopBar } from "@/features/super-admin/navigation-bar/TopBar"
+import { TopBar } from "@/components/layout/TopBar"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
@@ -69,7 +69,16 @@ export default function SuperAdminLayout({
             >
                 {/* Top Navigation Bar - Sticky */}
                 <div className="sticky top-0 z-40">
-                    <SuperAdminTopBar title={title} />
+                    <TopBar
+                        title={title}
+                        userName="Super Admin"
+                        organizationName="Global Administrator"
+                        profileLink="/admin/super-admin/settings"
+                        notifications={[
+                            { title: "New Fraud Alert", time: "2m ago", message: "Invoice INV-2024-100 tagged for review." },
+                            { title: "New Fraud Alert", time: "5m ago", message: "Invoice INV-2024-101 tagged for review." }
+                        ]}
+                    />
                 </div>
 
                 {/* Main Content */}

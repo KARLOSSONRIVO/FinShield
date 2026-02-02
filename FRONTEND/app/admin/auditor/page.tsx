@@ -2,10 +2,10 @@
 
 import { FileSearch } from "lucide-react"
 
-import { AuditorStats } from "@/features/auditor/dashboard/components/AuditorStats"
-import { PendingReviews } from "@/features/auditor/dashboard/components/PendingReviews"
-import { FlaggedItems } from "@/features/auditor/dashboard/components/FlaggedItems"
-import { useAuditorDashboard } from "@/features/auditor/dashboard/hooks/useAuditorDashboard"
+import { AuditorStats } from "@/components/dashboard/AuditorStats"
+import { PendingReviews } from "@/components/dashboard/PendingReviews"
+import { FlaggedItems } from "@/components/dashboard/FlaggedItems"
+import { useAuditorDashboard } from "@/hooks/dashboard/use-auditor-dashboard"
 
 export default function AuditorDashboard() {
   const {

@@ -1,12 +1,11 @@
 "use client"
 
-import { EmployeeSidebar } from "@/features/company-employee/navigation-bar/EmployeeSidebar"
-import { User } from "lucide-react"
 
-import { EmployeeStats } from "@/features/company-employee/dashboard/components/EmployeeStats"
-import { EmployeeRecentInvoices } from "@/features/company-employee/dashboard/components/EmployeeRecentInvoices"
-import { EmployeeAIAlerts } from "@/features/company-employee/dashboard/components/EmployeeAIAlerts"
-import { useEmployeeDashboard } from "@/features/company-employee/dashboard/hooks/useEmployeeDashboard"
+
+import { EmployeeStats } from "@/components/dashboard/EmployeeStats"
+import { EmployeeRecentInvoices } from "@/components/dashboard/EmployeeRecentInvoices"
+import { EmployeeAIAlerts } from "@/components/dashboard/EmployeeAIAlerts"
+import { useEmployeeDashboard } from "@/hooks/company-employee/dashboard/use-employee-dashboard"
 
 export default function EmployeeDashboard() {
   const {
@@ -20,32 +19,34 @@ export default function EmployeeDashboard() {
   } = useEmployeeDashboard()
 
   return (
-    <div className="flex h-screen">
-      <EmployeeSidebar />
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <User className="h-6 w-6 text-primary" />
-              Employee Dashboard
-            </h1>
-            <p className="text-muted-foreground">Welcome back, John Doe</p>
-          </div>
-
-          <EmployeeStats
-            myInvoicesCount={myInvoicesCount}
-            pendingCount={pendingCount}
-            verifiedCount={verifiedCount}
-            flaggedCount={flaggedCount}
-            totalValue={totalValue}
-          />
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <EmployeeRecentInvoices invoices={recentInvoices} title="My Recent Invoices" description="Your latest submissions" />
-            <EmployeeAIAlerts invoices={flaggedInvoices} />
-          </div>
+    <div className="p-6">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            Welcome back, John Doe
+          </h1>
+          <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your invoices</p>
         </div>
-      </main>
+        <a href="/company/employee/upload" className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-emerald-600 text-primary-foreground hover:bg-emerald-600/90 h-10 px-4 py-2">
+          <span className="flex items-center gap-2">
+            <span className="text-lg">+</span> Upload Invoice
+          </span>
+        </a>
+      </div>
+
+      <EmployeeStats
+        myInvoicesCount={myInvoicesCount}
+        pendingCount={pendingCount}
+        verifiedCount={verifiedCount}
+        flaggedCount={flaggedCount}
+        totalValue={totalValue}
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <EmployeeRecentInvoices invoices={recentInvoices} title="My Recent Invoices" description="Your latest submissions" />
+        <EmployeeAIAlerts invoices={flaggedInvoices} />
+      </div>
     </div>
+
   )
 }

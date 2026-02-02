@@ -1,12 +1,9 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Search, Filter } from "lucide-react"
-import { InvoiceTable } from "@/features/invoices/components/InvoiceTable"
-import { useInvoices, InvoiceStatusFilter } from "@/features/super-admin/invoices/hooks/useInvoices"
+import { InvoiceTable } from "@/components/invoices/InvoiceTable"
+import { useSuperAdminInvoices } from "@/hooks/invoices/use-super-admin-invoices"
 import { Pagination } from "@/components/ui/pagination-custom"
-import { InvoiceFilter } from "@/features/super-admin/invoices/components/InvoiceFilter"
+import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 
 export default function AllInvoicesPage() {
   const {
@@ -20,7 +17,7 @@ export default function AllInvoicesPage() {
     setCurrentPage,
     sortConfig,
     requestSort
-  } = useInvoices()
+  } = useSuperAdminInvoices()
 
   return (
     <div className="space-y-6">
@@ -28,24 +25,14 @@ export default function AllInvoicesPage() {
         <h2 className="text-2xl font-normal tracking-tight">Invoice Management</h2>
       </div>
 
-      <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search Invoices..."
-            className="pl-9 bg-background border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <InvoiceFilter
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          sortConfig={sortConfig}
-          onSortChange={requestSort}
-        />
-      </div>
+      <InvoiceFilter
+        search={search}
+        onSearchChange={setSearch}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        sortConfig={sortConfig}
+        onSortChange={requestSort}
+      />
 
       <InvoiceTable
         invoices={invoices}

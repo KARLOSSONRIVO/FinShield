@@ -3,12 +3,11 @@
 import { Input } from "@/components/ui/input"
 import { Search, Filter, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { AssignmentTable } from "../../../../features/super-admin/assignments/components/AssignmentTable"
-import { useAssignments } from "@/features/super-admin/assignments/hooks/useAssignments"
+import { AssignmentTable } from "@/components/assignments/AssignmentTable"
+import { useAssignments } from "@/hooks/assignments/use-assignments"
 import { Pagination } from "@/components/ui/pagination-custom"
-import { CreateAssignmentDialog } from "@/features/super-admin/assignments/components/CreateAssignmentDialog"
-
-import { AssignmentSortFilter } from "@/features/super-admin/assignments/components/AssignmentSortFilter"
+import { CreateAssignmentDialog } from "@/components/assignments/CreateAssignmentDialog"
+import { AssignmentSortFilter } from "@/components/assignments/AssignmentSortFilter"
 
 export default function AssignmentsPage() {
   const {
