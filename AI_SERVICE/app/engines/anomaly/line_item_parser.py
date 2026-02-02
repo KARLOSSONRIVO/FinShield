@@ -44,16 +44,16 @@ class LineItemParser:
             Item 1          $100.00
             Product A       $250.50
             Service X        125.00
-            Qty: 2  Price: $50.00  Total: $100.00
-        
+            Description | Unit Cost | Qty | Amount
+            
         Args:
             text: Full invoice OCR text
         
         Returns:
-            List of line items with amounts
+            List of line items with description, qty, unit_price, and amount
             [
-                {'description': 'Item 1', 'amount': 100.00},
-                {'description': 'Product A', 'amount': 250.50},
+                {'description': 'Item 1', 'quantity': 2, 'unit_price': 50.00, 'amount': 100.00},
+                {'description': 'Product A', 'quantity': 1, 'unit_price': 250.50, 'amount': 250.50},
                 ...
             ]
         
@@ -70,9 +70,10 @@ class LineItemParser:
         try:
             lines = text.split('\n')
             
-            # Pattern: matches currency amounts at end of line
-            # Supports: 56.00, 56, ₱56, $56, P56, etc.
-            amount_pattern = r'[₱$P]?\s*(\d{1,3}(?:,?\d{3})*(?:\.\d{2})?)\s*$'
+            # Pattern: matches currency amounts (with decimals, currency symbols, or preceded by whitespace)
+            # Supports: 56.00, ₱56, $56, P56, or numbers with 2+ spaces before them
+            # Avoids matching numbers in text like "I-9" or "W2"
+            amount_pattern = r'(?:[₱$P]\s*\d{1,3}(?:,?\d{3})*(?:\.\d{2})?|\s{2,}\d{1,3}(?:,?\d{3})*(?:\.\d{2})?|\d{1,3}(?:,?\d{3})*\.\d{2})'
             
             # Find the line items section (between header and totals)
             in_items_section = False
@@ -107,24 +108,68 @@ class LineItemParser:
                     if matches:
                         # Use the last amount (usually the line total)
                         last_match = matches[-1]
-                        amount_str = last_match.group(1).replace(',', '')
+                        amount_str = last_match.group(0).strip().replace(',', '')
+                        # Remove currency symbols
+                        amount_str = re.sub(r'[₱$P]', '', amount_str).strip()
                         
                         try:
                             amount = float(amount_str)
                             
                             # Filter out unreasonably small amounts (likely noise)
                             if amount >= 1.0 and amount < 1000000:
-                                # Extract description (text before the amounts)
-                                description = line_stripped[:last_match.start()].strip()
+                                # Extract description (text before the FIRST amount, not last)
+                                # This avoids including unit cost, qty in description
+                                first_match = matches[0]
+                                description = line_stripped[:first_match.start()].strip()
                                 
-                                # Clean up description (remove extra pipes, numbers)
+                                # Clean up description (remove extra pipes, currency symbols)
                                 description = re.sub(r'\|', ' ', description).strip()
+                                description = re.sub(r'[₱$P]\s*', '', description).strip()
                                 description = re.sub(r'\s+', ' ', description)
+                                
+                                # Extract quantity and unit price if available
+                                quantity = 1  # Default to 1 if not found
+                                unit_price = amount  # Default unit price = amount
+                                
+                                # If we have multiple amounts, try to parse qty and unit_price
+                                if len(matches) >= 3:
+                                    # Pattern: Description | Unit Cost | Qty | Amount
+                                    try:
+                                        unit_price_str = matches[-3].group(0).strip().replace(',', '')
+                                        unit_price_str = re.sub(r'[₱$P]', '', unit_price_str).strip()
+                                        qty_str = matches[-2].group(0).strip().replace(',', '')
+                                        qty_str = re.sub(r'[₱$P]', '', qty_str).strip()
+                                        
+                                        unit_price = float(unit_price_str)
+                                        quantity = int(float(qty_str))
+                                    except (ValueError, IndexError):
+                                        # If parsing fails, use defaults
+                                        pass
+                                elif len(matches) == 2:
+                                    # Might be: Description | Unit Cost | Amount (qty=1)
+                                    # Or: Description | Qty | Amount
+                                    try:
+                                        first_num_str = matches[0].group(0).strip().replace(',', '')
+                                        first_num_str = re.sub(r'[₱$P]', '', first_num_str).strip()
+                                        first_num = float(first_num_str)
+                                        
+                                        # If first number * 1 ≈ last number, it's unit_price
+                                        if abs(first_num - amount) < 0.01:
+                                            unit_price = first_num
+                                            quantity = 1
+                                        # If first number < 100 and first * first_num ≈ amount, it's qty
+                                        elif first_num < 100 and abs(first_num * (amount / first_num) - amount) < 0.01:
+                                            quantity = int(first_num)
+                                            unit_price = amount / first_num
+                                    except (ValueError, ZeroDivisionError):
+                                        pass
                                 
                                 # Only add if description is meaningful (not just numbers)
                                 if description and not description.replace('.', '').replace(',', '').isdigit():
                                     line_items.append({
                                         'description': description,
+                                        'quantity': quantity,
+                                        'unit_price': round(unit_price, 2),
                                         'amount': amount
                                     })
                         except ValueError:

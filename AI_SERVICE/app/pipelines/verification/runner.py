@@ -41,7 +41,7 @@ class VerificationPipeline:
         self.stages = [
             LayoutDetectionLayer(),
             AnomalyDetectionLayer(db=db),
-            FraudDetectionLayer(),
+            FraudDetectionLayer(db=db), 
         ]
     
     async def run(
@@ -98,7 +98,7 @@ class VerificationPipeline:
         else:
             overall_score = 1.0  # All stages skipped
         
-        # Determine overall verdict
+        # Determine overall verdict based on score thresholds
         if overall_score >= self.SCORE_CLEAN_THRESHOLD:
             overall_verdict = "clean"
         elif overall_score >= self.SCORE_FLAGGED_THRESHOLD:
@@ -164,9 +164,17 @@ class VerificationPipeline:
                 if layer_verdict == "pass":
                     parts.append(f"Layout matches template ({score:.0%}).")
                 elif layer_verdict == "warn":
-                    parts.append(f"Layout partially matches ({score:.0%}).")
+                    parts.append(f"Invoice layout does not follow the organization's template (similarity: {score:.0%}).")
                 else:
-                    parts.append(f"Layout mismatch detected ({score:.0%}).")
+                    parts.append(f"Invoice layout significantly differs from template ({score:.0%}).")
+            
+            elif layer == "anomaly_detection":
+                if layer_verdict == "pass":
+                    parts.append("No anomalies found.")
+                elif layer_verdict == "warn":
+                    parts.append(f"Potential anomalies detected ({score:.0%}).")
+                else:
+                    parts.append(f"Significant anomalies detected ({score:.0%}).")
         
         if flags:
             parts.append(f"Flags: {len(flags)} issue(s) detected.")

@@ -103,6 +103,11 @@ async def store_template_for_org(
     
     layout_sig = template_data.get("layout_signature", {})
     
+    print(f"[TEMPLATE DEBUG] Layout signature keys: {layout_sig.keys()}")
+    print(f"[TEMPLATE DEBUG] Has structural_features: {bool(layout_sig.get('structural_features'))}")
+    if layout_sig.get('structural_features'):
+        print(f"[TEMPLATE DEBUG] Structural features: {layout_sig.get('structural_features')}")
+    
     update = {
         "invoiceTemplate": {
             "s3Key": s3_key,
@@ -114,12 +119,15 @@ async def store_template_for_org(
                 "positions": layout_sig.get("positions", {}),
                 "detectedFields": layout_sig.get("detected_fields", {}),
                 "elementCount": layout_sig.get("element_count", 0),
+                "structuralFeatures": layout_sig.get("structural_features", {}),
             },
             "totalElements": template_data.get("total_elements", 0),
             "source": template_data.get("source"),
         },
         "updatedAt": __import__("datetime").datetime.utcnow(),
     }
+    
+    print(f"[TEMPLATE DEBUG] Update document structuralFeatures: {update['invoiceTemplate']['layoutSignature'].get('structuralFeatures')}")
     
     result = organizations.update_one(
         {"_id": ObjectId(org_id)},
@@ -161,6 +169,7 @@ async def get_org_template_layout(org_id: str) -> Optional[Dict[str, Any]]:
                 "positions": dict(layout_sig.get("positions", {})),
                 "detected_fields": dict(layout_sig.get("detectedFields", {})),
                 "element_count": layout_sig.get("elementCount", 0),
+                "structural_features": dict(layout_sig.get("structuralFeatures", {})),
                 "source": template.get("source"),
                 "fileName": template.get("fileName"),
                 "uploadedAt": template.get("uploadedAt"),

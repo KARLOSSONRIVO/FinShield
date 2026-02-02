@@ -178,3 +178,124 @@ def compare_structure(
         "fields_compared": len(position_scores),
         "flags": flags,
     }
+
+
+def compare_structural_features(
+    extracted: Dict,
+    template: Dict
+) -> Dict[str, Any]:
+    """
+    Compare structural features to detect different templates.
+    
+    Compares element distributions, sizes, and spatial patterns
+    to catch templates that have the same fields but different layouts.
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    template_features = template.get("structural_features", {})
+    invoice_features = extracted.get("structural_features", {})
+    
+    if not template_features or not invoice_features:
+        logger.warning("Missing structural features - defaulting to score 1.0")
+        return {"score": 1.0, "flags": [], "details": {}}
+    
+    scores = []
+    details = {}
+    flags = []
+    
+    # Compare quadrant density (spatial distribution)
+    template_quads = template_features.get("quadrant_density", {})
+    invoice_quads = invoice_features.get("quadrant_density", {})
+    
+    if template_quads and invoice_quads:
+        quad_scores = []
+        for quad in ["top_left", "top_right", "bottom_left", "bottom_right"]:
+            t_count = template_quads.get(quad, 0)
+            i_count = invoice_quads.get(quad, 0)
+            
+            # Skip quadrants where both are 0 - they don't provide meaningful comparison
+            if t_count == 0 and i_count == 0:
+                continue
+            # If one has elements and other doesn't, that's a major mismatch
+            elif t_count == 0 or i_count == 0:
+                quad_scores.append(0.0)
+            else:
+                # Calculate similarity (ratio should be close to 1)
+                ratio = min(t_count, i_count) / max(t_count, i_count)
+                quad_scores.append(ratio)
+        
+        # If we have any quadrant scores to compare, use them
+        if quad_scores:
+            quad_avg = sum(quad_scores) / len(quad_scores)
+            scores.append(quad_avg)
+            details["quadrant_similarity"] = round(quad_avg, 3)
+            
+            if quad_avg < 0.85:  # Stricter threshold for quadrant similarity
+                flags.append("SPATIAL_DISTRIBUTION_MISMATCH")
+    
+    # Compare element size patterns
+    template_sizes = template_features.get("size_stats", {})
+    invoice_sizes = invoice_features.get("size_stats", {})
+    
+    if template_sizes and invoice_sizes:
+        size_scores = []
+        
+        for dimension in ["width", "height", "area"]:
+            t_stats = template_sizes.get(dimension, {})
+            i_stats = invoice_sizes.get(dimension, {})
+            
+            t_mean = t_stats.get("mean", 0)
+            i_mean = i_stats.get("mean", 0)
+            
+            if t_mean > 0:
+                # Calculate similarity based on mean size
+                ratio = min(t_mean, i_mean) / max(t_mean, i_mean)
+                size_scores.append(ratio)
+        
+        if size_scores:
+            size_avg = sum(size_scores) / len(size_scores)
+            scores.append(size_avg)
+            details["size_similarity"] = round(size_avg, 3)
+            
+            if size_avg < 0.7:
+                flags.append("ELEMENT_SIZE_MISMATCH")
+    
+    # Compare text length distribution
+    template_text = template_features.get("text_length_stats", {})
+    invoice_text = invoice_features.get("text_length_stats", {})
+    
+    if template_text and invoice_text:
+        t_mean = template_text.get("mean", 0)
+        i_mean = invoice_text.get("mean", 0)
+        
+        if t_mean > 0:
+            text_ratio = min(t_mean, i_mean) / max(t_mean, i_mean)
+            scores.append(text_ratio)
+            details["text_length_similarity"] = round(text_ratio, 3)
+            
+            if text_ratio < 0.7:
+                flags.append("TEXT_PATTERN_MISMATCH")
+    
+    # Calculate overall structural score with weighted components
+    # Quadrant distribution is the most reliable indicator of different templates
+    if scores:
+        # Weight quadrant similarity more heavily (60%) vs size/text patterns (40%)
+        quadrant_score = details.get("quadrant_similarity", 1.0)
+        other_scores = [s for i, s in enumerate(scores) if i > 0]  # Skip first score (quadrant)
+        
+        if other_scores:
+            other_avg = sum(other_scores) / len(other_scores)
+            overall_score = (quadrant_score * 0.6) + (other_avg * 0.4)
+        else:
+            overall_score = quadrant_score
+    else:
+        overall_score = 1.0
+    
+    logger.info(f"Structural comparison: score={overall_score:.3f}, details={details}, flags={flags}")
+    
+    return {
+        "score": overall_score,
+        "details": details,
+        "flags": flags,
+    }

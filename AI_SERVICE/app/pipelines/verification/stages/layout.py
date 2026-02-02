@@ -15,8 +15,9 @@ class LayoutDetectionLayer(BaseLayer):
     layer_name = "layout_detection"
     
     # Thresholds for scoring (kept for verdict determination)
-    SCORE_PASS_THRESHOLD = 0.75
-    SCORE_WARN_THRESHOLD = 0.50
+    # Higher threshold to catch subtle template differences
+    SCORE_PASS_THRESHOLD = 0.95  # Must be very close match to pass
+    SCORE_WARN_THRESHOLD = 0.85  # Moderate similarity gets warning
     
     def __init__(self):
         self.engine = LayoutComparisonEngine()
@@ -48,6 +49,13 @@ class LayoutDetectionLayer(BaseLayer):
         
         # Delegate comparison to engine
         engine_result = self.engine.compare(extracted, template)
+        
+        # Debug logging
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Layout comparison result: score={engine_result['total_score']:.3f}, flags={engine_result['flags']}")
+        logger.info(f"Template structural features: {template.get('structural_features', {}).get('quadrant_density', 'N/A')}")
+        logger.info(f"Invoice structural features: {extracted.get('structural_features', {}).get('quadrant_density', 'N/A')}")
         
         total_score = engine_result["total_score"]
         flags = engine_result["flags"]

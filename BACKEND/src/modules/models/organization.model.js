@@ -18,6 +18,7 @@ const OrganizationSchema = new mongoose.Schema({
             positions: { type: Map, of: String },  // Field → position mapping
             detectedFields: { type: Map, of: Object },  // Field → full details
             elementCount: { type: Number, default: 0 },
+            structural_features: { type: Object, default: {} },  // Spatial distribution, size stats, text patterns (snake_case to match Python)
         },
         totalElements: { type: Number, default: 0 },
         source: { type: String, default: null },  // "paddleocr" or "python-docx"

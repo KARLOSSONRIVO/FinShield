@@ -54,6 +54,7 @@ def _get_org_template_layout(org_id: str) -> Optional[Dict[str, Any]]:
                 "positions": dict(layout_sig.get("positions", {})),
                 "detected_fields": dict(layout_sig.get("detectedFields", {})),
                 "element_count": layout_sig.get("elementCount", 0),
+                "structural_features": dict(layout_sig.get("structural_features", {})),
             }
         return None
     except Exception as e:

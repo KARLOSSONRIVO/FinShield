@@ -4,6 +4,7 @@ export const ANCHOR_STATUS = ["pending", "anchored", "failed"]
 export const INVOICE_STATUS = ["pending", "verified", "flagged", "fraudulent"]
 export const AI_VERDICT = ["clean", "flagged"]
 export const AI_RISK_LEVEL = ["low", "medium", "high"]
+export const REVIEW_DECISION = ["approved", "rejected"]
 
 
 const InvoiceSchema = new mongoose.Schema({
@@ -50,6 +51,18 @@ const InvoiceSchema = new mongoose.Schema({
     reviewedAt: {
         type: Date,
         default: null
+    },
+    // Auditor's final decision - used for ML training labels
+    // approved = legitimate invoice, rejected = fraudulent
+    reviewDecision: {
+        type: String,
+        enum: REVIEW_DECISION,
+        default: null,
+        index: true
+    },
+    reviewNotes: {
+        type: String,
+        default: null
     }
 }, { timestamps: true })
 
@@ -61,6 +74,8 @@ InvoiceSchema.index({ anchorTxHash: 1, anchorStatus: 1 })
 InvoiceSchema.index({ orgId: 1, status: 1, createdAt: -1 });
 // Content-based duplicate detection
 InvoiceSchema.index({ orgId: 1, invoiceNumber: 1 }, { sparse: true });
+// ML training data queries (find reviewed invoices)
+InvoiceSchema.index({ reviewDecision: 1, updatedAt: -1 }, { sparse: true });
 
 const Invoice = mongoose.models.Invoice || mongoose.model("Invoice", InvoiceSchema)
 

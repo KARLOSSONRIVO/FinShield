@@ -64,26 +64,6 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # Tesseract / Poppler Configuration
-def _find_poppler_path() -> str | None:
-    """Find Poppler installation path on Windows."""
-    if shutil.which("pdftoppm"):
-        return None
-    
-    possible_paths = [
-        r"C:\ProgramData\poppler\Library\bin",
-        r"C:\Program Files\poppler\Library\bin",
-        r"C:\Program Files\poppler\bin",
-        r"C:\poppler\Library\bin",
-        r"C:\poppler\bin",
-        r"C:\tools\poppler\Library\bin",
-        os.path.expanduser(r"~\poppler\Library\bin"),
-    ]
-    
-    for path in possible_paths:
-        if os.path.exists(os.path.join(path, "pdftoppm.exe")):
-            return path
-    
-    return None
-
-POPPLER_PATH = _find_poppler_path()
-
+# Both rely on system PATH - ensure binaries are installed and accessible:
+# - Tesseract: pytesseract uses 'tesseract' command from PATH  
+# - Poppler: pdf2image uses 'pdftoppm' and 'pdftotext' from PATH
