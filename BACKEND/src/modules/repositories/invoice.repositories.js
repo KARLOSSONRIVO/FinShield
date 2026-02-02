@@ -27,3 +27,11 @@ export async function findPendingAnchors() {
 export async function findInvoiceByCid(fileSha) {
   return await Invoice.findOne({ fileHashSha256: fileSha });
 }
+
+export async function findByInvoiceNumberAndOrg(invoiceNumber, orgId) {
+  return await Invoice.findOne({ 
+    invoiceNumber: invoiceNumber,
+    orgId: orgId,
+    anchorStatus: { $in: ["anchored", "pending"] } // Only check non-failed invoices
+  });
+}

@@ -6,6 +6,7 @@ First request downloads from S3 (~150ms), subsequent requests use cache (<1ms).
 """
 
 import os
+import json
 import boto3
 import joblib
 import logging
@@ -96,13 +97,14 @@ def get_model_from_s3(org_id: str):
         return None
 
 
-def save_model_to_s3(org_id: str, model) -> str:
+def save_model_to_s3(org_id: str, model, metadata: Optional[dict] = None) -> str:
     """
-    Save trained model to S3 with compression
+    Save trained model to S3 with compression and metadata
     
     Args:
         org_id: Organization ID
         model: Trained Isolation Forest model
+        metadata: Optional training metadata (training_date, invoice_count, etc.)
     
     Returns:
         S3 key path
@@ -114,7 +116,8 @@ def save_model_to_s3(org_id: str, model) -> str:
         >>> from sklearn.ensemble import IsolationForest
         >>> model = IsolationForest()
         >>> model.fit(training_data)
-        >>> s3_key = save_model_to_s3('org_123', model)
+        >>> metadata = {'trained_at': datetime.now(), 'invoice_count': 10000}
+        >>> s3_key = save_model_to_s3('org_123', model, metadata)
     """
     try:
         client = _get_s3_client()
@@ -124,7 +127,7 @@ def save_model_to_s3(org_id: str, model) -> str:
         joblib.dump(model, buffer, compress=3)
         buffer.seek(0)
         
-        # Upload to S3
+        # Upload to S3 (overwrites existing model - no deletion needed)
         s3_key = f'models/org_{org_id}_anomaly.pkl.gz'
         client.upload_fileobj(
             buffer,
@@ -135,12 +138,59 @@ def save_model_to_s3(org_id: str, model) -> str:
             }
         )
         
+        # Save metadata if provided
+        if metadata:
+            metadata_key = f'models/org_{org_id}_metadata.json'
+            metadata_json = BytesIO(json.dumps(metadata, indent=2).encode('utf-8'))
+            client.upload_fileobj(
+                metadata_json,
+                settings.MODEL_BUCKET_NAME,
+                metadata_key,
+                ExtraArgs={'ContentType': 'application/json'}
+            )
+            logger.debug(f"✅ Metadata uploaded: {metadata_key}")
+        
         logger.info(f"✅ Model uploaded to S3: {s3_key}")
         return s3_key
         
     except Exception as e:
         logger.error(f"Error saving model to S3 for org {org_id}: {e}")
         raise
+
+
+def get_model_metadata(org_id: str) -> Optional[dict]:
+    """
+    Retrieve training metadata for a model
+    
+    Args:
+        org_id: Organization ID
+    
+    Returns:
+        Metadata dict or None if not found
+    """
+    try:
+        client = _get_s3_client()
+        metadata_key = f'models/org_{org_id}_metadata.json'
+        
+        buffer = BytesIO()
+        client.download_fileobj(
+            settings.MODEL_BUCKET_NAME,
+            metadata_key,
+            buffer
+        )
+        buffer.seek(0)
+        
+        metadata = json.loads(buffer.read().decode('utf-8'))
+        return metadata
+        
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        if error_code not in ['NoSuchKey', '404']:
+            logger.error(f"Error loading metadata for org {org_id}: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error loading metadata for org {org_id}: {e}")
+        return None
 
 
 def clear_model_cache(org_id: Optional[str] = None):

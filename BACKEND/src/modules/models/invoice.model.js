@@ -59,6 +59,8 @@ InvoiceSchema.index({ fileHashSha256: 1, anchorStatus: 1 })
 InvoiceSchema.index({ anchorTxHash: 1, anchorStatus: 1 })
 // Audit & compliance queries
 InvoiceSchema.index({ orgId: 1, status: 1, createdAt: -1 });
+// Content-based duplicate detection
+InvoiceSchema.index({ orgId: 1, invoiceNumber: 1 }, { sparse: true });
 
 const Invoice = mongoose.models.Invoice || mongoose.model("Invoice", InvoiceSchema)
 

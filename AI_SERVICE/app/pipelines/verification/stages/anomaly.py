@@ -180,10 +180,12 @@ class AnomalyDetectionLayer(BaseLayer):
             (score, issue_message)
         """
         try:
-            # Get invoice totals
-            total = float(invoice_data.get('total', 0))
-            subtotal = float(invoice_data.get('subtotal', 0))
-            tax = float(invoice_data.get('tax', 0))
+            # Get invoice totals (handle None values)
+            total = float(invoice_data.get('total') or 0)
+            subtotal = float(invoice_data.get('subtotal') or 0)
+            tax = float(invoice_data.get('tax') or 0)
+            
+            logger.debug(f"Invoice data: total={total}, subtotal={subtotal}, tax={tax}")
             
             if total == 0:
                 return 0.5, "Total amount is zero"
@@ -191,6 +193,7 @@ class AnomalyDetectionLayer(BaseLayer):
             # If subtotal/tax not provided, try to parse from text
             if (subtotal == 0 or tax == 0) and raw_text:
                 parsed_totals = self.line_item_parser.extract_totals(raw_text)
+                logger.debug(f"Parsed totals from text: {parsed_totals}")
                 if subtotal == 0 and parsed_totals.get('subtotal'):
                     subtotal = parsed_totals['subtotal']
                 if tax == 0 and parsed_totals.get('tax'):

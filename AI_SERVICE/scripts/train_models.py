@@ -18,22 +18,59 @@ import sys
 import os
 import argparse
 import logging
-from datetime import datetime
-
-# Add parent directory to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+import random
+from datetime import datetime, timedelta
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from sklearn.ensemble import IsolationForest
 from app.db.mongo import get_database
 from app.engines.anomaly.feature_extractor import FeatureExtractor
-from app.engines.anomaly.model_loader import save_model_to_s3, clear_model_cache
+from app.engines.anomaly.model_loader import save_model_to_s3, clear_model_cache, get_model_metadata
 from app.core.config import settings
 
+
+# Add parent directory to path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
+def smart_sample_invoices(invoices: list, max_samples: int, recent_days: int, recent_weight: float) -> list:
+    """
+    Smart sampling: Weighted toward recent invoices
+    
+    Args:
+        invoices: List of all invoices
+        max_samples: Maximum samples to use (e.g., 10000)
+        recent_days: Days to consider as "recent" (e.g., 90)
+        recent_weight: Proportion of recent samples (e.g., 0.8 = 80%)
+    
+    Returns:
+        Sampled invoice list
+    """
+    if len(invoices) <= max_samples:
+        return invoices
+    
+    # Calculate cutoff date
+    cutoff_date = datetime.now() - timedelta(days=recent_days)
+    
+    # Split into recent and historical
+    recent = [inv for inv in invoices if inv.get('createdAt') and inv['createdAt'] >= cutoff_date]
+    historical = [inv for inv in invoices if inv not in recent]
+    
+    # Calculate sample sizes
+    recent_count = int(max_samples * recent_weight)
+    historical_count = max_samples - recent_count
+    
+    # Sample from each group
+    sampled_recent = random.sample(recent, min(len(recent), recent_count))
+    sampled_historical = random.sample(historical, min(len(historical), historical_count)) if historical else []
+    
+    logger.info(f"  📊 Sampled {len(sampled_recent)} recent + {len(sampled_historical)} historical = {len(sampled_recent) + len(sampled_historical)} total")
+    
+    return sampled_recent + sampled_historical
 
 
 class ModelTrainer:
@@ -104,7 +141,15 @@ class ModelTrainer:
     
     def train_organization_model(self, org_id: str) -> bool:
         """
-        Train model for specific organization
+        Train model for specific organization with incremental training support
+        
+        Incremental Training Logic:
+        1. Check if model exists and when it was last trained
+        2. Count new invoices since last training
+        3. Only retrain if:
+           - Model doesn't exist, OR
+           - 500+ new invoices accumulated, OR
+           - 7+ days since last training
         
         Args:
             org_id: Organization ID (MongoDB ObjectId as string)
@@ -117,7 +162,57 @@ class ModelTrainer:
         logger.info(f"{'='*70}")
         
         try:
-            # 1. Check invoice count
+            # 1. Check if incremental training is possible
+            metadata = get_model_metadata(org_id)
+            
+            if metadata:
+                last_trained = metadata.get('trained_at')
+                last_invoice_count = metadata.get('invoice_count', 0)
+                
+                # Parse last training date
+                if isinstance(last_trained, str):
+                    last_trained = datetime.fromisoformat(last_trained)
+                
+                # Count current invoices
+                current_invoice_count = self.db.invoices.count_documents({
+                    'organizationId': org_id,
+                    'aiVerdict': 'clean',
+                    'total': {'$exists': True}
+                })
+                
+                # Calculate new invoices
+                new_invoice_count = current_invoice_count - last_invoice_count
+                days_since_training = (datetime.now() - last_trained).days if last_trained else 999
+                
+                logger.info(f"📊 Model exists:")
+                logger.info(f"  Last trained: {last_trained.strftime('%Y-%m-%d %H:%M') if last_trained else 'Unknown'}")
+                logger.info(f"  Days since training: {days_since_training}")
+                logger.info(f"  Previous invoice count: {last_invoice_count}")
+                logger.info(f"  Current invoice count: {current_invoice_count}")
+                logger.info(f"  New invoices: {new_invoice_count}")
+                
+                # Check if retraining is needed
+                should_retrain = (
+                    new_invoice_count >= settings.ANOMALY_MIN_NEW_INVOICES or
+                    days_since_training >= settings.ANOMALY_RETRAIN_INTERVAL_DAYS
+                )
+                
+                if not should_retrain:
+                    logger.info(f"✅ SKIP - Model is up-to-date")
+                    logger.info(f"  Need {settings.ANOMALY_MIN_NEW_INVOICES - new_invoice_count} more invoices OR")
+                    logger.info(f"  Wait {settings.ANOMALY_RETRAIN_INTERVAL_DAYS - days_since_training} more days")
+                    logger.info(f"{'='*70}\n")
+                    return True  # Not a failure, just skipped
+                
+                logger.info(f"🔄 RETRAINING - Conditions met:")
+                if new_invoice_count >= settings.ANOMALY_MIN_NEW_INVOICES:
+                    logger.info(f"  ✓ {new_invoice_count} new invoices (>= {settings.ANOMALY_MIN_NEW_INVOICES})")
+                if days_since_training >= settings.ANOMALY_RETRAIN_INTERVAL_DAYS:
+                    logger.info(f"  ✓ {days_since_training} days since training (>= {settings.ANOMALY_RETRAIN_INTERVAL_DAYS})")
+            else:
+                logger.info("📝 No existing model - training from scratch")
+            
+            # 2. Check invoice count
             invoice_count = self.db.invoices.count_documents({
                 'organizationId': org_id,
                 'aiVerdict': 'clean',
@@ -133,15 +228,27 @@ class ModelTrainer:
             
             logger.info(f"✓ Found {invoice_count} clean invoices")
             
-            # 2. Fetch invoices (limit to 10k for performance)
-            max_training_samples = min(invoice_count, 10000)
-            logger.info(f"✓ Fetching up to {max_training_samples} invoices...")
-            
+            # 2. Fetch invoices with smart sampling
             invoices = list(self.db.invoices.find({
                 'organizationId': org_id,
                 'aiVerdict': 'clean',
                 'total': {'$exists': True}
-            }).limit(max_training_samples))
+            }))
+            
+            # Apply smart sampling if exceeds limit
+            if len(invoices) > settings.ANOMALY_MAX_TRAINING_SAMPLES:
+                logger.info(
+                    f"✓ Sampling {len(invoices)} → {settings.ANOMALY_MAX_TRAINING_SAMPLES} invoices "
+                    f"({int(settings.ANOMALY_RECENT_WEIGHT * 100)}% recent, {int((1 - settings.ANOMALY_RECENT_WEIGHT) * 100)}% historical)"
+                )
+                invoices = smart_sample_invoices(
+                    invoices,
+                    max_samples=settings.ANOMALY_MAX_TRAINING_SAMPLES,
+                    recent_weight=settings.ANOMALY_RECENT_WEIGHT,
+                    recent_days=settings.ANOMALY_RECENT_DAYS
+                )
+            else:
+                logger.info(f"✓ Using all {len(invoices)} invoices (under limit)")
             
             # 3. Extract features
             logger.info("✓ Extracting features...")
@@ -174,9 +281,16 @@ class ModelTrainer:
             model.fit(feature_matrix)
             logger.info("✓ Model training complete")
             
-            # 5. Save to S3
+            # 5. Save to S3 with metadata (overwrites existing - no deletion needed)
             logger.info("✓ Uploading model to S3...")
-            s3_key = save_model_to_s3(org_id, model)
+            training_metadata = {
+                'trained_at': datetime.now().isoformat(),
+                'invoice_count': len(invoices),
+                'feature_count': len(feature_matrix),
+                'contamination': contamination,
+                'n_estimators': 100
+            }
+            s3_key = save_model_to_s3(org_id, model, training_metadata)
             logger.info(f"✓ Model uploaded: {s3_key}")
             
             # 6. Clear cache to force reload
@@ -220,16 +334,34 @@ class ModelTrainer:
         success_count = 0
         fail_count = 0
         
-        for idx, org_data in enumerate(eligible_orgs, 1):
-            org_id = org_data['org_id']
-            count = org_data['count']
+        # Train organizations in parallel
+        max_workers = min(settings.MAX_PARALLEL_TRAINING, len(eligible_orgs))
+        logger.info(f"\n🚀 Training {len(eligible_orgs)} organizations with {max_workers} parallel workers\n")
+        
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all training jobs
+            future_to_org = {
+                executor.submit(self.train_organization_model, org_data['org_id']): org_data
+                for org_data in eligible_orgs
+            }
             
-            logger.info(f"\n[{idx}/{len(eligible_orgs)}] Processing {org_id} ({count} invoices)")
-            
-            if self.train_organization_model(org_id):
-                success_count += 1
-            else:
-                fail_count += 1
+            # Process results as they complete
+            for idx, future in enumerate(as_completed(future_to_org), 1):
+                org_data = future_to_org[future]
+                org_id = org_data['org_id']
+                count = org_data['count']
+                
+                try:
+                    result = future.result()
+                    if result:
+                        success_count += 1
+                        logger.info(f"✅ [{idx}/{len(eligible_orgs)}] {org_id} - SUCCESS")
+                    else:
+                        fail_count += 1
+                        logger.info(f"❌ [{idx}/{len(eligible_orgs)}] {org_id} - FAILED")
+                except Exception as e:
+                    fail_count += 1
+                    logger.error(f"❌ [{idx}/{len(eligible_orgs)}] {org_id} - ERROR: {e}")
         
         # Final summary
         logger.info("\n" + "="*70)

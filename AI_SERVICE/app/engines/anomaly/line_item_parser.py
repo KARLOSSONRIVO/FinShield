@@ -33,7 +33,7 @@ class LineItemParser:
         'tax:',
         'tax(',
         'gst:',
-        'vat:',
+        'vat:',   
     ]
     
     def parse_line_items(self, text: str) -> List[Dict]:
@@ -70,9 +70,9 @@ class LineItemParser:
         try:
             lines = text.split('\n')
             
-            # Pattern: matches currency amounts (decimal format)
-            # Matches the last amount on a line like: "Item 50.00 1 56.00"
-            amount_pattern = r'(\d+\.\d{2})\s*$'
+            # Pattern: matches currency amounts at end of line
+            # Supports: 56.00, 56, ₱56, $56, P56, etc.
+            amount_pattern = r'[₱$P]?\s*(\d{1,3}(?:,?\d{3})*(?:\.\d{2})?)\s*$'
             
             # Find the line items section (between header and totals)
             in_items_section = False
@@ -219,10 +219,11 @@ class LineItemParser:
         try:
             lines = text.split('\n')
             
-            # Pattern for amounts - prefer amounts at end of line with decimals
-            amount_pattern = r'(\d{1,3}(?:,\d{3})*\.\d{2})\s*$'
-            # Fallback pattern for amounts without decimals
-            fallback_pattern = r'(\d{1,3}(?:,\d{3})*)\s*$'
+            # Pattern for amounts - support multiple currencies and formats
+            # Matches: 24.00, 24, ₱24, $24, P24
+            amount_pattern = r'[₱$P]?\s*(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*$'
+            # Fallback pattern for whole numbers
+            fallback_pattern = r'[₱$P]?\s*(\d{1,3}(?:,\d{3})*)\s*$'
             
             for line in lines:
                 line_lower = line.lower()

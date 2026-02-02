@@ -166,6 +166,16 @@ def parse_invoice_fields(text: str) -> dict:
     
     # Line Items - Use LineItemParser for accurate extraction
     line_items = parser.parse_line_items(text)
+    
+    # DEBUG: Print line item parsing results
+    print("\n" + "="*60)
+    print("🔍 LINE ITEM PARSER DEBUG")
+    print("="*60)
+    print(f"Extracted {len(line_items)} line items:")
+    for idx, item in enumerate(line_items, 1):
+        print(f"  {idx}. {item.get('description')}: ${item.get('amount')}")
+    print("="*60 + "\n")
+    
     if line_items:
         result["lineItems"] = line_items
         result["confidence"]["lineItems"] = 0.95
