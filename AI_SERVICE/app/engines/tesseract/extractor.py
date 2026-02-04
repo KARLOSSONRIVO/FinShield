@@ -6,5 +6,4 @@ This module acts as a facade, exposing functionality from:
 - .layout (Layout extraction with bounding boxes)
 """
 # Re-export key functions for backward compatibility
-from .simple import extract_text_simple
-from .layout import extract_text_with_layout
+from .extraction import extract_text_simple, extract_text_with_layout

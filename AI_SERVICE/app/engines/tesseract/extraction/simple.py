@@ -60,13 +60,6 @@ def extract_text_from_docx(path: str) -> str:
 
     extracted_text = "\n".join(blocks)
     
-    # DEBUG: Print extracted text
-    print("\n" + "="*60)
-    print("🔍 DOCX EXTRACTION DEBUG")
-    print("="*60)
-    print(extracted_text)
-    print("="*60 + "\n")
-    
     return extracted_text
 
 

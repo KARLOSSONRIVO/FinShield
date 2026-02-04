@@ -9,7 +9,7 @@ from docx import Document
 import pytesseract
 from PIL import Image
 from app.utils.geometry import normalize_bbox, get_position_label
-from .signature import build_layout_signature
+from ..signature import build_layout_signature
 
 
 def _extract_layout_from_image(image_path: str, img_width: int, img_height: int) -> List[Dict[str, Any]]:

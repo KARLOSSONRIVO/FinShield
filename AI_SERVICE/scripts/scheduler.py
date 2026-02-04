@@ -3,7 +3,7 @@ Background Scheduler for FinShield AI Service
 
 Runs periodic tasks:
 - Health check ping every 10 minutes (keeps service alive)
-- Anomaly model training weekly (Sundays at 2 AM)
+- Anomaly model training every 3 days at 2 AM (catches high-activity orgs faster)
 - Fraud model retraining monthly (1st of each month at 3 AM)
 """
 import os
@@ -112,17 +112,18 @@ def start_scheduler():
     )
     logger.info("  ✓ Health check job scheduled (every 10 minutes)")
     
-    # Add anomaly model training job - weekly on Sundays at 2 AM
+    # Add anomaly model training job - every 3 days at 2 AM
+    # This allows high-activity orgs (400+ invoices) to retrain faster
+    # while still ensuring low-activity orgs retrain at least weekly
     scheduler.add_job(
         train_anomaly_models_job,
-        'cron',
-        day_of_week='sun',
-        hour=2,
-        minute=0,
+        'interval',
+        days=3,
+        start_date='2026-02-04 02:00:00',  # Start at 2 AM
         id='train_anomaly_models',
-        name='Anomaly Model Training (weekly on Sundays at 2 AM)'
+        name='Anomaly Model Training (every 3 days at 2 AM)'
     )
-    logger.info("  ✓ Anomaly model training job scheduled (weekly on Sundays at 2 AM)")
+    logger.info("  ✓ Anomaly model training job scheduled (every 3 days at 2 AM)")
     
     # Add fraud model retraining job - monthly on the 1st at 3 AM
     scheduler.add_job(

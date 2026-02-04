@@ -23,17 +23,16 @@ class FeatureExtractor:
         """
         Extract feature vector for anomaly detection
         
-        Features (10 total):
+        Features (9 total):
             1. total_amount - Invoice total
             2. subtotal - Pre-tax amount
             3. tax_amount - Tax amount
             4. tax_rate - tax / subtotal ratio
             5. line_item_count - Number of line items
-            6. has_discount - Binary (0/1)
-            7. invoice_day_of_week - 0=Monday, 6=Sunday
-            8. amount_rounded - Binary (is it exactly $100 or $1000 multiple?)
-            9. subtotal_tax_ratio - subtotal / total
-            10. days_since_last_invoice - Historical context
+            6. invoice_day_of_week - 0=Monday, 6=Sunday
+            7. amount_rounded - Binary (is it exactly $100 or $1000 multiple?)
+            8. subtotal_tax_ratio - subtotal / total
+            9. days_since_last_invoice - Historical context
         
         Args:
             invoice_data: Parsed invoice data from OCR
@@ -41,13 +40,13 @@ class FeatureExtractor:
             db: Database connection
         
         Returns:
-            Feature vector [f1, f2, ..., f10]
+            Feature vector [f1, f2, ..., f9]
         
         Example:
             >>> extractor = FeatureExtractor()
             >>> features = extractor.extract_features(invoice, 'org_123', db)
             >>> print(features)
-            [5000.0, 4500.0, 500.0, 0.111, 5, 0, 2, 0, 0.9, 7]
+            [5000.0, 4500.0, 500.0, 0.111, 5, 2, 0, 0.9, 7]
         """
         try:
             # 1. Basic amounts (handle both field name formats)
@@ -62,11 +61,7 @@ class FeatureExtractor:
             line_items = invoice_data.get('lineItems') or invoice_data.get('line_items', [])
             line_item_count = len(line_items) if line_items else 0
             
-            # 4. Discount detection
-            discount = float(invoice_data.get('discountAmount') or invoice_data.get('discount', 0))
-            has_discount = 1.0 if discount > 0 else 0.0
-            
-            # 5. Date features
+            # 4. Date features
             invoice_date_str = invoice_data.get('invoiceDate') or invoice_data.get('date')
             if invoice_date_str:
                 try:
@@ -78,13 +73,13 @@ class FeatureExtractor:
             else:
                 day_of_week = 0.0
             
-            # 6. Round number detection
+            # 5. Round number detection
             amount_rounded = 1.0 if (total > 0 and (total % 100 == 0 or total % 1000 == 0)) else 0.0
             
-            # 7. Subtotal to total ratio
+            # 6. Subtotal to total ratio
             subtotal_tax_ratio = (subtotal / total) if total > 0 else 0.0
             
-            # 8. Historical context: days since last invoice
+            # 7. Historical context: days since last invoice
             days_since_last = self._get_days_since_last_invoice(
                 organization_id,
                 invoice_date_str,
@@ -97,7 +92,6 @@ class FeatureExtractor:
                 tax,
                 tax_rate,
                 float(line_item_count),
-                has_discount,
                 day_of_week,
                 amount_rounded,
                 subtotal_tax_ratio,
@@ -110,7 +104,7 @@ class FeatureExtractor:
         except Exception as e:
             logger.error(f"Error extracting features: {e}")
             # Return default features on error (neutral values)
-            return [0.0] * 10
+            return [0.0] * 9
     
     def _get_days_since_last_invoice(
         self,

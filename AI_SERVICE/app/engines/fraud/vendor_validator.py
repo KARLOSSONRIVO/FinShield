@@ -38,9 +38,8 @@ class VendorValidator:
         """
         try:
             vendor_name = (
-                invoice_data.get('vendor', '') or 
-                invoice_data.get('issuedTo', '') or
-                invoice_data.get('vendorName', '')
+
+                invoice_data.get('issuedTo', '') 
             )
             
             if not vendor_name:
