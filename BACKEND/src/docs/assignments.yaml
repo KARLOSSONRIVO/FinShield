@@ -14,12 +14,12 @@ paths:
             schema:
               type: object
               required:
-                - auditorOrgId
+                - auditorUserId
                 - companyOrgId
               properties:
-                auditorOrgId:
+                auditorUserId:
                   type: string
-                  description: ID of the auditor organization
+                  description: ID of the auditor user
                   example: "507f1f77bcf86cd799439011"
                 companyOrgId:
                   type: string

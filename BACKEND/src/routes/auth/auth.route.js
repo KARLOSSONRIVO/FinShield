@@ -25,7 +25,7 @@ authRouter.post("/logout", validate(logoutSchema), AuthController.logout);
 authRouter.use(enforceMustChangePassword({ exceptPaths: ["/auth/change-password"] }));
 
 authRouter.get("/me", AuthController.me);
-
+    
 authRouter.post("/change-password", validate(changePasswordSchema), AuthController.changePassword);
 
 export default authRouter;

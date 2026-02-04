@@ -1,14 +1,10 @@
 import { z } from "zod";
 import AppError from "../../common/errors/AppErrors.js";
 
-// Allowed file MIME types for invoices
+// Allowed file MIME types for invoices (PDF and DOCX only)
 export const ALLOWED_MIME_TYPES = [
     "application/pdf",
-    "image/jpeg",
-    "image/jpg",
-    "image/png",
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-    "application/vnd.ms-excel", // .xls
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
 ];
 
 // Maximum file size: 10MB (matches multer limit)
@@ -21,7 +17,7 @@ const fileSchema = z.object({
     encoding: z.string().optional(),
     mimetype: z.string().refine(
         (mime) => !mime || ALLOWED_MIME_TYPES.includes(mime),
-        { message: `File type not allowed. Allowed types: ${ALLOWED_MIME_TYPES.join(", ")}` }
+        { message: "File type not allowed. Allowed types: PDF and DOCX only" }
     ).optional(),
     size: z.number()
         .min(1, { message: "File cannot be empty" })

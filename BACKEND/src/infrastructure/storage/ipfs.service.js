@@ -16,7 +16,7 @@ export async function addAndPinBuffer({ buffer, fileName = 'file' }) {
 
     try {
         const formData = new FormData()
-        
+
         // Add file to form data
         formData.append('file', buffer, {
             filename: fileName,
@@ -47,7 +47,7 @@ export async function addAndPinBuffer({ buffer, fileName = 'file' }) {
                 },
             }, (err, res) => {
                 if (err) return reject(err)
-                
+
                 let data = ''
                 res.on('data', chunk => data += chunk)
                 res.on('end', () => {

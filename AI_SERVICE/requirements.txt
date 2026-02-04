@@ -1,0 +1,29 @@
+fastapi
+uvicorn
+python-multipart
+requests
+pymongo
+dnspython
+pytesseract
+pillow
+pdfplumber
+opencv-python
+python-docx
+sentence-transformers
+pandas
+dotenv
+pdf2image
+
+# Background Scheduler
+apscheduler>=3.10.0
+
+# Anomaly Detection
+scikit-learn>=1.4.0
+joblib>=1.3.2
+numpy>=1.24.0
+
+# AWS S3 for Model Storage
+boto3>=1.34.0
+
+# Pydantic Settings
+pydantic-settings==2.1.0

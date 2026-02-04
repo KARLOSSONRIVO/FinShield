@@ -59,12 +59,34 @@ components:
           example: Acme Corporation
         type:
           type: string
-          enum: [COMPANY, AUDITOR, REGULATOR]
-          example: COMPANY
+          enum: [platform, company]
+          example: company
         status:
           type: string
-          enum: [ACTIVE, INACTIVE, SUSPENDED]
-          example: ACTIVE
+          enum: [active, inactive]
+          example: active
+        invoiceTemplate:
+          type: object
+          nullable: true
+          description: Invoice template metadata (if uploaded)
+          properties:
+            s3Key:
+              type: string
+              example: "templates/507f1f77bcf86cd799439011/1706543210-invoice-template.pdf"
+            fileName:
+              type: string
+              example: "invoice-template.pdf"
+            uploadedAt:
+              type: string
+              format: date-time
+              example: "2026-01-29T12:00:00.000Z"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
 
     Assignment:
       type: object
