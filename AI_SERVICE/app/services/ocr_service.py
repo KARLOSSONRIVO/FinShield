@@ -122,10 +122,14 @@ async def run_ocr_for_invoice(invoice_id: str) -> Dict[str, Any]:
         
         # Build invoice_data in the format expected by anomaly layer
         invoice_data = {
+            'invoiceNumber': parsed.get('invoiceNumber'),  # Added for fraud detection
+            'issuedTo': parsed.get('issuedTo'),            # Added for customer validation
             'total': parsed.get('totalAmount', 0),
+            'totalAmount': parsed.get('totalAmount', 0),   # Both formats for compatibility
             'subtotal': parsed.get('subtotalAmount', 0),
             'tax': parsed.get('taxAmount', 0),
             'date': parsed.get('invoiceDate', ''),
+            'invoiceDate': parsed.get('invoiceDate', ''),  # Both formats for compatibility
             'lineItems': parsed.get('lineItems', [])
         }
         

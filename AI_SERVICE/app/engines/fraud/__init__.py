@@ -5,7 +5,7 @@ Rule-based and ML-based fraud detection for invoices.
 """
 
 from .duplicate_detector import DuplicateDetector
-from .vendor_validator import VendorValidator
+from .customer_validator import CustomerValidator
 from .pattern_analyzer import PatternAnalyzer
 from .temporal_checker import TemporalChecker
 from .feature_extractor import FraudFeatureExtractor, FEATURE_NAMES
@@ -20,7 +20,7 @@ from .model_loader import (
 __all__ = [
     # Rule checkers
     'DuplicateDetector',
-    'VendorValidator',
+    'CustomerValidator',
     'PatternAnalyzer',
     'TemporalChecker',
     # ML components

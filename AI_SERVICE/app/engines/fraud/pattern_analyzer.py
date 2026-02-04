@@ -37,10 +37,13 @@ class PatternAnalyzer:
                 invoice_data.get('total', 0) or 
                 invoice_data.get('totalAmount', 0) or 0
             )
-            invoice_number = str(
-                invoice_data.get('invoiceNumber', '') or 
-                invoice_data.get('invoice_number', '') or ''
+            
+            # Get invoice number, preserve None if missing
+            raw_invoice_number = (
+                invoice_data.get('invoiceNumber') or 
+                invoice_data.get('invoice_number')
             )
+            invoice_number = str(raw_invoice_number) if raw_invoice_number else ''
             
             # Check 1: Suspiciously round amount (40% of pattern weight)
             round_score = self._check_round_amount(total)

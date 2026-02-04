@@ -11,7 +11,7 @@ from typing import Dict, Any, Optional, Tuple, List
 
 from app.pipelines.verification.stages.base import BaseLayer, LayerResult, LayerVerdict
 from app.engines.fraud.duplicate_detector import DuplicateDetector
-from app.engines.fraud.vendor_validator import VendorValidator
+from app.engines.fraud.customer_validator import CustomerValidator
 from app.engines.fraud.pattern_analyzer import PatternAnalyzer
 from app.engines.fraud.temporal_checker import TemporalChecker
 from app.engines.fraud.feature_extractor import FraudFeatureExtractor
@@ -51,11 +51,11 @@ class FraudDetectionLayer(BaseLayer):
         self.db = db
         if db is not None:
             self.duplicate_detector = DuplicateDetector(db)
-            self.vendor_validator = VendorValidator(db)
+            self.customer_validator = CustomerValidator(db)
             self.temporal_checker = TemporalChecker(db)
         else:
             self.duplicate_detector = None
-            self.vendor_validator = None
+            self.customer_validator = None
             self.temporal_checker = None
         self.pattern_analyzer = PatternAnalyzer()
         self.feature_extractor = FraudFeatureExtractor()
@@ -113,14 +113,14 @@ class FraudDetectionLayer(BaseLayer):
             issues.append(dup_issue)
             logger.warning(f"Duplicate check: {dup_issue}")
         
-        # 2. Vendor Validation (30%)
-        vendor_score, vendor_issue = await self.vendor_validator.check(
+        # 2. Customer Validation (30%)
+        customer_score, customer_issue = await self.customer_validator.check(
             invoice_data, organization_id
         )
-        checks['vendor'] = vendor_score
-        if vendor_issue:
-            issues.append(vendor_issue)
-            logger.warning(f"Vendor check: {vendor_issue}")
+        checks['customer'] = customer_score
+        if customer_issue:
+            issues.append(customer_issue)
+            logger.warning(f"Customer check: {customer_issue}")
         
         # 3. Pattern Analysis (20%)
         pattern_score, pattern_issue = self.pattern_analyzer.check(
@@ -143,7 +143,7 @@ class FraudDetectionLayer(BaseLayer):
         # Calculate rule-based score (weighted average)
         rule_score = (
             dup_score * self.WEIGHT_DUPLICATE +
-            vendor_score * self.WEIGHT_VENDOR +
+            customer_score * self.WEIGHT_VENDOR +
             pattern_score * self.WEIGHT_PATTERN +
             temporal_score * self.WEIGHT_TEMPORAL
         )
