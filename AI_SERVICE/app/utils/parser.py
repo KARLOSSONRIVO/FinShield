@@ -7,20 +7,7 @@ from decimal import Decimal, InvalidOperation
 from app.engines.anomaly.line_item_parser import LineItemParser
 
 
-MONTH_MAP = {
-    "jan": 1, "january": 1,
-    "feb": 2, "february": 2,
-    "mar": 3, "march": 3,
-    "apr": 4, "april": 4,
-    "may": 5,
-    "jun": 6, "june": 6,
-    "jul": 7, "july": 7,
-    "aug": 8, "august": 8,
-    "sep": 9, "september": 9,
-    "oct": 10, "october": 10,
-    "nov": 11, "november": 11,
-    "dec": 12, "december": 12,
-}
+from app.core.constants import MONTH_MAP, DATE_PATTERNS, TOTAL_PATTERNS, INVOICE_PATTERNS, ISSUED_TO_PATTERNS
 
 
 def parse_money(raw: str) -> Decimal | None:
@@ -91,13 +78,7 @@ def parse_invoice_fields(text: str) -> dict:
         "meta": {}
     }
 
-    # Invoice Number (digits only)
-    invoice_patterns = [
-        r"\binvoice\s*(?:number|no\.?|#)\s*[:\-]?\s*(\d{3,})",
-        r"\bno\.?\s*[:\-]?\s*(\d{3,})",
-    ]
-
-    for pat in invoice_patterns:
+    for pat in INVOICE_PATTERNS:
         m = re.search(pat, text, re.IGNORECASE)
         if m:
             result["invoiceNumber"] = m.group(1)
@@ -105,14 +86,7 @@ def parse_invoice_fields(text: str) -> dict:
             result["meta"]["invoiceNumberSource"] = "labeled_numeric"
             break
 
-    # Invoice Date
-    date_patterns = [
-        r"(?:invoice\s*date|issue\s*date|date)\s*[:\-]?\s*([0-9]{1,2}[\/\-][0-9]{1,2}[\/\-][0-9]{2,4})",
-        r"(?:invoice\s*date|issue\s*date|date)\s*[:\-]?\s*([0-9]{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+([0-9]{4})",
-        r"(?:invoice\s*date|issue\s*date|date)\s*[:\-]?\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+([0-9]{1,2}),?\s+([0-9]{4})",
-    ]
-
-    for pat in date_patterns:
+    for pat in DATE_PATTERNS:
         m = re.search(pat, text, re.IGNORECASE)
         if not m:
             continue
@@ -129,14 +103,6 @@ def parse_invoice_fields(text: str) -> dict:
             result["confidence"]["invoiceDate"] = 0.85
             result["meta"]["invoiceDateSource"] = "pattern"
             break
-
-    # Total Amount (strict priority)
-    TOTAL_PATTERNS = [
-        ("grand_total", r"\bgrand\s*total\b[^\d]{0,40}([$€£₱]?\s*\d[\d,]*(?:\.\d{2})?)"),
-        ("balance_due", r"\bbalance\s*due\b[^\d]{0,40}([$€£₱]?\s*\d[\d,]*(?:\.\d{2})?)"),
-        ("amount_due",  r"\bamount\s*due\b[^\d]{0,40}([$€£₱]?\s*\d[\d,]*(?:\.\d{2})?)"),
-        ("total",       r"\btotal\b(?!\s*%)\b[^\d]{0,40}([$€£₱]?\s*\d[\d,]*(?:\.\d{2})?)"),
-    ]
 
     for label, pat in TOTAL_PATTERNS:
         m = re.search(pat, text, re.IGNORECASE)
@@ -181,12 +147,7 @@ def parse_invoice_fields(text: str) -> dict:
         result["confidence"]["lineItems"] = 0.95
         result["meta"]["lineItemsSource"] = "line_item_parser"
 
-    # Issued To / Bill To
-    issued_to_patterns = [
-        r"(?:issued|bill(?:ed)?)\s*to\s*[:\-]?\s*([^\n]+)",
-    ]
-
-    for pat in issued_to_patterns:
+    for pat in ISSUED_TO_PATTERNS:
         m = re.search(pat, text, re.IGNORECASE)
         if m:
             content = m.group(1).strip()
