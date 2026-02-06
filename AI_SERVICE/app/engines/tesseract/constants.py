@@ -1,5 +1,0 @@
-"""
-Constants for Tesseract OCR engine.
-"""
-MIN_TEXT_LENGTH = 50
-MIN_LAPLACIAN_VARIANCE = 100

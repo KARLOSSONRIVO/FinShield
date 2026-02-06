@@ -1,8 +1,6 @@
-"""
-Layout Signature Builder.
-"""
 from typing import Dict, Any, List
 import statistics
+from app.core.constants import FIELD_LAYOUT_PATTERNS as FIELD_PATTERNS
 
 
 def build_layout_signature(pages: List[Dict]) -> Dict[str, Any]:
@@ -12,31 +10,6 @@ def build_layout_signature(pages: List[Dict]) -> Dict[str, Any]:
     Captures both field-based and structural features to detect
     different invoice templates even if they have the same fields.
     """
-    FIELD_PATTERNS = {
-        "invoice_number": [
-            "invoice no.", "invoice no", "invoice #", "invoice number", 
-            "inv no", "inv #", "no:", "no.", "inv.", "invoice"
-        ],
-        "invoice_date": [
-            "invoice date", "date:", "date", "issue date", "dated", 
-            "01/", "02/", "03/", "04/", "05/", "06/", "07/", "08/", "09/", "10/", "11/", "12/"
-        ],
-        "due_date": ["due date", "payment due", "due:", "due "],
-        "total": [
-            "total", "grand total", "total amount", "amount due", 
-            "balance due", "balance", "net amount", "total due"
-        ],
-        "subtotal": ["subtotal", "sub total", "sub-total", "sub total"],
-        "tax": ["tax", "vat", "gst", "sales tax", "tax:"],
-        "vendor": [
-            "from:", "seller:", "vendor:", "bill from", "company", 
-            "company name", "seller", "vendor"
-        ],
-        "customer": [
-            "to:", "bill to:", "customer:", "client:", "sold to", 
-            "issued to", "ship to", "deliver to", "issued", "billed to"
-        ],
-    }
     
     detected_fields = {}
     field_positions = {}

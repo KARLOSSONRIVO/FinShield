@@ -1,19 +1,18 @@
 import numpy as np
 import logging
-from datetime import datetime
 from typing import Dict, Any, List
+from app.utils.extractors import extract_base_amounts, extract_base_date_features, extract_line_item_count
 
 logger = logging.getLogger(__name__)
 
 def extract_amount_features(invoice_data: Dict[str, Any], features: Dict[str, float]):
-    total = float(invoice_data.get('totalAmount') or invoice_data.get('total', 0) or 0)
-    subtotal = float(invoice_data.get('subtotalAmount') or invoice_data.get('subtotal', 0) or 0)
-    tax = float(invoice_data.get('taxAmount') or invoice_data.get('tax', 0) or 0)
+    amounts = extract_base_amounts(invoice_data)
+    total = amounts['total']
     
     features['total'] = total
-    features['subtotal'] = subtotal
-    features['tax'] = tax
-    features['tax_ratio'] = tax / total if total > 0 else 0
+    features['subtotal'] = amounts['subtotal']
+    features['tax'] = amounts['tax']
+    features['tax_ratio'] = (amounts['tax'] / total) if total > 0 else 0
     features['amount_log'] = float(np.log1p(total))
     
     features['is_round_100'] = 1.0 if total > 0 and total % 100 == 0 else 0.0
@@ -43,38 +42,20 @@ def extract_issued_to_features(invoice_data: Dict[str, Any], features: Dict[str,
 
 def extract_date_features(invoice_data: Dict[str, Any], features: Dict[str, float]):
     date_str = str(invoice_data.get('invoiceDate') or invoice_data.get('date', '') or '')
-    features['date_missing'] = 1.0 if not date_str.strip() else 0.0
+    date_feats = extract_base_date_features(date_str)
     
-    try:
-        invoice_date = None
-        for fmt in ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%Y/%m/%d']:
-            try:
-                invoice_date = datetime.strptime(date_str.split('T')[0], fmt)
-                break
-            except ValueError:
-                continue
-        
-        if invoice_date:
-            today = datetime.now()
-            features['days_old'] = float((today - invoice_date).days)
-            features['is_future'] = 1.0 if invoice_date > today else 0.0
-            features['is_weekend'] = 1.0 if invoice_date.weekday() >= 5 else 0.0
-            features['month'] = float(invoice_date.month)
-            features['day_of_week'] = float(invoice_date.weekday())
-            features['is_month_end'] = 1.0 if invoice_date.day >= 28 else 0.0
-        else:
-            raise ValueError("Could not parse date")
-    except Exception:
-        features['days_old'] = -1.0
-        features['is_future'] = 0.0
-        features['is_weekend'] = 0.0
-        features['month'] = 0.0
-        features['day_of_week'] = -1.0
-        features['is_month_end'] = 0.0
+    features['date_missing'] = date_feats['date_missing']
+    features['month'] = date_feats['month']
+    features['day_of_week'] = date_feats['day_of_week']
+    features['is_weekend'] = date_feats['is_weekend']
+    features['is_month_end'] = date_feats['is_month_end']
+    features['days_old'] = date_feats.get('days_old', -1.0)
+    features['is_future'] = 1.0 if features['days_old'] < 0 else 0.0
 
 def extract_line_item_features(invoice_data: Dict[str, Any], features: Dict[str, float]):
     line_items = invoice_data.get('lineItems') or invoice_data.get('line_items', [])
-    line_count = len(line_items) if line_items else 0
+    line_count = extract_line_item_count(invoice_data)
+    
     features['line_item_count'] = float(line_count)
     features['has_line_items'] = 1.0 if line_count > 0 else 0.0
     

@@ -11,8 +11,7 @@ from .temporal_checker import TemporalChecker
 from .feature_extractor import FraudFeatureExtractor, FEATURE_NAMES
 from .model_loader import (
     get_fraud_model,
-    save_fraud_model_to_s3,
-    get_fraud_model_metadata,
+    save_fraud_model_to_s3_explicit,
     clear_fraud_model_cache,
     is_model_available
 )
@@ -27,8 +26,7 @@ __all__ = [
     'FraudFeatureExtractor',
     'FEATURE_NAMES',
     'get_fraud_model',
-    'save_fraud_model_to_s3',
-    'get_fraud_model_metadata',
+    'save_fraud_model_to_s3_explicit',
     'clear_fraud_model_cache',
     'is_model_available',
 ]

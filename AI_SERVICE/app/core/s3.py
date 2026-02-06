@@ -4,6 +4,7 @@ from app.core.config import settings
 s3_client = None
 
 def get_s3_client():
+    """Lazy initialization of S3 client"""
     global s3_client
     if s3_client is None:
         s3_client = boto3.client(

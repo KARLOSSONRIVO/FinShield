@@ -66,6 +66,64 @@ ISSUED_TO_PATTERNS = [
 ]
 
 # =================================================================
+# INVOICE DETECTION & SIGNATURE CONSTANTS
+# =================================================================
+
+# Used in app/engines/tesseract/invoice_detector.py
+INVOICE_LIKENESS_KEYWORDS = [
+    "invoice", "billing", "bill to", "invoice no", "invoice #", 
+    "invoice number", "date", "total", "subtotal", "amount due", 
+    "vat", "tax", "balance"
+]
+
+NON_INVOICE_KEYWORDS = [
+    "resume", "curriculum vitae", "report", "minutes of meeting", 
+    "contract", "agreement", "proposal", "certificate", "letter"
+]
+
+# Common regex patterns for detection
+MONEY_REGEX_PATTERN = r"([$€£₱]?\s*\d[\d,]*(?:\.\d{2})?)"
+DATE_REGEX_PATTERN = r"\b[0-9]{1,2}[/\-][0-9]{1,2}[/\-][0-9]{2,4}\b"
+
+# Used in app/engines/tesseract/signature.py to identify field zones
+FIELD_LAYOUT_PATTERNS = {
+    "invoice_number": [
+        "invoice no.", "invoice no", "invoice #", "invoice number", 
+        "inv no", "inv #", "no:", "no.", "inv.", "invoice"
+    ],
+    "invoice_date": [
+        "invoice date", "date:", "date", "issue date", "dated", 
+        "01/", "02/", "03/", "04/", "05/", "06/", "07/", "08/", "09/", "10/", "11/", "12/"
+    ],
+    "due_date": ["due date", "payment due", "due:", "due "],
+    "total": [
+        "total", "grand total", "total amount", "amount due", 
+        "balance due", "balance", "net amount", "total due"
+    ],
+    "subtotal": ["subtotal", "sub total", "sub-total"],
+    "tax": ["tax", "vat", "gst", "sales tax", "tax:"],
+    "vendor": [
+        "from:", "seller:", "vendor:", "bill from", "company", 
+        "company name", "seller", "vendor"
+    ],
+    "customer": [
+        "to:", "bill to:", "customer:", "client:", "sold to", 
+        "issued to", "ship to", "deliver to", "issued", "billed to"
+    ],
+}
+
+# =================================================================
+# OCR QUALITY & VISION CONSTANTS
+# =================================================================
+
+# Used for OCR pre-processing and quality validation
+# Minimum characters to consider a document "scanned" successfully
+MIN_OCR_TEXT_LENGTH = 50
+
+# Threshold for blur detection (lower = more blurry)
+MIN_LAPLACIAN_VARIANCE = 100
+
+# =================================================================
 # FRAUD DETECTION CONSTANTS
 # =================================================================
 

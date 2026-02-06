@@ -1,5 +1,5 @@
 """
-Stage 3: Fraud Detection Layer
+Stage 3: Fraud Detection Layer (Refactored)
 
 Hybrid approach:
   - Rule-based checks for known fraud patterns (60% weight)
@@ -7,7 +7,7 @@ Hybrid approach:
 """
 
 import logging
-from typing import Dict, Any, Optional, Tuple, List
+from typing import Dict, Any, List
 
 from app.pipelines.verification.stages.base import BaseLayer, LayerResult, LayerVerdict
 from app.engines.fraud.duplicate_detector import DuplicateDetector
@@ -15,7 +15,9 @@ from app.engines.fraud.customer_validator import CustomerValidator
 from app.engines.fraud.pattern_analyzer import PatternAnalyzer
 from app.engines.fraud.temporal_checker import TemporalChecker
 from app.engines.fraud.feature_extractor import FraudFeatureExtractor
-from app.engines.fraud.model_loader import get_fraud_model, is_model_available
+from app.engines.fraud.model_loader import get_fraud_model
+
+from .ml import predict_fraud_score
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +36,6 @@ class FraudDetectionLayer(BaseLayer):
     # Verdict thresholds
     SCORE_PASS_THRESHOLD = 0.70  # Score >= 70: PASS (low fraud risk)
     SCORE_WARN_THRESHOLD = 0.40  # Score 40-70: WARN (medium risk)
-    # Score < 40: FAIL (high fraud risk)
     
     # Rule weights (must sum to 1.0)
     WEIGHT_DUPLICATE = 0.40
@@ -65,15 +66,6 @@ class FraudDetectionLayer(BaseLayer):
     async def analyze(self, context: Dict[str, Any]) -> LayerResult:
         """
         Process invoice through fraud detection
-        
-        Args:
-            context: Dictionary containing:
-                - invoice_data: Parsed invoice data
-                - organization_id: Organization ID
-                - invoice_id: Invoice MongoDB ID
-        
-        Returns:
-            LayerResult with fraud score and verdict
         """
         invoice_data = context.get('invoice_data', {})
         organization_id = context.get('organization_id')
@@ -111,7 +103,6 @@ class FraudDetectionLayer(BaseLayer):
         checks['duplicate'] = dup_score
         if dup_issue:
             issues.append(dup_issue)
-            logger.warning(f"Duplicate check: {dup_issue}")
         
         # 2. Customer Validation (30%)
         customer_score, customer_issue = await self.customer_validator.check(
@@ -120,7 +111,6 @@ class FraudDetectionLayer(BaseLayer):
         checks['customer'] = customer_score
         if customer_issue:
             issues.append(customer_issue)
-            logger.warning(f"Customer check: {customer_issue}")
         
         # 3. Pattern Analysis (20%)
         pattern_score, pattern_issue = self.pattern_analyzer.check(
@@ -129,7 +119,6 @@ class FraudDetectionLayer(BaseLayer):
         checks['pattern'] = pattern_score
         if pattern_issue:
             issues.append(pattern_issue)
-            logger.warning(f"Pattern check: {pattern_issue}")
         
         # 4. Temporal Checks (10%)
         temporal_score, temporal_issue = await self.temporal_checker.check(
@@ -138,7 +127,6 @@ class FraudDetectionLayer(BaseLayer):
         checks['temporal'] = temporal_score
         if temporal_issue:
             issues.append(temporal_issue)
-            logger.warning(f"Temporal check: {temporal_issue}")
         
         # Calculate rule-based score (weighted average)
         rule_score = (
@@ -152,7 +140,6 @@ class FraudDetectionLayer(BaseLayer):
         logger.info(f"Fraud rule-based score: {rule_score:.3f}")
         
         # PART 2: ML-Based Fraud Detection (If Model Exists)
-        ml_score = None
         final_score = rule_score
         
         # Lazy load ML model
@@ -165,11 +152,9 @@ class FraudDetectionLayer(BaseLayer):
                 # Extract features for ML model
                 features = self.feature_extractor.extract_feature_vector(invoice_data)
                 
-                # Get fraud probability (class 1 = fraud)
-                fraud_proba = self._ml_model.predict_proba([features])[0][1]
+                # Get fraud score from Random Forest
+                ml_score, fraud_proba = predict_fraud_score(self._ml_model, features)
                 
-                # ML score = 1 - fraud_probability (higher = safer)
-                ml_score = 1.0 - fraud_proba
                 checks['ml_score'] = round(ml_score, 4)
                 checks['fraud_probability'] = round(fraud_proba, 4)
                 
@@ -177,7 +162,6 @@ class FraudDetectionLayer(BaseLayer):
                 final_score = (rule_score * self.WEIGHT_RULES) + (ml_score * self.WEIGHT_ML)
                 checks['model_status'] = 'hybrid'
                 
-                logger.info(f"ML fraud probability: {fraud_proba:.3f}, ML score: {ml_score:.3f}")
                 logger.info(f"Hybrid score: {final_score:.3f} (rules: {rule_score:.3f} * 0.6 + ml: {ml_score:.3f} * 0.4)")
                 
                 # Add flag if ML detects high fraud risk
