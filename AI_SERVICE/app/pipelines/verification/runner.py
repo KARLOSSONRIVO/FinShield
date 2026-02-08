@@ -13,7 +13,7 @@ from app.pipelines.verification.stages.base import LayerResult, LayerVerdict
 from app.pipelines.verification.stages.layout import LayoutDetectionLayer
 from app.pipelines.verification.stages.anomaly import AnomalyDetectionLayer
 from app.pipelines.verification.stages.fraud import FraudDetectionLayer
-
+from app.pipelines.verification.message_templates import FLAG_TEMPLATES, LAYER_MESSAGES
 
 from app.db.mongo import db
 
@@ -41,7 +41,7 @@ class VerificationPipeline:
         self.stages = [
             LayoutDetectionLayer(),
             AnomalyDetectionLayer(db=db),
-            FraudDetectionLayer(),
+            FraudDetectionLayer(db=db), 
         ]
     
     async def run(
@@ -98,7 +98,7 @@ class VerificationPipeline:
         else:
             overall_score = 1.0  # All stages skipped
         
-        # Determine overall verdict
+        # Determine overall verdict based on score thresholds
         if overall_score >= self.SCORE_CLEAN_THRESHOLD:
             overall_verdict = "clean"
         elif overall_score >= self.SCORE_FLAGGED_THRESHOLD:
@@ -135,41 +135,75 @@ class VerificationPipeline:
         else:
             return "high"
     
+    def _format_flag(self, flag: str) -> str:
+        """Convert technical flag to human-readable message using templates."""
+        for pattern, template in FLAG_TEMPLATES.items():
+            if pattern in flag:
+                if callable(template):
+                    return template(flag)
+                return template
+        # Fallback to original flag if no template matches
+        return flag
+    
     def _generate_summary(
         self,
         results: List[Dict],
         verdict: str,
         flags: List[str]
     ) -> str:
-        """Generate a human-readable summary."""
+        """Generate a human-readable summary using templates."""
         parts = []
         
-        if verdict == "clean":
-            parts.append("Invoice passed all verification checks.")
-        elif verdict == "flagged":
-            parts.append("Invoice flagged for review.")
-        else:
-            parts.append("Invoice failed verification.")
+        # Collect issues from each layer FIRST
+        issues_found = []
         
-        # Add stage-specific summaries
         for result in results:
             if result["verdict"] == "skip":
                 continue
             
             layer = result["layer"]
             layer_verdict = result["verdict"]
-            score = result["score"]
+            layer_flags = result.get("flags", [])
             
-            if layer == "layout_detection":
-                if layer_verdict == "pass":
-                    parts.append(f"Layout matches template ({score:.0%}).")
-                elif layer_verdict == "warn":
-                    parts.append(f"Layout partially matches ({score:.0%}).")
-                else:
-                    parts.append(f"Layout mismatch detected ({score:.0%}).")
+            # Add layer-specific message if available
+            if layer in LAYER_MESSAGES:
+                layer_msg = LAYER_MESSAGES[layer].get(layer_verdict)
+                if layer_msg:
+                    issues_found.append(layer_msg)
+            
+            # Add formatted flags (show ALL flags, not just for warn/fail)
+            # Important warnings like new customers should always be visible
+            if layer_flags:
+                for flag in layer_flags:
+                    formatted = self._format_flag(flag)
+                    if formatted and formatted not in issues_found:
+                        issues_found.append(formatted)
         
-        if flags:
-            parts.append(f"Flags: {len(flags)} issue(s) detected.")
+        # Overall verdict - adjust message if issues were found
+        if issues_found:
+            # Don't say "passed" if there are issues, even with clean verdict
+            verdict_messages = {
+                "clean": "Invoice completed verification with warnings.",
+                "flagged": "Invoice flagged for review.",
+                "fraudulent": "Invoice failed verification."
+            }
+        else:
+            # No issues - truly clean
+            verdict_messages = {
+                "clean": "Invoice passed all verification checks.",
+                "flagged": "Invoice flagged for review.",
+                "fraudulent": "Invoice failed verification."
+            }
+        parts.append(verdict_messages.get(verdict, "Invoice verification complete."))
+        
+        # Add specific issues to summary
+        if issues_found:
+            parts.append("Issues detected:")
+            for issue in issues_found[:5]:  # Limit to top 5
+                parts.append(f"• {issue}")
+            
+            if len(issues_found) > 5:
+                parts.append(f"• ... and {len(issues_found) - 5} more issue(s)")
         
         return " ".join(parts)
 

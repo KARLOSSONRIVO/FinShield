@@ -6,7 +6,7 @@ import os
 
 from app.engines.tesseract.extractor import extract_text_simple
 
-from app.engines.tesseract.constants import MIN_TEXT_LENGTH
+from app.core.constants import MIN_OCR_TEXT_LENGTH
 from app.engines.tesseract.invoice_detector import is_likely_invoice
 from app.schemas.precheck import PreCheckResponse
 
@@ -48,7 +48,7 @@ async def run_precheck(file):
             )
 
         # Minimum text viability
-        if not text or len(text.strip()) < MIN_TEXT_LENGTH:
+        if not text or len(text.strip()) < MIN_OCR_TEXT_LENGTH:
             return PreCheckResponse(
                 processable=False,
                 reason="INSUFFICIENT_TEXT"

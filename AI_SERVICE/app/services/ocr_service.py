@@ -54,6 +54,7 @@ def _get_org_template_layout(org_id: str) -> Optional[Dict[str, Any]]:
                 "positions": dict(layout_sig.get("positions", {})),
                 "detected_fields": dict(layout_sig.get("detectedFields", {})),
                 "element_count": layout_sig.get("elementCount", 0),
+                "structural_features": dict(layout_sig.get("structural_features", {})),
             }
         return None
     except Exception as e:
@@ -121,10 +122,14 @@ async def run_ocr_for_invoice(invoice_id: str) -> Dict[str, Any]:
         
         # Build invoice_data in the format expected by anomaly layer
         invoice_data = {
+            'invoiceNumber': parsed.get('invoiceNumber'),  # Added for fraud detection
+            'issuedTo': parsed.get('issuedTo'),            # Added for customer validation
             'total': parsed.get('totalAmount', 0),
+            'totalAmount': parsed.get('totalAmount', 0),   # Both formats for compatibility
             'subtotal': parsed.get('subtotalAmount', 0),
             'tax': parsed.get('taxAmount', 0),
             'date': parsed.get('invoiceDate', ''),
+            'invoiceDate': parsed.get('invoiceDate', ''),  # Both formats for compatibility
             'lineItems': parsed.get('lineItems', [])
         }
         
@@ -210,54 +215,6 @@ async def run_ocr_for_invoice(invoice_id: str) -> Dict[str, Any]:
             "allFlags": pipeline_result.all_flags,
         }
 
-    finally:
-        try:
-            os.remove(tmp_path)
-        except:
-            pass
-
-
-async def extract_invoice_layout(invoice_id: str) -> Dict[str, Any]:
-    """
-    Extract layout from an invoice without running comparison.
-    Useful for debugging or manual analysis.
-    
-    Args:
-        invoice_id: MongoDB invoice ID
-        
-    Returns:
-        Dict with extracted layout signature
-    """
-    inv = invoices.find_one({"_id": ObjectId(invoice_id)})
-    if not inv:
-        raise ValueError("INVOICE_NOT_FOUND")
-
-    cid = inv.get("ipfsCid")
-    if not cid:
-        raise ValueError("MISSING_IPFS_CID")
-
-    filename = _pick_filename(inv)
-
-    # Download from IPFS
-    url = f"{IPFS_GATEWAY_BASE}/{cid}"
-    resp = requests.get(url, timeout=60)
-    resp.raise_for_status()
-
-    fd, tmp_path = tempfile.mkstemp()
-    os.close(fd)
-    with open(tmp_path, "wb") as f:
-        f.write(resp.content)
-
-    try:
-        extracted = extract_text_with_layout(tmp_path, filename)
-        
-        return {
-            "invoiceId": invoice_id,
-            "layoutSignature": extracted.get("layout_signature", {}),
-            "fullText": extracted.get("full_text", ""),
-            "totalElements": extracted.get("total_elements", 0),
-            "source": extracted.get("source", "unknown"),
-        }
     finally:
         try:
             os.remove(tmp_path)

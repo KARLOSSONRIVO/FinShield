@@ -9,7 +9,8 @@ from app.engines.layout.comparators import (
     compare_field_presence,
     compare_field_positions,
     compare_element_count,
-    compare_structure
+    compare_structure,
+    compare_structural_features
 )
 
 class LayoutComparisonEngine:
@@ -21,11 +22,13 @@ class LayoutComparisonEngine:
     POSITION_TOLERANCE = 0.15  # 15% tolerance for position matching
     
     # Weights for scoring components
+    # Structural features weighted heavily to catch template differences
     WEIGHTS = {
-        "field_presence": 0.35,
-        "field_positions": 0.30,
-        "element_count": 0.15,
-        "structure": 0.20,
+        "field_presence": 0.10,
+        "field_positions": 0.15,
+        "element_count": 0.10,
+        "structure": 0.05,
+        "structural_features": 0.60,  # High weight to catch template differences
     }
     
     # Critical fields that MUST be present
@@ -54,13 +57,28 @@ class LayoutComparisonEngine:
             template, 
             position_tolerance=self.POSITION_TOLERANCE
         )
+        structural_features = compare_structural_features(extracted, template)
         
-        # Calculate weighted score
+        # Calculate weighted score, adjusting weights if structural features unavailable
+        weights_to_use = self.WEIGHTS.copy()
+        
+        # If structural features are missing, redistribute that weight to other components
+        if not template.get("structural_features") or not extracted.get("structural_features"):
+            # Redistribute structural_features weight proportionally
+            structural_weight = weights_to_use["structural_features"]
+            weights_to_use["structural_features"] = 0
+            
+            # Redistribute to other components proportionally
+            remaining_weight = 1.0 - structural_weight
+            for key in ["field_presence", "field_positions", "element_count", "structure"]:
+                weights_to_use[key] = weights_to_use[key] / remaining_weight
+        
         total_score = (
-            field_presence["score"] * self.WEIGHTS["field_presence"] +
-            field_positions["score"] * self.WEIGHTS["field_positions"] +
-            element_count["score"] * self.WEIGHTS["element_count"] +
-            structure["score"] * self.WEIGHTS["structure"]
+            field_presence["score"] * weights_to_use["field_presence"] +
+            field_positions["score"] * weights_to_use["field_positions"] +
+            element_count["score"] * weights_to_use["element_count"] +
+            structure["score"] * weights_to_use["structure"] +
+            structural_features["score"] * weights_to_use["structural_features"]
         )
         
         # Collect flags
@@ -69,6 +87,7 @@ class LayoutComparisonEngine:
         flags.extend(field_positions.get("flags", []))
         flags.extend(element_count.get("flags", []))
         flags.extend(structure.get("flags", []))
+        flags.extend(structural_features.get("flags", []))
         
         # Check critical field failures
         critical_missing = [
@@ -88,5 +107,6 @@ class LayoutComparisonEngine:
                 "field_positions": field_positions,
                 "element_count": element_count,
                 "structure": structure,
+                "structural_features": structural_features,
             }
         }

@@ -7,6 +7,7 @@ import * as AssignmentRepositories from "../../repositories/assignment.repositor
 import { isDocument } from "../../../common/utils/fileTypHelpers.js";
 import { toInvoicePublic } from "../../mappers/invoice.mapper.js";
 import { anchorInvoiceInBackground } from "./anchor_background.js";
+import { extractInvoiceNumber } from "../../../common/utils/invoiceParser.js";
 
 /* ============================
  * MAIN UPLOAD SERVICE
@@ -41,7 +42,29 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
     }
 
     /* ============================
-     * STEP 2: FILE TYPE DECISION (Only PDF and DOC supported now)
+     * STEP 2: CONTENT-BASED DUPLICATE CHECK
+     * ============================ */
+    // Extract invoice number from precheck text for duplicate detection
+    const extractedText = precheck.extractedText || "";
+    const invoiceNumber = extractInvoiceNumber(extractedText);
+
+    if (invoiceNumber) {
+        const existingByNumber = await InvoiceRepositories.findByInvoiceNumberAndOrg(
+            invoiceNumber, 
+            actor.orgId
+        );
+        
+        if (existingByNumber) {
+            throw new AppError(
+                `Duplicate invoice detected: Invoice #${invoiceNumber} already exists for this organization`,
+                400,
+                "DUPLICATE_INVOICE_NUMBER"
+            );
+        }
+    }
+
+    /* ============================
+     * STEP 3: FILE TYPE DECISION (Only PDF and DOC supported now)
      * ============================ */
     const mimeType = file.mimetype || "";
     const documentFile = isDocument(mimeType); // Only check for documents
@@ -51,14 +74,18 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
     }
 
     /* ============================
-     * STEP 3: HASH + IPFS
+     * STEP 4: HASH CHECK + IPFS UPLOAD
      * ============================ */
     const fileSha = sha256Hex(file.buffer);
 
-    // Check if the CID already exists in the database (avoid duplicate upload)
-    const existingInvoice = await InvoiceRepositories.findInvoiceByCid(fileSha);
-    if (existingInvoice) {
-        throw new AppError("Duplicate invoice detected", 400, "DUPLICATE_INVOICE");
+    // Check if exact same file already exists (byte-for-byte duplicate)
+    const existingByHash = await InvoiceRepositories.findInvoiceByCid(fileSha);
+    if (existingByHash) {
+        throw new AppError(
+            "Duplicate file detected: This exact file has already been uploaded",
+            400,
+            "DUPLICATE_FILE_HASH"
+        );
     }
 
     let ipfsCid = null;
@@ -79,7 +106,7 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
     }
 
     /* ============================
-     * STEP 4: CREATE INVOICE
+     * STEP 5: CREATE INVOICE
      * ============================ */
     const invoice = await InvoiceRepositories.createInvoice({
         orgId: actor.orgId,
@@ -105,7 +132,7 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
     });
 
     /* ============================
-     * STEP 5: BACKGROUND ANCHOR
+     * STEP 6: BACKGROUND ANCHOR
      * ============================ */
     anchorInvoiceInBackground(
         invoice._id,

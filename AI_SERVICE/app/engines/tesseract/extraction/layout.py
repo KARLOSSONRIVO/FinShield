@@ -8,10 +8,8 @@ from pdf2image import convert_from_path
 from docx import Document
 import pytesseract
 from PIL import Image
-
-from app.core.config import POPPLER_PATH
 from app.utils.geometry import normalize_bbox, get_position_label
-from .signature import build_layout_signature
+from ..signature import build_layout_signature
 
 
 def _extract_layout_from_image(image_path: str, img_width: int, img_height: int) -> List[Dict[str, Any]]:
@@ -62,7 +60,7 @@ def _extract_pdf_with_layout(pdf_path: str) -> Dict[str, Any]:
     print(f"[DEBUG] Starting PDF extraction: {pdf_path}")
     
     try:
-        images = convert_from_path(pdf_path, dpi=200, poppler_path=POPPLER_PATH)
+        images = convert_from_path(pdf_path, dpi=200)
         print(f"[DEBUG] Converted PDF to {len(images)} page(s)")
     except Exception as e:
         raise ValueError(f"Failed to convert PDF to images: {e}")

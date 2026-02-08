@@ -6,9 +6,6 @@ Provides:
 - OCR processing (/ocr)
 - Template processing (/template)
 - Pre-validation (/precheck)
-- Semantic search (/search) [placeholder]
-- Anomaly detection (/anomaly) [placeholder]
-- Fraud detection (/fraud) [placeholder]
 """
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
@@ -17,9 +14,6 @@ from contextlib import asynccontextmanager
 from app.api.precheck import router as precheck_router
 from app.api.ocr import router as ocr_router
 from app.api.template import router as template_router
-from app.api.search import router as search_router
-from app.api.anomaly import router as anomaly_router
-from app.api.fraud import router as fraud_router
 
 # Import scheduler
 from scripts.scheduler import start_scheduler, stop_scheduler
@@ -37,7 +31,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="FinShield AI Service",
-    description="AI/ML microservice for invoice processing, fraud detection, and semantic search",
+    description="AI/ML microservice for invoice processing and fraud detection",
     version="2.0.0",
     lifespan=lifespan,
 )
@@ -46,9 +40,6 @@ app = FastAPI(
 app.include_router(precheck_router)
 app.include_router(ocr_router)
 app.include_router(template_router)
-app.include_router(search_router)
-app.include_router(anomaly_router)
-app.include_router(fraud_router)
 
 
 @app.get("/")

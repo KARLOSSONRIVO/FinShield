@@ -1,39 +1,8 @@
-"""
-Invoice detection heuristics.
-Determines if a document is likely an invoice based on content analysis.
-"""
 import re
+from app.core.constants import INVOICE_LIKENESS_KEYWORDS, NON_INVOICE_KEYWORDS, MONEY_REGEX_PATTERN, DATE_REGEX_PATTERN
 
-INVOICE_KEYWORDS = [
-    "invoice",
-    "billing",
-    "bill to",
-    "invoice no",
-    "invoice #",
-    "invoice number",
-    "date",
-    "total",
-    "subtotal",
-    "amount due",
-    "vat",
-    "tax",
-    "balance",
-]
-
-NON_INVOICE_KEYWORDS = [
-    "resume",
-    "curriculum vitae",
-    "report",
-    "minutes of meeting",
-    "contract",
-    "agreement",
-    "proposal",
-    "certificate",
-    "letter",
-]
-
-MONEY_REGEX = re.compile(r"\b(\$|₱|€|£)\s?\d+|\d+\.\d{2}")
-DATE_REGEX = re.compile(r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b")
+MONEY_REGEX = re.compile(MONEY_REGEX_PATTERN)
+DATE_REGEX = re.compile(DATE_REGEX_PATTERN)
 
 
 def invoice_likeness_score(text: str) -> int:
@@ -42,7 +11,7 @@ def invoice_likeness_score(text: str) -> int:
     lower = text.lower()
 
     # Keyword presence
-    for kw in INVOICE_KEYWORDS:
+    for kw in INVOICE_LIKENESS_KEYWORDS:
         if kw in lower:
             score += 2
 

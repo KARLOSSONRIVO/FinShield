@@ -1,12 +1,15 @@
 """
-Stage 1: Layout Verification
+Stage 1: Layout Verification (Moved)
 
 Compares the extracted invoice layout against the organization's
 registered template layout to detect structural anomalies.
 """
 from typing import Dict, Any, List, Optional
+import logging
 from app.pipelines.verification.stages.base import BaseLayer, LayerResult, LayerVerdict
 from app.engines.layout.comparison_engine import LayoutComparisonEngine
+
+logger = logging.getLogger(__name__)
 
 
 class LayoutDetectionLayer(BaseLayer):
@@ -15,10 +18,12 @@ class LayoutDetectionLayer(BaseLayer):
     layer_name = "layout_detection"
     
     # Thresholds for scoring (kept for verdict determination)
-    SCORE_PASS_THRESHOLD = 0.75
-    SCORE_WARN_THRESHOLD = 0.50
+    # Higher threshold to catch subtle template differences
+    SCORE_PASS_THRESHOLD = 0.95  # Must be very close match to pass
+    SCORE_WARN_THRESHOLD = 0.85  # Moderate similarity gets warning
     
     def __init__(self):
+        super().__init__()
         self.engine = LayoutComparisonEngine()
     
     async def analyze(self, context: Dict[str, Any]) -> LayerResult:
@@ -48,6 +53,8 @@ class LayoutDetectionLayer(BaseLayer):
         
         # Delegate comparison to engine
         engine_result = self.engine.compare(extracted, template)
+        
+        logger.info(f"Layout comparison result: score={engine_result['total_score']:.3f}, flags={engine_result['flags']}")
         
         total_score = engine_result["total_score"]
         flags = engine_result["flags"]

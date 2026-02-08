@@ -16,8 +16,18 @@ AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 MODEL_BUCKET_NAME = os.getenv("MODEL_BUCKET_NAME", "finshield-models")
 
 # Anomaly Detection Settings
-ANOMALY_MIN_INVOICES = int(os.getenv("ANOMALY_MIN_INVOICES", "30"))
-ANOMALY_MATH_TOLERANCE = float(os.getenv("ANOMALY_MATH_TOLERANCE", "0.02"))
+ANOMALY_MIN_INVOICES = int(os.getenv("ANOMALY_MIN_INVOICES"))
+ANOMALY_MATH_TOLERANCE = float(os.getenv("ANOMALY_MATH_TOLERANCE"))
+
+# Model Training Optimization Settings
+ANOMALY_MAX_TRAINING_SAMPLES = int(os.getenv("ANOMALY_MAX_TRAINING_SAMPLES"))
+ANOMALY_RECENT_WEIGHT = float(os.getenv("ANOMALY_RECENT_WEIGHT"))  # 80% recent, 20% historical
+ANOMALY_RECENT_DAYS = int(os.getenv("ANOMALY_RECENT_DAYS"))  # Last 90 days considered "recent"
+MAX_PARALLEL_TRAINING = int(os.getenv("MAX_PARALLEL_TRAINING"))  # Train 3 orgs simultaneously
+
+# Incremental Training Settings
+ANOMALY_MIN_NEW_INVOICES = int(os.getenv("ANOMALY_MIN_NEW_INVOICES"))  # Retrain if 500+ new invoices
+ANOMALY_RETRAIN_INTERVAL_DAYS = int(os.getenv("ANOMALY_RETRAIN_INTERVAL_DAYS"))  # Force retrain after 7 days
 
 
 class Settings(BaseSettings):
@@ -39,6 +49,12 @@ class Settings(BaseSettings):
     # Anomaly Detection
     ANOMALY_MIN_INVOICES: int = ANOMALY_MIN_INVOICES
     ANOMALY_MATH_TOLERANCE: float = ANOMALY_MATH_TOLERANCE
+    ANOMALY_MAX_TRAINING_SAMPLES: int = ANOMALY_MAX_TRAINING_SAMPLES
+    ANOMALY_RECENT_WEIGHT: float = ANOMALY_RECENT_WEIGHT
+    ANOMALY_RECENT_DAYS: int = ANOMALY_RECENT_DAYS
+    MAX_PARALLEL_TRAINING: int = MAX_PARALLEL_TRAINING
+    ANOMALY_MIN_NEW_INVOICES: int = ANOMALY_MIN_NEW_INVOICES
+    ANOMALY_RETRAIN_INTERVAL_DAYS: int = ANOMALY_RETRAIN_INTERVAL_DAYS
     
     class Config:
         env_file = ".env"
@@ -48,26 +64,6 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # Tesseract / Poppler Configuration
-def _find_poppler_path() -> str | None:
-    """Find Poppler installation path on Windows."""
-    if shutil.which("pdftoppm"):
-        return None
-    
-    possible_paths = [
-        r"C:\ProgramData\poppler\Library\bin",
-        r"C:\Program Files\poppler\Library\bin",
-        r"C:\Program Files\poppler\bin",
-        r"C:\poppler\Library\bin",
-        r"C:\poppler\bin",
-        r"C:\tools\poppler\Library\bin",
-        os.path.expanduser(r"~\poppler\Library\bin"),
-    ]
-    
-    for path in possible_paths:
-        if os.path.exists(os.path.join(path, "pdftoppm.exe")):
-            return path
-    
-    return None
-
-POPPLER_PATH = _find_poppler_path()
-
+# Both rely on system PATH - ensure binaries are installed and accessible:
+# - Tesseract: pytesseract uses 'tesseract' command from PATH  
+# - Poppler: pdf2image uses 'pdftoppm' and 'pdftotext' from PATH

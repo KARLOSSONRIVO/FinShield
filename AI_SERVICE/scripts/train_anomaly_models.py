@@ -5,29 +5,38 @@ Trains per-organization models based on historical invoice data.
 
 Usage:
     # Train specific organization
-    python scripts/train_models.py --org-id 507f1f77bcf86cd799439011
+    python scripts/train_anomaly_models.py --org-id 507f1f77bcf86cd799439011
     
     # Train all organizations with sufficient data
-    python scripts/train_models.py --all
+    python scripts/train_anomaly_models.py --all
     
     # Check which orgs are eligible for training
-    python scripts/train_models.py --check
+    python scripts/train_anomaly_models.py --check
 """
 
 import sys
 import os
 import argparse
 import logging
-from datetime import datetime
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sklearn.ensemble import IsolationForest
 from app.db.mongo import get_database
 from app.engines.anomaly.feature_extractor import FeatureExtractor
 from app.engines.anomaly.model_loader import save_model_to_s3, clear_model_cache
 from app.core.config import settings
+
+# Import training utilities
+from training_utils.data_loader import (
+    fetch_invoices_for_training,
+    count_organization_invoices,
+    get_eligible_organizations
+)
+from training_utils.sampler import smart_sample
+from training_utils.trainer import train_isolation_forest
+from training_utils.incremental import should_retrain, update_training_metadata
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,7 +45,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class ModelTrainer:
+class AnomalyModelTrainer:
     """Train Isolation Forest models for organizations"""
     
     def __init__(self):
@@ -47,37 +56,8 @@ class ModelTrainer:
         """List organizations eligible for training"""
         logger.info("Checking organizations eligible for training...")
         
-        pipeline = [
-            {
-                '$match': {
-                    'aiVerdict': 'clean',
-                    'total': {'$exists': True}
-                }
-            },
-            {
-                '$group': {
-                    '_id': '$organizationId',
-                    'count': {'$sum': 1}
-                }
-            },
-            {
-                '$sort': {'count': -1}
-            }
-        ]
-        
-        orgs_with_data = list(self.db.invoices.aggregate(pipeline))
-        
-        eligible = []
-        ineligible = []
-        
-        for org_data in orgs_with_data:
-            org_id = org_data['_id']
-            count = org_data['count']
-            
-            if count >= settings.ANOMALY_MIN_INVOICES:
-                eligible.append({'org_id': org_id, 'count': count})
-            else:
-                ineligible.append({'org_id': org_id, 'count': count})
+        eligible = get_eligible_organizations(self.db, settings.ANOMALY_MIN_INVOICES)
+        ineligible = []  # Could fetch these too if needed
         
         logger.info(f"\n{'='*70}")
         logger.info(f"ELIGIBLE ORGANIZATIONS (>= {settings.ANOMALY_MIN_INVOICES} invoices):")
@@ -86,25 +66,15 @@ class ModelTrainer:
             logger.info(f"  {org['org_id']}: {org['count']} invoices")
         
         logger.info(f"\n{'='*70}")
-        logger.info(f"INELIGIBLE ORGANIZATIONS (< {settings.ANOMALY_MIN_INVOICES} invoices):")
-        logger.info(f"{'='*70}")
-        for org in ineligible[:10]:  # Show first 10
-            logger.info(f"  {org['org_id']}: {org['count']} invoices")
-        if len(ineligible) > 10:
-            logger.info(f"  ... and {len(ineligible) - 10} more")
-        
-        logger.info(f"\n{'='*70}")
         logger.info(f"Summary:")
         logger.info(f"  Eligible: {len(eligible)}")
-        logger.info(f"  Ineligible: {len(ineligible)}")
-        logger.info(f"  Total: {len(orgs_with_data)}")
         logger.info(f"{'='*70}\n")
         
         return eligible
     
     def train_organization_model(self, org_id: str) -> bool:
         """
-        Train model for specific organization
+        Train model for specific organization with incremental training support.
         
         Args:
             org_id: Organization ID (MongoDB ObjectId as string)
@@ -117,13 +87,23 @@ class ModelTrainer:
         logger.info(f"{'='*70}")
         
         try:
-            # 1. Check invoice count
-            invoice_count = self.db.invoices.count_documents({
-                'organizationId': org_id,
-                'aiVerdict': 'clean',
-                'total': {'$exists': True}
-            })
+            # 1. Check if retraining is needed
+            invoice_count = count_organization_invoices(self.db, org_id)
+            should_train, reason = should_retrain(
+                org_id,
+                invoice_count,
+                min_new_invoices=settings.ANOMALY_MIN_NEW_INVOICES,
+                retrain_interval_days=settings.ANOMALY_RETRAIN_INTERVAL_DAYS
+            )
             
+            if not should_train:
+                logger.info(f"✅ SKIP - {reason}")
+                logger.info(f"{'='*70}\n")
+                return True  # Not a failure, just skipped
+            
+            logger.info(f"🔄 RETRAINING - {reason}")
+            
+            # 2. Check minimum invoice count
             if invoice_count < settings.ANOMALY_MIN_INVOICES:
                 logger.warning(
                     f"❌ Insufficient data for org {org_id}: "
@@ -133,17 +113,31 @@ class ModelTrainer:
             
             logger.info(f"✓ Found {invoice_count} clean invoices")
             
-            # 2. Fetch invoices (limit to 10k for performance)
-            max_training_samples = min(invoice_count, 10000)
-            logger.info(f"✓ Fetching up to {max_training_samples} invoices...")
+            # 3. Fetch invoices
+            invoices = fetch_invoices_for_training(
+                self.db,
+                org_id,
+                verdict_filter='clean',
+                max_count=settings.ANOMALY_MAX_TRAINING_SAMPLES * 2  # Fetch extra for sampling
+            )
             
-            invoices = list(self.db.invoices.find({
-                'organizationId': org_id,
-                'aiVerdict': 'clean',
-                'total': {'$exists': True}
-            }).limit(max_training_samples))
+            # 4. Smart sampling if needed
+            if len(invoices) > settings.ANOMALY_MAX_TRAINING_SAMPLES:
+                logger.info(
+                    f"✓ Sampling {len(invoices)} → {settings.ANOMALY_MAX_TRAINING_SAMPLES} invoices "
+                    f"({int(settings.ANOMALY_RECENT_WEIGHT * 100)}% recent, "
+                    f"{int((1 - settings.ANOMALY_RECENT_WEIGHT) * 100)}% historical)"
+                )
+                invoices = smart_sample(
+                    invoices,
+                    max_samples=settings.ANOMALY_MAX_TRAINING_SAMPLES,
+                    recent_weight=settings.ANOMALY_RECENT_WEIGHT,
+                    recent_days=settings.ANOMALY_RECENT_DAYS
+                )
+            else:
+                logger.info(f"✓ Using all {len(invoices)} invoices (under limit)")
             
-            # 3. Extract features
+            # 5. Extract features
             logger.info("✓ Extracting features...")
             feature_matrix = []
             
@@ -160,26 +154,33 @@ class ModelTrainer:
             
             logger.info(f"✓ Extracted {len(feature_matrix)} feature vectors")
             
-            # 4. Train model
+            # 6. Train model
             logger.info("✓ Training Isolation Forest...")
-            contamination = 0.1  # Expect 10% anomalies
-            model = IsolationForest(
+            contamination = 0.1
+            model = train_isolation_forest(
+                feature_matrix,
                 contamination=contamination,
-                n_estimators=100,
-                random_state=42,
-                n_jobs=-1,  # Use all CPU cores
-                verbose=0
+                n_estimators=100
             )
             
-            model.fit(feature_matrix)
-            logger.info("✓ Model training complete")
-            
-            # 5. Save to S3
+            # 7. Save to S3 with metadata
             logger.info("✓ Uploading model to S3...")
-            s3_key = save_model_to_s3(org_id, model)
+            from datetime import datetime
+            
+            training_metadata = update_training_metadata(
+                org_id,
+                len(invoices),
+                {
+                    'contamination': contamination,
+                    'n_estimators': 100,
+                    'feature_count': len(feature_matrix)
+                }
+            )
+            
+            s3_key = save_model_to_s3(org_id, model, training_metadata)
             logger.info(f"✓ Model uploaded: {s3_key}")
             
-            # 6. Clear cache to force reload
+            # 8. Clear cache
             clear_model_cache(org_id)
             logger.info("✓ Cache cleared")
             
@@ -189,7 +190,6 @@ class ModelTrainer:
             logger.info(f"  S3 Key: {s3_key}")
             logger.info(f"  Training Samples: {len(feature_matrix)}")
             logger.info(f"  Contamination: {contamination}")
-            logger.info(f"  N Estimators: 100")
             logger.info(f"{'='*70}\n")
             
             return True
@@ -208,7 +208,7 @@ class ModelTrainer:
         logger.info("TRAINING MODELS FOR ALL ELIGIBLE ORGANIZATIONS")
         logger.info("="*70 + "\n")
         
-        # Find organizations with sufficient invoices
+        # Find eligible organizations
         eligible_orgs = self.check_eligible_organizations()
         
         if not eligible_orgs:
@@ -220,16 +220,33 @@ class ModelTrainer:
         success_count = 0
         fail_count = 0
         
-        for idx, org_data in enumerate(eligible_orgs, 1):
-            org_id = org_data['org_id']
-            count = org_data['count']
+        # Train organizations in parallel
+        max_workers = min(settings.MAX_PARALLEL_TRAINING, len(eligible_orgs))
+        logger.info(f"\n🚀 Training {len(eligible_orgs)} organizations with {max_workers} parallel workers\n")
+        
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all training jobs
+            future_to_org = {
+                executor.submit(self.train_organization_model, org_data['org_id']): org_data
+                for org_data in eligible_orgs
+            }
             
-            logger.info(f"\n[{idx}/{len(eligible_orgs)}] Processing {org_id} ({count} invoices)")
-            
-            if self.train_organization_model(org_id):
-                success_count += 1
-            else:
-                fail_count += 1
+            # Process results as they complete
+            for idx, future in enumerate(as_completed(future_to_org), 1):
+                org_data = future_to_org[future]
+                org_id = org_data['org_id']
+                
+                try:
+                    result = future.result()
+                    if result:
+                        success_count += 1
+                        logger.info(f"✅ [{idx}/{len(eligible_orgs)}] {org_id} - SUCCESS")
+                    else:
+                        fail_count += 1
+                        logger.info(f"❌ [{idx}/{len(eligible_orgs)}] {org_id} - FAILED")
+                except Exception as e:
+                    fail_count += 1
+                    logger.error(f"❌ [{idx}/{len(eligible_orgs)}] {org_id} - ERROR: {e}")
         
         # Final summary
         logger.info("\n" + "="*70)
@@ -250,13 +267,13 @@ def main():
         epilog="""
 Examples:
   # Train specific organization
-  python scripts/train_models.py --org-id 507f1f77bcf86cd799439011
+  python scripts/train_anomaly_models.py --org-id 507f1f77bcf86cd799439011
   
   # Train all eligible organizations
-  python scripts/train_models.py --all
+  python scripts/train_anomaly_models.py --all
   
   # Check which organizations are eligible
-  python scripts/train_models.py --check
+  python scripts/train_anomaly_models.py --check
         """
     )
     
@@ -283,7 +300,7 @@ Examples:
         parser.print_help()
         sys.exit(1)
     
-    trainer = ModelTrainer()
+    trainer = AnomalyModelTrainer()
     
     try:
         if args.check:
