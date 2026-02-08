@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+gunicorn
 python-multipart
 requests
 pymongo
@@ -11,7 +12,7 @@ opencv-python
 python-docx
 sentence-transformers
 pandas
-dotenv
+python-dotenv
 pdf2image
 
 # Background Scheduler
