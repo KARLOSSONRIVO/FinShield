@@ -10,7 +10,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Organization } from "@/lib/types"
+import { Organization } from "@/services/organization.service"
 
 interface DeleteOrganizationDialogProps {
     open: boolean
@@ -41,7 +41,7 @@ export function DeleteOrganizationDialog({
                 <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                        onClick={() => onConfirm(organization._id)}
+                        onClick={() => organization.id && onConfirm(organization.id)}
                         className="bg-destructive hover:bg-destructive/90"
                     >
                         Delete Organization

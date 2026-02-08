@@ -6,7 +6,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { Organization } from "@/lib/types"
+import { Organization } from "@/services/organization.service"
 import { Badge } from "@/components/ui/badge"
 
 interface ViewOrganizationDialogProps {
@@ -45,22 +45,14 @@ export function ViewOrganizationDialog({
                         <div>
                             <label className="text-sm font-medium text-muted-foreground">Status</label>
                             <div className="mt-1">
-                                <Badge variant="outline" className={organization.status === 'active' ? "bg-emerald-600 text-white border-0" : "bg-red-600 text-white border-0"}>
+                                <Badge variant="outline" className={organization.status === 'ACTIVE' ? "bg-emerald-600 text-white border-0" : "bg-red-600 text-white border-0"}>
                                     {organization.status}
                                 </Badge>
                             </div>
                         </div>
-                        <div>
-                            <label className="text-sm font-medium text-muted-foreground">Employees</label>
-                            <p className="text-base font-medium">{organization.employees}</p>
-                        </div>
                         <div className="col-span-2">
                             <label className="text-sm font-medium text-muted-foreground">Organization ID</label>
-                            <p className="text-sm font-mono bg-muted p-2 rounded-md mt-1">{organization._id}</p>
-                        </div>
-                        <div className="col-span-2">
-                            <label className="text-sm font-medium text-muted-foreground">Joined Date</label>
-                            <p className="text-base font-medium">{new Date(organization.createdAt).toLocaleDateString()}</p>
+                            <p className="text-sm font-mono bg-muted p-2 rounded-md mt-1">{organization.id}</p>
                         </div>
                     </div>
                 </div>

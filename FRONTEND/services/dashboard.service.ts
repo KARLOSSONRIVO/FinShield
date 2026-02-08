@@ -21,19 +21,37 @@ export const DashboardService = {
      * Simulates GET /dashboard/stats
      */
     getSuperAdminStats: async (): Promise<DashboardStats> => {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 600))
+        // Fetch real data where possible, partial mocks for missing endpoints
+        try {
+            const [usersResponse, orgsResponse] = await Promise.all([
+                import("./user.service").then(m => m.UserService.listUsers()),
+                import("./organization.service").then(m => m.OrganizationService.listOrganizations())
+            ])
 
-        const invoices = mockInvoices
-        const stats = {
-            totalRevenue: invoices.reduce((acc, curr) => acc + curr.totals_total, 0),
-            activeInvoices: invoices.length,
-            flaggedInvoices: invoices.filter((i) => i.ai_verdict === "flagged").length,
-            verifiedInvoices: invoices.filter((i) => i.status === "verified").length,
-            totalUsers: mockUsers.length,
-            totalCompanies: mockOrganizations.length
+            const users = usersResponse.data || []
+            const orgs = orgsResponse.data || []
+            const invoices = mockInvoices // Still mocked
+
+            return {
+                totalRevenue: invoices.reduce((acc, curr) => acc + curr.totals_total, 0),
+                activeInvoices: invoices.length,
+                flaggedInvoices: invoices.filter((i) => i.ai_verdict === "flagged").length,
+                verifiedInvoices: invoices.filter((i) => i.status === "verified").length,
+                totalUsers: users.length,
+                totalCompanies: orgs.length
+            }
+        } catch (error) {
+            console.error("Failed to fetch dashboard stats", error)
+            // Fallback to strict mocks if API fails
+            return {
+                totalRevenue: 0,
+                activeInvoices: mockInvoices.length,
+                flaggedInvoices: 0,
+                verifiedInvoices: 0,
+                totalUsers: mockUsers.length,
+                totalCompanies: mockOrganizations.length
+            }
         }
-        return stats
     },
 
     /**

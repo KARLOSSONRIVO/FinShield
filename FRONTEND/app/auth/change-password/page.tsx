@@ -58,15 +58,15 @@ export default function ChangePasswordPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-            <Card className="w-full max-w-md shadow-lg">
-                <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold text-center">Change Password</CardTitle>
+            <Card className="w-full max-w-md border border-black shadow-none rounded-xl">
+                <CardHeader className="space-y-1 border-b pb-4 mb-4">
+                    <CardTitle className="text-xl font-normal text-center">Change Password</CardTitle>
                     <CardDescription className="text-center">
                         You must change your password before continuing.
                     </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-6 pt-0">
                         {error && (
                             <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm border border-red-200">
                                 {error}
@@ -74,7 +74,7 @@ export default function ChangePasswordPage() {
                         )}
 
                         <div className="space-y-2">
-                            <Label htmlFor="current-password">Current Password</Label>
+                            <Label htmlFor="current-password" className="font-bold text-base">Current Password</Label>
                             <Input
                                 id="current-password"
                                 type="password"
@@ -82,11 +82,12 @@ export default function ChangePasswordPage() {
                                 onChange={(e) => setCurrentPassword(e.target.value)}
                                 required
                                 placeholder="Enter current password"
+                                className="border border-black rounded-lg h-11"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="new-password">New Password</Label>
+                            <Label htmlFor="new-password" className="font-bold text-base">New Password</Label>
                             <div className="relative">
                                 <Input
                                     id="new-password"
@@ -94,7 +95,7 @@ export default function ChangePasswordPage() {
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     required
-                                    className="pr-10"
+                                    className="pr-10 border border-black rounded-lg h-11"
                                 />
                                 <button
                                     type="button"
@@ -106,21 +107,22 @@ export default function ChangePasswordPage() {
                             </div>
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="confirm-password">Confirm Password</Label>
+                        <div className="space-y-2 pb-5">
+                            <Label htmlFor="confirm-password" className="font-bold text-base">Confirm Password</Label>
                             <Input
                                 id="confirm-password"
                                 type="password"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
+                                className="border border-black rounded-lg h-11"
                             />
                         </div>
                     </CardContent>
                     <CardFooter>
                         <Button
                             type="submit"
-                            className="w-full bg-emerald-600 hover:bg-emerald-700"
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 h-12 text-base font-medium rounded-lg text-white"
                             disabled={isPending}
                         >
                             {isPending ? "Updating..." : "Update Password"}

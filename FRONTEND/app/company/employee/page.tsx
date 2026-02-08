@@ -2,12 +2,14 @@
 
 
 
+import { useAuth } from "@/hooks/use-auth"
 import { EmployeeStats } from "@/components/dashboard/EmployeeStats"
 import { EmployeeRecentInvoices } from "@/components/dashboard/EmployeeRecentInvoices"
 import { EmployeeAIAlerts } from "@/components/dashboard/EmployeeAIAlerts"
 import { useEmployeeDashboard } from "@/hooks/company-employee/dashboard/use-employee-dashboard"
 
 export default function EmployeeDashboard() {
+  const { user } = useAuth()
   const {
     myInvoicesCount,
     pendingCount,
@@ -23,7 +25,7 @@ export default function EmployeeDashboard() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            Welcome back, John Doe
+            Welcome back, {user?.firstName || "Employee"}
           </h1>
           <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your invoices</p>
         </div>

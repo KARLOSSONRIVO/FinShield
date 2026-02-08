@@ -52,7 +52,7 @@ export function TopBar({
                 {/* Notifications Popover */}
                 <Popover>
                     <PopoverTrigger asChild>
-                        <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
+                        <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground" suppressHydrationWarning>
                             <Bell className="h-5 w-5" />
                         </Button>
                     </PopoverTrigger>
@@ -83,7 +83,7 @@ export function TopBar({
                 {/* Profile Dropdown */}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="group pl-2 pr-4 py-2 h-auto flex items-center gap-3 hover:bg-muted/50 rounded-full border border-border data-[state=open]:bg-muted/50">
+                        <Button variant="ghost" className="group pl-2 pr-4 py-2 h-auto flex items-center gap-3 hover:bg-muted/50 rounded-full border border-border data-[state=open]:bg-muted/50" suppressHydrationWarning>
                             <div className="bg-primary/20 h-8 w-8 rounded-full flex items-center justify-center text-primary">
                                 <User className="h-4 w-4" />
                             </div>

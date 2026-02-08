@@ -14,6 +14,7 @@ import {
     AlertTriangle,
     ScrollText
 } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 const managerLinks: NavLink[] = [
     { href: "/company/manager", label: "Dashboard", icon: LayoutDashboard },
@@ -31,6 +32,8 @@ export default function CompanyManagerLayout({
 }) {
     const pathname = usePathname()
     const [collapsed, setCollapsed] = useState(false)
+
+    const { user } = useAuth()
 
     // Determine title based on path
     const getPageTitle = (path: string) => {
@@ -66,8 +69,8 @@ export default function CompanyManagerLayout({
                 <div className="sticky top-0 z-40">
                     <TopBar
                         title={title}
-                        userName="Charlie Brown"
-                        organizationName="Company Manager"
+                        userName={user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "Company Manager"}
+                        organizationName="Company Manager" // Or fetch org name
                         profileLink="/company/manager/settings"
                         notifications={[
                             { title: "Invoice Flagged", time: "10m ago", message: "INV-004 has been flagged as Fraudulent." },

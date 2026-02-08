@@ -4,6 +4,7 @@ import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import type { Invoice } from "@/lib/types"
 import { InvoiceService } from "@/services/invoice.service"
+import { useAuth } from "@/hooks/use-auth" // Assuming we filter by user's org if backend doesn't already
 
 export type InvoiceStatusFilter = "all" | "pending" | "verified" | "flagged" | "fraudulent"
 
@@ -20,39 +21,29 @@ export function useManagerInvoices() {
         direction: "desc"
     })
     const [currentPage, setCurrentPage] = useState(1)
-    const itemsPerPage = 7
+    const itemsPerPage = 10
 
-    const { data: allInvoices = [], isLoading } = useQuery({
-        queryKey: ["invoices"],
+    // Backend should filter by the logged-in user's organization automatically
+    const { data: invoices = [], isLoading } = useQuery({
+        queryKey: ["invoices", "manager"],
         queryFn: InvoiceService.getAll
     })
 
-    // Manager only sees their own company invoices
-    // TODO: In real app, API handles this. For now using mock service returning all.
-    const companyInvoices = useMemo(
-        () => allInvoices.filter((i) => i.companyOrgId === "org-company-1"),
-        [allInvoices]
-    )
-
     const filteredAndSortedInvoices = useMemo(() => {
-        let result = [...companyInvoices]
+        let result = [...invoices]
 
         // 1. Search
         if (search) {
             const lowerSearch = search.toLowerCase()
             result = result.filter(invoice =>
                 invoice.invoiceNo.toLowerCase().includes(lowerSearch) ||
-                (invoice.companyName || "").toLowerCase().includes(lowerSearch) ||
                 invoice.totals_total.toString().includes(lowerSearch)
             )
         }
 
         // 2. Status Filter
         if (statusFilter !== "all") {
-            result = result.filter(invoice => {
-                const status = invoice.status.toLowerCase()
-                return status === statusFilter
-            })
+            result = result.filter(invoice => invoice.status.toLowerCase() === statusFilter)
         }
 
         // 3. Sorting
@@ -60,22 +51,17 @@ export function useManagerInvoices() {
             const aValue = a[sortConfig.key]
             const bValue = b[sortConfig.key]
 
-            // Handle undefined values
             if (aValue === undefined && bValue === undefined) return 0
             if (aValue === undefined) return 1
             if (bValue === undefined) return -1
 
-            if (aValue < bValue) {
-                return sortConfig.direction === "asc" ? -1 : 1
-            }
-            if (aValue > bValue) {
-                return sortConfig.direction === "asc" ? 1 : -1
-            }
+            if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1
+            if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1
             return 0
         })
 
         return result
-    }, [search, statusFilter, sortConfig, companyInvoices])
+    }, [invoices, search, statusFilter, sortConfig])
 
     // Pagination
     const totalPages = Math.ceil(filteredAndSortedInvoices.length / itemsPerPage)
@@ -100,5 +86,6 @@ export function useManagerInvoices() {
         currentPage,
         totalPages,
         setCurrentPage,
+        isLoading
     }
 }

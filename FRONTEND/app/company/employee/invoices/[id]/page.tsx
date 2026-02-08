@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { mockInvoices, mockReviews } from "@/lib/mock-data"
 import { FileText, Shield, ArrowLeft, AlertTriangle } from "lucide-react"
-import { AIVerdictBadge, DecisionBadge } from "@/components/status-badge"
+import { AIVerdictBadge, DecisionBadge } from "@/components/common/StatusBadge"
 import { cn } from "@/lib/utils"
 
 export default async function EmployeeInvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {

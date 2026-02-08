@@ -11,6 +11,7 @@ import {
     AlertTriangle,
     Link2,
 } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 const auditorLinks: NavLink[] = [
     { href: "/admin/auditor", label: "Dashboard", icon: LayoutDashboard },
@@ -26,6 +27,7 @@ export default function AuditorLayout({
 }) {
     const pathname = usePathname()
     const [collapsed, setCollapsed] = useState(false)
+    const { user } = useAuth()
 
     // Determine title based on path
     const getPageTitle = (path: string) => {
@@ -59,7 +61,7 @@ export default function AuditorLayout({
                 <div className="sticky top-0 z-40">
                     <TopBar
                         title={title}
-                        userName="Auditor User"
+                        userName={user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "Auditor User"}
                         organizationName="Auditor Role"
                         profileLink="/admin/auditor/settings"
                         notifications={[

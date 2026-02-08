@@ -1,7 +1,7 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AIVerdictBadge } from "@/components/status-badge"
+import { AIVerdictBadge } from "@/components/common/StatusBadge"
 import { AlertTriangle } from "lucide-react"
 import type { Invoice } from "@/lib/types"
 import { cn } from "@/lib/utils"

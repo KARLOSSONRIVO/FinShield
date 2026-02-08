@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Clock, ArrowRight } from "lucide-react"
 import Link from "next/link"
-import { InvoiceStatusBadge } from "@/components/status-badge"
+import { InvoiceStatusBadge } from "@/components/common/StatusBadge"
 import type { Invoice } from "@/lib/types"
 
 interface PendingReviewsProps {

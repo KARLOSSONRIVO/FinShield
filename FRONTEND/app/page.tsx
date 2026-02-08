@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { FinShieldLogo } from "@/components/finshield-logo"
+import { FinShieldLogo } from "@/components/common/FinShieldLogo"
 import { Shield, Users, FileSearch, Building2, UserCog } from "lucide-react"
 
 export default function HomePage() {

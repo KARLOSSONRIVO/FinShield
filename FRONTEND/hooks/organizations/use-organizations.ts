@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { mockOrganizations } from "@/lib/mock-data"
-import { Organization } from "@/lib/types"
+import { useState, useMemo, useEffect } from "react"
+import { OrganizationService, Organization } from "@/services/organization.service"
 
 export type SortConfig = {
     key: keyof Organization
@@ -13,13 +12,60 @@ export function useOrganizations() {
     const [search, setSearch] = useState("")
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const [newOrgName, setNewOrgName] = useState("")
+    const [newOrgType, setNewOrgType] = useState("")
+    const [newOrgEmployeeCount, setNewOrgEmployeeCount] = useState("")
+    const [newOrgStatus, setNewOrgStatus] = useState("active")
+
+    // Data State
+    const [organizations, setOrganizations] = useState<Organization[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null) // Add error state
 
     // Pagination & Sort
     const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage] = useState(5) // Limit to 5 as requested
+    const [itemsPerPage] = useState(10)
     const [sortConfig, setSortConfig] = useState<SortConfig>(null)
 
-    const companies = mockOrganizations.filter((o) => o.type === "company")
+    // Fetch Data
+    // Fetch Data
+    const fetchData = async () => {
+        setIsLoading(true)
+        setError(null)
+        try {
+            const response = await OrganizationService.listOrganizations()
+
+            // Check for success OR ok (backend seems to return ok: true)
+            // @ts-ignore - The type definition expects success, but runtime shows ok
+            if (response?.success || response?.ok) {
+                const rawData: any[] = response.data || []
+
+                const mappedOrgs = rawData.map(o => ({
+                    // Mapping based on BACKEND organization.mapper.js
+                    id: String(o.id || o._id),
+                    name: o.name,
+                    // Backend sends lowercase or as-is from DB, Frontend Schema expects Uppercase Enums
+                    type: (o.type || "").toUpperCase() as "COMPANY" | "AUDITOR" | "REGULATOR",
+                    status: (o.status || "ACTIVE").toUpperCase() as "ACTIVE" | "INACTIVE" | "SUSPENDED",
+                    createdAt: o.createdAt,
+                    updatedAt: o.updatedAt,
+                }))
+
+                setOrganizations(mappedOrgs)
+            } else {
+                console.warn("API returned success: false", response)
+                setError("API responded but success was false (or missing). Check console.")
+            }
+        } catch (error: any) {
+            console.error("Failed to fetch organizations:", error)
+            setError(error.message || "Failed to connect to API")
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchData()
+    }, [])
 
     // Sort Handler
     const requestSort = (key: keyof Organization) => {
@@ -32,22 +78,22 @@ export function useOrganizations() {
 
     // Filter & Sort Logic
     const filteredAndSortedOrgs = useMemo(() => {
-        let processed = [...companies]
+        let processed = [...organizations]
 
         // Filter
         if (search) {
             processed = processed.filter(c =>
-                c.name.toLowerCase().includes(search.toLowerCase())
+                (c.name || "").toLowerCase().includes(search.toLowerCase())
             )
         }
 
         // Sort
         if (sortConfig) {
             processed.sort((a, b) => {
-                // @ts-ignore - dynamic key access
-                const aValue = a[sortConfig.key]
                 // @ts-ignore
-                const bValue = b[sortConfig.key]
+                const aValue = a[sortConfig.key] || ""
+                // @ts-ignore
+                const bValue = b[sortConfig.key] || ""
 
                 if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1
                 if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1
@@ -56,31 +102,40 @@ export function useOrganizations() {
         }
 
         return processed
-    }, [companies, search, sortConfig])
+    }, [organizations, search, sortConfig])
 
     // Pagination Logic
     const totalPages = Math.ceil(filteredAndSortedOrgs.length / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
     const currentOrgs = filteredAndSortedOrgs.slice(startIndex, startIndex + itemsPerPage)
 
-    const handleCreateOrg = () => {
-        alert(`Creating organization: ${newOrgName}`)
-        setNewOrgName("")
-        setIsCreateOpen(false)
+    const handleCreateOrg = async () => {
+        try {
+            await OrganizationService.createOrganization({
+                name: newOrgName,
+                type: "company" // Default to company (lowercase) to match backend validator
+                // invoiceTemplate: file // File upload not yet supported in dialog state
+            })
+            await fetchData()
+            setIsCreateOpen(false)
+            setNewOrgName("")
+            setNewOrgType("")
+            setNewOrgEmployeeCount("")
+            setNewOrgStatus("active")
+        } catch (error) {
+            console.error("Failed to create org:", error)
+            alert("Failed to create organization")
+        }
     }
 
     const handleEditOrg = (org: Organization) => {
-        // In a real app, this would call an API
         console.log("Updating organization:", org);
-        // We can just alert for now or try to update local state if we want better UX
-        // For mock, let's just alert
-        alert(`Updated ${org.name} successfully! Mock update.`);
+        alert("Update Organization functionality is not yet fully implemented in Backend (needs generic update endpoint).");
     }
 
     const handleDeleteOrg = (id: string) => {
-        // In a real app, API call
-        console.log("Deleting organization:", id);
-        alert(`Organization deleted successfully! Mock delete.`);
+        // console.log("Deleting organization:", id);
+        alert("Delete Organization functionality is not yet fully implemented in Backend.");
     }
 
     return {
@@ -90,11 +145,16 @@ export function useOrganizations() {
         setIsCreateOpen,
         newOrgName,
         setNewOrgName,
+        newOrgType,
+        setNewOrgType,
+        newOrgEmployeeCount,
+        setNewOrgEmployeeCount,
+        newOrgStatus,
+        setNewOrgStatus,
         handleCreateOrg,
         handleEditOrg,
         handleDeleteOrg,
 
-        // Data & Pagination
         organizations: currentOrgs,
         currentPage,
         totalPages,
@@ -102,8 +162,9 @@ export function useOrganizations() {
         itemsPerPage,
         totalItems: filteredAndSortedOrgs.length,
 
-        // Sorting
         sortConfig,
-        requestSort
+        requestSort,
+        isLoading,
+        error
     }
 }

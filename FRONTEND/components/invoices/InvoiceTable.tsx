@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Invoice } from "@/lib/types"
 import { Eye } from "lucide-react"
-import { StatusBadge } from "@/components/shared/StatusBadge"
+import { InvoiceStatusBadge, AIVerdictBadge } from "@/components/common/StatusBadge"
 
 export type TableViewMode = "super-admin" | "auditor" | "regulator" | "manager" | "employee"
 
@@ -72,10 +72,10 @@ export function InvoiceTable({ invoices, mode, baseUrl }: InvoiceTableProps) {
                                 <TableCell className="px-2 font-bold text-base text-black">{new Date(row.invoiceDate).toLocaleDateString()}</TableCell>
                                 <TableCell className="px-2 font-bold text-base text-black">${row.totals_total.toLocaleString()}</TableCell>
                                 <TableCell className="px-2 text-center">
-                                    <StatusBadge verdict={row.ai_verdict} />
+                                    <AIVerdictBadge verdict={row.ai_verdict} hideScore={true} />
                                 </TableCell>
                                 <TableCell className="px-2 text-center">
-                                    <StatusBadge status={row.status} />
+                                    <InvoiceStatusBadge status={row.status} />
                                 </TableCell>
                                 <TableCell className="px-2 text-center">
                                     <Link href={`${baseUrl}/${row._id}`}>

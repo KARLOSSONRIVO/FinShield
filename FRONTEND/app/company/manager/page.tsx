@@ -1,11 +1,13 @@
 "use client"
 
+import { useAuth } from "@/hooks/use-auth"
 import { ManagerStats } from "@/components/dashboard/ManagerStats"
 import { ManagerRecentInvoices } from "@/components/dashboard/ManagerRecentInvoices"
 import { ManagerAIAlerts } from "@/components/dashboard/ManagerAIAlerts"
 import { useManagerDashboard } from "@/hooks/company-manager/dashboard/use-manager-dashboard"
 
 export default function CompanyManagerDashboard() {
+  const { user } = useAuth()
   const {
     companyInvoicesCount,
     flaggedInvoicesCount,
@@ -18,7 +20,9 @@ export default function CompanyManagerDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-1">
-        <h2 className="text-xl font-semibold text-foreground">Welcome back, User</h2>
+        <h2 className="text-xl font-semibold text-foreground">
+          Welcome back, {user?.firstName || "Manager"}
+        </h2>
         <p className="text-sm text-muted-foreground">Here's what's happening with your invoices</p>
       </div>
 

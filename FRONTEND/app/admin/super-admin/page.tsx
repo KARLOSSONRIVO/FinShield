@@ -1,5 +1,6 @@
 "use client"
 
+import { useAuth } from "@/hooks/use-auth"
 import { StatsCard } from "@/components/dashboard/StatsCard"
 import { Building2, FileText, AlertTriangle, CheckCircle } from "lucide-react"
 
@@ -8,6 +9,7 @@ import { RecentActivity } from "@/components/dashboard/RecentActivity"
 import { useSuperAdminDashboard } from "@/hooks/dashboard/use-super-admin-dashboard"
 
 export default function SuperAdminDashboard() {
+  const { user } = useAuth()
   const {
     companiesCount,
     totalUsers,
@@ -22,7 +24,9 @@ export default function SuperAdminDashboard() {
     <>
       {/* Welcome Message */}
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Welcome back, <span className="text-primary">User</span></h2>
+        <h2 className="text-2xl font-bold tracking-tight">
+          Welcome back, <span className="text-primary">{user?.firstName || "Superadmin"}</span>
+        </h2>
         <p className="text-muted-foreground">Full Platform Overview and Status</p>
       </div>
 

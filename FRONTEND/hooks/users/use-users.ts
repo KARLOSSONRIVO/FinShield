@@ -3,8 +3,9 @@
 import { useState, useMemo } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { UserService } from "@/services/user.service"
+import { OrganizationService } from "@/services/organization.service"
 import { mockOrganizations } from "@/lib/mock-data"
-import { User as FrontendUser } from "@/lib/types"
+import { User as FrontendUser, Organization } from "@/lib/types"
 
 export type SortConfig = {
     key: keyof FrontendUser
@@ -16,12 +17,39 @@ export function useUsers() {
     const [search, setSearch] = useState("")
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const [disableUserId, setDisableUserId] = useState<string | null>(null)
-    const [disableReason, setDisableReason] = useState("")
-    // Updated newUser state to match API requirements
-    const [newUser, setNewUser] = useState({
+    const [reason, setReason] = useState("")
+
+    // Fetch Organizations for dropdown
+    const { data: realOrganizations = [] } = useQuery<Organization[]>({
+        queryKey: ["organizations"],
+        queryFn: async () => {
+            const response = await OrganizationService.listOrganizations()
+            if (!response.ok || !response.data) return []
+
+            // Map API response to Frontend Organization interface
+            return response.data.map((o: any) => ({
+                _id: o.id,
+                name: o.name,
+                type: o.type === "COMPANY" ? "company" : "platform", // Map types appropriately
+                status: o.status === "ACTIVE" ? "active" : "inactive",
+                employees: o.employees || 0,
+                createdAt: o.createdAt ? new Date(o.createdAt) : new Date(0),
+                updatedAt: o.updatedAt ? new Date(o.updatedAt) : new Date(0)
+            }))
+        }
+    })
+
+    // Updated newUser state to match API requirements (Username only, no First/Last)
+    type NewUserState = {
+        email: string
+        username: string
+        role: string
+        orgId: string
+    }
+
+    const [newUser, setNewUser] = useState<NewUserState>({
         email: "",
-        firstName: "",
-        lastName: "",
+        username: "",
         role: "",
         orgId: ""
     })
@@ -47,11 +75,11 @@ export function useUsers() {
                 portal: "user", // Default
                 role: u.role,
                 email: u.email,
-                username: `${u.firstName || ""} ${u.lastName || ""}`.trim() || u.email,
+                username: u.username || u.email, // Use username if available
                 status: (u.status || "active").toLowerCase(),
                 mustChangePassword: u.mustChangePassword,
-                createdAt: new Date(u.createdAt || Date.now()),
-                updatedAt: new Date(u.updatedAt || Date.now()),
+                createdAt: new Date(u.createdAt || 0),
+                updatedAt: new Date(u.updatedAt || 0),
             } as FrontendUser))
 
             console.log("Mapped Users:", mapped);
@@ -62,14 +90,19 @@ export function useUsers() {
     // Create User Mutation
     const createUserMutation = useMutation({
         mutationFn: async () => {
+            // Validate payload before sending
+            if (["COMPANY_MANAGER", "COMPANY_USER"].includes(newUser.role) && !newUser.orgId) {
+                throw new Error("Company is required for this role");
+            }
+
             // Map frontend state to API payload
             const payload = {
                 email: newUser.email,
                 password: "Password123!", // Temp default password
-                firstName: newUser.firstName,
-                lastName: newUser.lastName,
+                username: newUser.username,
                 role: newUser.role as any,
-                organizationId: newUser.orgId
+                // Sanitize orgId: safely handle null/undefined, trim whitespace, and convert empty strings to undefined
+                orgId: (newUser.orgId || "").trim() || undefined
             }
             return await UserService.createUser(payload)
         },
@@ -77,27 +110,27 @@ export function useUsers() {
             queryClient.invalidateQueries({ queryKey: ["users"] })
             alert("User created successfully!")
             setIsCreateOpen(false)
-            setNewUser({ email: "", firstName: "", lastName: "", role: "", orgId: "" })
+            setNewUser({ email: "", username: "", role: "", orgId: "" })
         },
         onError: (error: any) => {
             alert("Failed to create user: " + (error.response?.data?.message || error.message))
         }
     })
 
-    // Disable User Mutation
-    const disableUserMutation = useMutation({
-        mutationFn: async () => {
-            if (!disableUserId) return
-            return await UserService.updateUserStatus(disableUserId, "SUSPENDED")
+    // Update User Status Mutation
+    const updateStatusMutation = useMutation({
+        mutationFn: async ({ id, status, reason }: { id: string; status: "ACTIVE" | "SUSPENDED"; reason?: string }) => {
+            // Backend expects 'disabled' (lowercase) for suspension based on error message "expected one of 'active'|'disabled'"
+            const apiStatus = status === "SUSPENDED" ? "disabled" : "active"
+            // Only pass reason if status is SUSPENDED (disabled). Pass undefined for active to avoid Zod validation error on empty string.
+            const apiReason = status === "SUSPENDED" ? reason : undefined
+            return await UserService.updateUserStatus(id, apiStatus as any, apiReason)
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["users"] })
-            alert("User disabled successfully")
-            setDisableUserId(null)
-            setDisableReason("")
         },
         onError: (error: any) => {
-            alert("Failed to disable user: " + (error.response?.data?.message || error.message))
+            alert("Failed to update user status: " + (error.response?.data?.message || error.message))
         }
     })
 
@@ -118,9 +151,9 @@ export function useUsers() {
         // Or simplistic filter if orgId is present
         if (userTypeFilter === "platform") {
             // Adapt logic: if role is admin-ish
-            processed = processed.filter(u => ["SUPER_ADMIN", "AUDITOR", "REGULATOR"].includes(u.role))
+            processed = processed.filter(u => ["SUPER_ADMIN", "AUDITOR", "REGULATOR", "COMPANY_MANAGER"].includes(u.role))
         } else if (userTypeFilter === "company") {
-            processed = processed.filter(u => ["COMPANY_MANAGER", "COMPANY_USER"].includes(u.role))
+            processed = processed.filter(u => ["COMPANY_USER"].includes(u.role))
         }
 
         // Filter by Search
@@ -139,7 +172,7 @@ export function useUsers() {
                 const aValue = a[sortConfig.key]
                 // @ts-ignore
                 const bValue = b[sortConfig.key]
-
+                // ... (handling undefined/null/asc/desc)
                 if (aValue === bValue) return 0
                 if (aValue === undefined || aValue === null) return 1
                 if (bValue === undefined || bValue === null) return -1
@@ -163,8 +196,8 @@ export function useUsers() {
         createUserMutation.mutate()
     }
 
-    const handleDisableUser = () => {
-        disableUserMutation.mutate()
+    const handleUpdateStatus = (id: string, status: "ACTIVE" | "SUSPENDED", reason?: string) => {
+        updateStatusMutation.mutate({ id, status, reason })
     }
 
     return {
@@ -172,21 +205,18 @@ export function useUsers() {
         setSearch,
         isCreateOpen,
         setIsCreateOpen,
-        disableUserId,
-        setDisableUserId,
-        disableReason,
-        setDisableReason,
+
         newUser,
         setNewUser,
         userTypeFilter,
         setUserTypeFilter,
 
         users: currentUsers,
-        organizations: mockOrganizations, // Still mock for now
+        organizations: realOrganizations, // Use real orgs
         handleCreateUser,
-        handleDisableUser,
+        handleUpdateStatus,
         isCreating: createUserMutation.isPending,
-        isDisabling: disableUserMutation.isPending,
+        isUpdatingStatus: updateStatusMutation.isPending,
         isLoading,
         isError,
 

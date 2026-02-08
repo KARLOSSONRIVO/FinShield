@@ -12,8 +12,9 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogClose,
 } from "@/components/ui/dialog"
-import { Plus } from "lucide-react"
+import { Plus, X } from "lucide-react"
 import type { Organization } from "@/lib/types"
 
 interface CreateUserDialogProps {
@@ -35,69 +36,85 @@ export function CreateUserDialog({
 }: CreateUserDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Create New User</DialogTitle>
-                    <DialogDescription>Add a new auditor, regulator, or company manager</DialogDescription>
+            <DialogContent className="sm:max-w-[825px] border border-black shadow-none rounded-xl flex flex-col" showCloseButton={false}>
+                <DialogHeader className="flex flex-row items-center justify-between border-b pb-4">
+                    <DialogTitle className="text-xl font-normal">Add New User</DialogTitle>
+                    <DialogClose className="opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                        <X className="h-6 w-6" /> {/* Bigger close icon */}
+                        <span className="sr-only">Close</span>
+                    </DialogClose>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
+                <div className="grid gap-4 py-4">
+                    <div className="grid gap-2">
+                        <Label htmlFor="username" className="font-bold text-base">Username</Label>
+                        <Input
+                            id="username"
+                            placeholder="eg. username123"
+                            value={newUser.username}
+                            onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                            className="border border-black rounded-lg h-11"
+                        />
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="email" className="font-bold text-base">Email</Label>
                         <Input
                             id="email"
                             type="email"
-                            placeholder="user@example.com"
+                            placeholder="eg. user@example.com"
                             value={newUser.email}
                             onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                            className="border border-black rounded-lg h-11"
                         />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="username">Username</Label>
-                        <Input
-                            id="username"
-                            placeholder="username"
-                            value={newUser.username}
-                            onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="role">Role</Label>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="role" className="font-bold text-base">Role</Label>
                         <Select value={newUser.role} onValueChange={(v) => setNewUser({ ...newUser, role: v })}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select role" />
+                            <SelectTrigger className="border border-black rounded-lg h-11 w-full">
+                                <SelectValue placeholder="Select Role" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="border border-black rounded-lg">
                                 <SelectItem value="AUDITOR">Auditor</SelectItem>
                                 <SelectItem value="REGULATOR">Regulator</SelectItem>
                                 <SelectItem value="COMPANY_MANAGER">Company Manager</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
-                    {newUser.role === "COMPANY_MANAGER" && (
-                        <div className="space-y-2">
-                            <Label htmlFor="org">Organization</Label>
-                            <Select value={newUser.orgId} onValueChange={(v) => setNewUser({ ...newUser, orgId: v })}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select organization" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {organizations
-                                        .filter((o) => o.type === "company")
-                                        .map((org) => (
-                                            <SelectItem key={org._id} value={org._id}>
-                                                {org.name}
-                                            </SelectItem>
-                                        ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="org" className="font-bold text-base">Company</Label>
+                        <Select value={newUser.orgId} onValueChange={(v) => setNewUser({ ...newUser, orgId: v })}>
+                            <SelectTrigger className="border border-black rounded-lg h-11 w-full">
+                                <SelectValue placeholder="Select Company" />
+                            </SelectTrigger>
+                            <SelectContent className="border border-black rounded-lg">
+                                {organizations
+                                    .map((org) => (
+                                        <SelectItem key={org._id} value={org._id}>
+                                            {org.name}
+                                        </SelectItem>
+                                    ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label className="font-bold text-base">Password</Label>
+                        <Input
+                            type="password"
+                            disabled
+                            placeholder="Default: Password123!"
+                            className="border border-black rounded-lg h-11 bg-muted"
+                        />
+                        <p className="text-xs text-muted-foreground">Default password will be set automatically.</p>
+                    </div>
+
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>
-                        Cancel
+                    <Button onClick={onCreateUser} className="w-full bg-[#00C28C] hover:bg-[#00C28C]/90 text-white font-bold h-11 rounded-lg text-base">
+                        Create User
                     </Button>
-                    <Button onClick={onCreateUser}>Create User</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

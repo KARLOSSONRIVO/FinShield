@@ -6,7 +6,7 @@ import { Filter, ChevronUp, ChevronDown } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 
-export type AssignmentSortKey = "auditorName" | "dueDate"
+export type AssignmentSortKey = "auditorName" | "companyName" | "status"
 export type SortDirection = "asc" | "desc"
 
 export type AssignmentSortConfig = {
@@ -21,7 +21,7 @@ interface AssignmentSortFilterProps {
 
 export function AssignmentSortFilter({ sortConfig, onSortChange }: AssignmentSortFilterProps) {
     const isSortedByAuditor = sortConfig?.key === "auditorName"
-    const isSortedByDueDate = sortConfig?.key === "dueDate"
+    const isSortedByCompany = sortConfig?.key === "companyName"
 
     const handleSort = (key: AssignmentSortKey, direction: SortDirection) => {
         onSortChange({ key, direction })
@@ -63,27 +63,27 @@ export function AssignmentSortFilter({ sortConfig, onSortChange }: AssignmentSor
 
                     <Separator className="my-2" />
 
-                    <div className="px-3 py-2 text-sm font-medium text-black">Sort By Due Date</div>
+                    <div className="px-3 py-2 text-sm font-medium text-black">Sort By Company</div>
                     <div className="px-1">
                         <button
-                            onClick={() => handleSort("dueDate", "asc")}
+                            onClick={() => handleSort("companyName", "asc")}
                             className={cn(
                                 "w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors flex items-center justify-between",
-                                isSortedByDueDate && sortConfig.direction === "asc" && "text-emerald-600 font-medium bg-emerald-50"
+                                isSortedByCompany && sortConfig.direction === "asc" && "text-emerald-600 font-medium bg-emerald-50"
                             )}
                         >
-                            Ascending
-                            {isSortedByDueDate && sortConfig.direction === "asc" && <ChevronUp className="h-4 w-4" />}
+                            Name (A-Z)
+                            {isSortedByCompany && sortConfig.direction === "asc" && <ChevronUp className="h-4 w-4" />}
                         </button>
                         <button
-                            onClick={() => handleSort("dueDate", "desc")}
+                            onClick={() => handleSort("companyName", "desc")}
                             className={cn(
                                 "w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors flex items-center justify-between",
-                                isSortedByDueDate && sortConfig.direction === "desc" && "text-emerald-600 font-medium bg-emerald-50"
+                                isSortedByCompany && sortConfig.direction === "desc" && "text-emerald-600 font-medium bg-emerald-50"
                             )}
                         >
-                            Descending
-                            {isSortedByDueDate && sortConfig.direction === "desc" && <ChevronDown className="h-4 w-4" />}
+                            Name (Z-A)
+                            {isSortedByCompany && sortConfig.direction === "desc" && <ChevronDown className="h-4 w-4" />}
                         </button>
                     </div>
                 </div>

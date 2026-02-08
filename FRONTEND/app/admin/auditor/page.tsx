@@ -1,5 +1,6 @@
 "use client"
 
+import { useAuth } from "@/hooks/use-auth"
 import { FileSearch } from "lucide-react"
 
 import { AuditorStats } from "@/components/dashboard/AuditorStats"
@@ -8,6 +9,7 @@ import { FlaggedItems } from "@/components/dashboard/FlaggedItems"
 import { useAuditorDashboard } from "@/hooks/dashboard/use-auditor-dashboard"
 
 export default function AuditorDashboard() {
+  const { user } = useAuth()
   const {
     stats,
     pendingReviews,
@@ -21,7 +23,9 @@ export default function AuditorDashboard() {
           Dashboard
         </h1>
         <div className="mt-2">
-          <h2 className="text-lg font-bold">Welcome back, <span className="text-emerald-600">User</span></h2>
+          <h2 className="text-lg font-bold">
+            Welcome back, <span className="text-emerald-600">{user?.firstName || "Auditor"}</span>
+          </h2>
           <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your invoices</p>
         </div>
       </div>

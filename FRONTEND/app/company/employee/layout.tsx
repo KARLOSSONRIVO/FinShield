@@ -11,6 +11,7 @@ import {
     Upload,
     AlertTriangle,
 } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 const employeeLinks: NavLink[] = [
     { href: "/company/employee", label: "Dashboard", icon: LayoutDashboard },
@@ -36,6 +37,8 @@ export default function EmployeeLayout({
         return "Employee Portal"
     }
 
+    const { user } = useAuth()
+
     const title = getPageTitle(pathname)
 
     return (
@@ -46,6 +49,8 @@ export default function EmployeeLayout({
                 collapsed={collapsed}
                 setCollapsed={setCollapsed}
                 title="FinShield"
+            // AppSidebar might not support userRole, checking next step. 
+            // Omitting userRole here until verified.
             />
 
             {/* Main content wrapper */}
@@ -59,7 +64,7 @@ export default function EmployeeLayout({
                 <div className="sticky top-0 z-40">
                     <TopBar
                         title={title}
-                        userName="John Doe"
+                        userName={user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "Company Employee"}
                         organizationName="Employee"
                         profileLink="/company/employee/settings"
                         notifications={[

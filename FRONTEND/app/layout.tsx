@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@/components/providers/ThemeProvider"
 import { QueryProvider } from "@/components/providers/QueryProvider"
 import { AuthProvider } from "@/components/providers/auth-provider"
 

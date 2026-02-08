@@ -4,45 +4,43 @@ import type { InvoiceStatus, AIVerdict, UserStatus, ReviewDecision } from "@/lib
 export function InvoiceStatusBadge({ status }: { status: InvoiceStatus }) {
   const variants: Record<
     InvoiceStatus,
-    { variant: "default" | "secondary" | "destructive" | "outline"; label: string }
+    { variant: "default" | "secondary" | "destructive" | "outline"; label: string; className?: string }
   > = {
-    pending: { variant: "secondary", label: "Pending" },
-    verified: { variant: "default", label: "Verified" },
-    flagged: { variant: "outline", label: "Flagged" },
-    fraudulent: { variant: "destructive", label: "Fraudulent" },
+    pending: { variant: "secondary", label: "Pending", className: "bg-gray-600 text-white hover:bg-gray-700 border-transparent" },
+    verified: { variant: "default", label: "Verified", className: "bg-emerald-600 text-white hover:bg-emerald-700 border-transparent" },
+    flagged: { variant: "outline", label: "Flagged", className: "bg-yellow-500 text-white border-transparent hover:bg-yellow-600" },
+    fraudulent: { variant: "destructive", label: "Fraudulent", className: "bg-red-600 text-white hover:bg-red-700 border-transparent" },
   }
 
   const config = variants[status]
   return (
     <Badge
       variant={config.variant}
-      className={
-        status === "flagged"
-          ? "border-warning text-warning bg-warning/10"
-          : status === "verified"
-            ? "bg-primary text-primary-foreground"
-            : ""
-      }
+      className={config.className}
     >
       {config.label}
     </Badge>
   )
 }
 
-export function AIVerdictBadge({ verdict, score }: { verdict: AIVerdict; score: number }) {
+export function AIVerdictBadge({ verdict, score, hideScore = false }: { verdict: AIVerdict; score?: number; hideScore?: boolean }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 justify-center">
       <Badge
         variant={verdict === "clean" ? "default" : "outline"}
         className={
-          verdict === "flagged" ? "border-warning text-warning bg-warning/10" : "bg-primary text-primary-foreground"
+          verdict === "flagged"
+            ? "bg-yellow-500 text-white border-transparent hover:bg-yellow-600"
+            : "bg-emerald-600 text-white hover:bg-emerald-700 border-transparent"
         }
       >
         {verdict === "clean" ? "Clean" : "Flagged"}
       </Badge>
-      <span className={`text-xs font-mono ${score > 0.5 ? "text-destructive" : "text-muted-foreground"}`}>
-        Risk: {(score * 100).toFixed(0)}%
-      </span>
+      {!hideScore && score !== undefined && (
+        <span className={`text-xs font-mono ${score > 0.5 ? "text-destructive" : "text-muted-foreground"}`}>
+          Risk: {(score * 100).toFixed(0)}%
+        </span>
+      )}
     </div>
   )
 }

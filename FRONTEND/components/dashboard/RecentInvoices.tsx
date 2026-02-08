@@ -1,10 +1,10 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { InvoiceStatusBadge } from "@/components/status-badge" // This might need update if status-badge moves
+import { InvoiceStatusBadge } from "@/components/common/StatusBadge"
 import { FileText } from "lucide-react"
 import type { Invoice } from "@/lib/types"
-import { StatusBadge } from "@/components/shared/StatusBadge"
+
 
 interface RecentInvoicesProps {
     invoices: Invoice[]
@@ -36,7 +36,7 @@ export function RecentInvoices({ invoices }: RecentInvoicesProps) {
                             </div>
                             <div className="text-right">
                                 <p className="font-medium">${invoice.totals_total.toLocaleString()}</p>
-                                <StatusBadge status={invoice.status} />
+                                <InvoiceStatusBadge status={invoice.status} />
                             </div>
                         </div>
                     ))}

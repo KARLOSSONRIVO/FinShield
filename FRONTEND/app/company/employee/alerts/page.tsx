@@ -3,7 +3,7 @@ import { mockInvoices } from "@/lib/mock-data"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { AIVerdictBadge } from "@/components/status-badge"
+import { AIVerdictBadge } from "@/components/common/StatusBadge"
 import { cn } from "@/lib/utils"
 
 export default function EmployeeFlaggedQueuePage() {

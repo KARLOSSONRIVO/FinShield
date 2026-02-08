@@ -15,6 +15,7 @@ import {
     ScrollText,
     UserPlus,
 } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 const superAdminLinks: NavLink[] = [
     { href: "/admin/super-admin", label: "Dashboard", icon: LayoutDashboard },
@@ -34,6 +35,7 @@ export default function SuperAdminLayout({
 }) {
     const pathname = usePathname()
     const [collapsed, setCollapsed] = useState(false)
+    const { user } = useAuth()
 
     // Determine title based on path
     const getPageTitle = (path: string) => {
@@ -71,7 +73,7 @@ export default function SuperAdminLayout({
                 <div className="sticky top-0 z-40">
                     <TopBar
                         title={title}
-                        userName="Super Admin"
+                        userName={user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "Super Admin"}
                         organizationName="Global Administrator"
                         profileLink="/admin/super-admin/settings"
                         notifications={[

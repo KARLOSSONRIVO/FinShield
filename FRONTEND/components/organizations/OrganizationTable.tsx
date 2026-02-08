@@ -1,5 +1,3 @@
-"use client"
-
 import {
     Table,
     TableBody,
@@ -10,7 +8,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Building2, ArrowUpDown } from "lucide-react"
-import { Organization } from "@/lib/types"
+import { Organization } from "@/services/organization.service"
 import { SortConfig } from "@/hooks/organizations/use-organizations"
 
 import { useState } from "react"
@@ -46,21 +44,21 @@ export function OrganizationTable({ organizations, sortConfig, onSort, onEdit, o
                         <TableRow className="hover:bg-transparent border-b border-border/50">
                             <TableHead className="w-[300px] px-6 py-4 text-black font-bold text-base">Company Name</TableHead>
                             <TableHead className="px-6 py-4 text-center text-black font-bold text-base">Type</TableHead>
-                            <TableHead className="px-6 py-4 text-center text-black font-bold text-base">Employees</TableHead>
                             <TableHead className="px-6 py-4 text-center text-black font-bold text-base">Status</TableHead>
                             <TableHead className="px-6 py-4 text-center text-black font-bold text-base">Action</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
+                        {/* DEBUG INFO REMOVED to fix render error */}
                         {organizations.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                                    No organizations found.
+                                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                                    No organizations found. (Length: {organizations.length})
                                 </TableCell>
                             </TableRow>
                         ) : (
                             organizations.map((org) => (
-                                <TableRow key={org._id} className="h-24 hover:bg-muted/30 transition-colors border-b border-border/50">
+                                <TableRow key={org.id} className="h-24 hover:bg-muted/30 transition-colors border-b border-border/50">
                                     <TableCell className="px-6">
                                         <div className="flex items-center gap-3">
                                             <div className="h-10 w-10 bg-emerald-600 rounded-lg flex items-center justify-center shrink-0">
@@ -74,11 +72,8 @@ export function OrganizationTable({ organizations, sortConfig, onSort, onEdit, o
                                             {org.type}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="px-6 text-center font-bold text-base text-black">
-                                        {org.employees}
-                                    </TableCell>
                                     <TableCell className="px-6 text-center">
-                                        <div className={`${org.status === 'active' ? 'bg-emerald-600' : 'bg-red-600'} text-white px-3 py-1 rounded-md text-xs font-bold w-fit mx-auto uppercase tracking-wider`}>
+                                        <div className={`${org.status === 'ACTIVE' ? 'bg-emerald-600' : 'bg-red-600'} text-white px-3 py-1 rounded-md text-xs font-bold w-fit mx-auto uppercase tracking-wider`}>
                                             {org.status}
                                         </div>
                                     </TableCell>

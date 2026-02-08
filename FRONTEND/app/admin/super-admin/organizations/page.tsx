@@ -25,6 +25,12 @@ export default function OrganizationsPage() {
     setIsCreateOpen,
     newOrgName,
     setNewOrgName,
+    newOrgType,
+    setNewOrgType,
+    newOrgEmployeeCount,
+    setNewOrgEmployeeCount,
+    newOrgStatus,
+    setNewOrgStatus,
     handleCreateOrg,
     currentPage,
     totalPages,
@@ -32,15 +38,22 @@ export default function OrganizationsPage() {
     sortConfig,
     requestSort,
     handleEditOrg,
-    handleDeleteOrg
+    handleDeleteOrg,
+    error // Extract error
   } = useOrganizations()
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="p-4 rounded-md bg-red-50 border border-red-200 text-red-700 flex items-center gap-2">
+          <span className="font-bold">Error:</span> {error}
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-normal tracking-tight">Organization Management</h2>
         <Button
           onClick={() => setIsCreateOpen(true)}
+          suppressHydrationWarning
           className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-medium"
         >
           <Plus className="h-4 w-4" />
@@ -53,6 +66,12 @@ export default function OrganizationsPage() {
         onOpenChange={setIsCreateOpen}
         newOrgName={newOrgName}
         setNewOrgName={setNewOrgName}
+        newOrgType={newOrgType}
+        setNewOrgType={setNewOrgType}
+        newOrgEmployeeCount={newOrgEmployeeCount}
+        setNewOrgEmployeeCount={setNewOrgEmployeeCount}
+        newOrgStatus={newOrgStatus}
+        setNewOrgStatus={setNewOrgStatus}
         onCreateOrg={handleCreateOrg}
       />
 
@@ -64,11 +83,12 @@ export default function OrganizationsPage() {
             className="pl-9 bg-background border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            suppressHydrationWarning
           />
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="gap-2 border-2 border-black/10 text-base px-6">
+            <Button variant="outline" className="gap-2 border-2 text-base px-6 h-10 border-black/10" suppressHydrationWarning>
               <Filter className="h-4 w-4" />
               Filter & Sort
             </Button>
@@ -82,16 +102,6 @@ export default function OrganizationsPage() {
             <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'name' || sortConfig?.direction === 'asc') requestSort('name') }}>
               {/* Note: This logic for Desc matches: If not name, becomes Name Asc (Close enough). If Name Asc, becomes Name Desc. */}
               <span className={sortConfig?.key === 'name' && sortConfig.direction === 'desc' ? "font-bold text-primary" : ""}>Name (Z-A)</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>Sort By Employees</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'employees' || sortConfig?.direction === 'desc') requestSort('employees') }}>
-              <span className={sortConfig?.key === 'employees' && sortConfig.direction === 'asc' ? "font-bold text-primary" : ""}>Ascending (Low-High)</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'employees' || sortConfig?.direction === 'asc') requestSort('employees') }}>
-              <span className={sortConfig?.key === 'employees' && sortConfig.direction === 'desc' ? "font-bold text-primary" : ""}>Descending (High-Low)</span>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />

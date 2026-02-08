@@ -17,7 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Organization, OrganizationStatus } from "@/lib/types"
+import { Organization, OrganizationStatus } from "@/services/organization.service"
 import { useState, useEffect } from "react"
 
 interface EditOrganizationDialogProps {
@@ -34,12 +34,12 @@ export function EditOrganizationDialog({
     onSave,
 }: EditOrganizationDialogProps) {
     const [name, setName] = useState("")
-    const [status, setStatus] = useState<OrganizationStatus>("active")
+    const [status, setStatus] = useState<"ACTIVE" | "INACTIVE" | "SUSPENDED" | undefined>("ACTIVE")
 
     // Reset form when organization changes
     useEffect(() => {
         if (organization) {
-            setName(organization.name)
+            setName(organization.name || "")
             setStatus(organization.status)
         }
     }, [organization])
@@ -78,13 +78,14 @@ export function EditOrganizationDialog({
                         <Label htmlFor="status" className="text-right">
                             Status
                         </Label>
-                        <Select value={status} onValueChange={(val) => setStatus(val as OrganizationStatus)}>
+                        <Select value={status} onValueChange={(val) => setStatus(val as any)}>
                             <SelectTrigger className="col-span-3">
                                 <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="active">Active</SelectItem>
-                                <SelectItem value="inactive">Inactive</SelectItem>
+                                <SelectItem value="ACTIVE">Active</SelectItem>
+                                <SelectItem value="INACTIVE">Inactive</SelectItem>
+                                <SelectItem value="SUSPENDED">Suspended</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

@@ -56,6 +56,7 @@ export function AppSidebar({ links, collapsed, setCollapsed, title = "FinShield"
                 <div className="flex items-center gap-1">
                     <button
                         onClick={() => setCollapsed(!collapsed)}
+                        suppressHydrationWarning
                         className={cn(
                             "p-1.5 rounded-full hover:bg-sidebar-accent/50 transition-colors text-sidebar-foreground",
                             collapsed && "mx-auto"
@@ -100,13 +101,13 @@ export function AppSidebar({ links, collapsed, setCollapsed, title = "FinShield"
             {/* Footer / Sign Out */}
             <div className="p-4 border-t border-sidebar-border mt-auto">
                 <Link href="/">
-                    <button className={cn(
-                        "flex items-center gap-4 w-full px-4 py-3.5 rounded-xl text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all",
+                    <div className={cn(
+                        "flex items-center gap-4 w-full px-4 py-3.5 rounded-xl text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all cursor-pointer",
                         collapsed && "justify-center px-2"
                     )}>
                         <LogOut className="h-5 w-5 shrink-0" strokeWidth={2.5} />
                         {!collapsed && <span className="font-semibold">Sign out</span>}
-                    </button>
+                    </div>
                 </Link>
             </div>
         </aside>

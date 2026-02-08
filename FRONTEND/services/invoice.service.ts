@@ -6,15 +6,11 @@ import { Invoice } from "@/lib/types" // Using Frontend ID for now since API typ
 export const InvoiceService = {
     /**
      * Upload an invoice file
-     * Note: Backend currently only accepts the file and ignores metadata in the request body.
+     * The backend handles IPFS anchoring automatically.
      */
     upload: async (payload: { file: File }) => {
         const formData = new FormData()
         formData.append("file", payload.file)
-
-        // Frontend collects these, but backend doesn't read them yet.
-        // formData.append("invoiceNo", payload.invoiceNo) 
-        // formData.append("amount", payload.amount)
 
         const { data } = await apiClient.post("/invoice/upload", formData, {
             headers: {

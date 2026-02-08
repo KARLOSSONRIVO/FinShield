@@ -1,94 +1,125 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog"
-import { Plus } from "lucide-react"
+import { X } from "lucide-react"
+import { Organization } from "@/services/organization.service"
+import { components } from "@/lib/api-types"
 
-import { User, Organization } from "@/lib/types"
+type User = components["schemas"]["User"]
 
 interface CreateAssignmentDialogProps {
-    open: boolean
-    onOpenChange: (open: boolean) => void
-    newAssignment: { company: string; auditor: string; notes: string }
-    setNewAssignment: (assignment: any) => void
-    auditors: User[]
-    companies: Organization[]
-    onCreateAssignment: () => void
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  newAssignment: {
+    companyOrgId: string
+    auditorUserId: string
+    status: string
+  }
+  setNewAssignment: (assignment: any) => void
+  auditors: User[]
+  companies: Organization[]
+  onCreateAssignment: () => void
 }
 
 export function CreateAssignmentDialog({
-    open,
-    onOpenChange,
-    newAssignment,
-    setNewAssignment,
-    auditors,
-    companies,
-    onCreateAssignment,
+  open,
+  onOpenChange,
+  newAssignment,
+  setNewAssignment,
+  auditors,
+  companies,
+  onCreateAssignment,
 }: CreateAssignmentDialogProps) {
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Create Assignment</DialogTitle>
-                    <DialogDescription>Assign an auditor to review invoices for a company</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label>Company</Label>
-                        <Select
-                            value={newAssignment.company}
-                            onValueChange={(v) => setNewAssignment({ ...newAssignment, company: v })}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select company" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {companies.map((company) => (
-                                    <SelectItem key={company._id} value={company.name}>
-                                        {company.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Auditor</Label>
-                        <Select
-                            value={newAssignment.auditor}
-                            onValueChange={(v) => setNewAssignment({ ...newAssignment, auditor: v })}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select auditor" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {auditors.map((auditor) => (
-                                    <SelectItem key={auditor._id} value={auditor.username}>
-                                        {auditor.username}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[825px] border border-black shadow-none rounded-xl flex flex-col" showCloseButton={false}>
+        <DialogHeader className="flex flex-row items-center justify-between border-b pb-4">
+          <DialogTitle className="text-xl font-normal">Assign Auditor</DialogTitle>
+          <DialogClose className="opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+            <X className="h-6 w-6" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        </DialogHeader>
 
-                </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>
-                        Cancel
-                    </Button>
-                    <Button onClick={onCreateAssignment}>Create Assignment</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
+        <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="company" className="font-bold text-base">Company</Label>
+            <Select
+              value={newAssignment.companyOrgId}
+              onValueChange={(value) =>
+                setNewAssignment({ ...newAssignment, companyOrgId: value })
+              }
+            >
+              <SelectTrigger id="company" className="border border-black rounded-lg h-11 w-full">
+                <SelectValue placeholder="Select company" />
+              </SelectTrigger>
+              <SelectContent className="border border-black rounded-lg">
+                {companies.map((company) => (
+                  <SelectItem key={company.id} value={company.id as string}>
+                    {company.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="auditor" className="font-bold text-base">Auditor</Label>
+            <Select
+              value={newAssignment.auditorUserId}
+              onValueChange={(value) =>
+                setNewAssignment({ ...newAssignment, auditorUserId: value })
+              }
+            >
+              <SelectTrigger id="auditor" className="border border-black rounded-lg h-11 w-full">
+                <SelectValue placeholder="Select auditor" />
+              </SelectTrigger>
+              <SelectContent className="border border-black rounded-lg">
+                {auditors.map((auditor) => (
+                  <SelectItem key={auditor.id} value={auditor.id as string}>
+                    {auditor.firstName} {auditor.lastName} ({(auditor as any).username})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="status" className="font-bold text-base">Status</Label>
+            <Select
+              value={newAssignment.status}
+              onValueChange={(value) =>
+                setNewAssignment({ ...newAssignment, status: value })
+              }
+            >
+              <SelectTrigger id="status" className="border border-black rounded-lg h-11 w-full">
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent className="border border-black rounded-lg">
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <DialogFooter className="mt-auto">
+          <Button onClick={onCreateAssignment} className="w-full bg-[#00C28C] hover:bg-[#00C28C]/90 text-white font-bold h-11 rounded-lg text-base">
+            Create Assignment
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
 }

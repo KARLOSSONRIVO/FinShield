@@ -11,6 +11,7 @@ import {
     Link2,
     ScrollText,
 } from "lucide-react"
+import { useAuth } from "@/hooks/use-auth"
 
 const regulatorLinks: NavLink[] = [
     { href: "/admin/regulator", label: "Dashboard", icon: LayoutDashboard },
@@ -26,6 +27,7 @@ export default function RegulatorLayout({
 }) {
     const pathname = usePathname()
     const [collapsed, setCollapsed] = useState(false)
+    const { user } = useAuth()
 
     // Determine title based on path
     const getPageTitle = (path: string) => {
@@ -56,7 +58,7 @@ export default function RegulatorLayout({
                 <div className="sticky top-0 z-40">
                     <TopBar
                         title={title}
-                        userName="Regulator User"
+                        userName={user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "Regulator User"}
                         organizationName="Regulatory Body"
                         profileLink="/admin/regulator/settings"
                         notifications={[

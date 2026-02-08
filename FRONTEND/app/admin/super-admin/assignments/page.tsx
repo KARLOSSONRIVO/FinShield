@@ -3,7 +3,7 @@
 import { Input } from "@/components/ui/input"
 import { Search, Filter, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { AssignmentTable } from "@/components/assignments/AssignmentTable"
+import { AssignmentTableContent } from "@/components/assignments/AssignmentTable"
 import { useAssignments } from "@/hooks/assignments/use-assignments"
 import { Pagination } from "@/components/ui/pagination-custom"
 import { CreateAssignmentDialog } from "@/components/assignments/CreateAssignmentDialog"
@@ -25,6 +25,7 @@ export default function AssignmentsPage() {
     setNewAssignment,
     handleCreateAssignment,
     handleDeleteAssignment,
+    handleUpdateAssignment,
     auditors,
     companies
   } = useAssignments()
@@ -65,25 +66,19 @@ export default function AssignmentsPage() {
         <AssignmentSortFilter
           sortConfig={sortConfig as any}
           onSortChange={(config) => {
-            // Request sort logic expects a key, simplified here
             requestSort(config.key)
-            // Note: The hook's requestSort auto-toggles direction. 
-            // To force a direction if needed, we might need to update the hook, 
-            // but for now relying on the simple requestSort toggle is consistent with existing behavior.
-            // However, the new UI has explicit Asc/Desc buttons.
-            // Ideally we update the hook, but for UI match, sticking to toggle or simpler implementation 
-            // effectively matches the "interaction" if not explicit direction setting yet.
-            // Actually, let's just pass the key.
           }}
         />
       </div>
 
-      <AssignmentTable
-        // @ts-ignore - mismatch in loose types, handled by prop interface
+      <AssignmentTableContent
         assignments={assignments}
         sortConfig={sortConfig}
         onSort={requestSort}
         onDelete={handleDeleteAssignment}
+        onUpdate={handleUpdateAssignment}
+        companies={companies}
+        auditors={auditors}
       />
 
       <div className="mt-4 flex justify-center">

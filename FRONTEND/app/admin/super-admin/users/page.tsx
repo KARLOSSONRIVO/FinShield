@@ -32,7 +32,7 @@ export default function PlatformUsersPage() {
     setNewUser,
     organizations,
     handleCreateUser,
-    setDisableUserId,
+    handleUpdateStatus,
     userTypeFilter,
     setUserTypeFilter
   } = useUsers()
@@ -116,7 +116,7 @@ export default function PlatformUsersPage() {
         users={users}
         sortConfig={sortConfig}
         onSort={requestSort}
-        onDisableUser={(id) => setDisableUserId(id)}
+        onUpdateStatus={handleUpdateStatus}
       />
 
       <div className="mt-4 flex justify-center">

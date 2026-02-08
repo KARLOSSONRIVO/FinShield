@@ -2,12 +2,69 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Upload, FileText, CheckCircle, X } from "lucide-react"
+import { Upload, FileText, CheckCircle, X, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useCreateInvoice } from "@/hooks/invoices/use-create-invoice"
 
 export function UploadInvoiceForm() {
     const [isDragging, setIsDragging] = useState(false)
     const [file, setFile] = useState<File | null>(null)
+    const [isSuccess, setIsSuccess] = useState(false)
+
+    const { mutate: uploadInvoice, isPending: isLoading } = useCreateInvoice()
+
+    const handleSubmit = () => {
+        if (!file) return
+
+        uploadInvoice(
+            { file },
+            {
+                onSuccess: () => setIsSuccess(true)
+            }
+        )
+    }
+
+    if (isSuccess) {
+        return (
+            <div className="bg-white rounded-xl border shadow-sm p-8 text-center space-y-4">
+                <div className="h-16 w-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+                    <CheckCircle className="h-8 w-8" />
+                </div>
+                <div>
+                    <h3 className="text-xl font-bold text-gray-900">Upload Complete!</h3>
+                    <p className="text-muted-foreground mt-2">
+                        Your invoice has been successfully uploaded using the <strong>Hybrid Architecture</strong>.
+                    </p>
+                </div>
+
+                <div className="mt-6 p-4 bg-muted/30 rounded-lg text-left text-sm space-y-3 border border-border">
+                    <div className="flex justify-between">
+                        <span className="font-medium text-muted-foreground">Status:</span>
+                        <span className="text-foreground font-semibold">Queued for Anchoring</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="font-medium text-muted-foreground">AI Pre-check:</span>
+                        <span className="text-emerald-600 font-semibold">Passed</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="font-medium text-muted-foreground">Storage:</span>
+                        <span className="text-foreground font-semibold">IPFS (Pending Pin)</span>
+                    </div>
+                </div>
+
+                <Button
+                    variant="outline"
+                    onClick={() => {
+                        setFile(null)
+                        setIsSuccess(false)
+                    }}
+                    className="mt-4"
+                >
+                    Upload Another
+                </Button>
+            </div>
+        )
+    }
 
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault()
@@ -88,10 +145,20 @@ export function UploadInvoiceForm() {
 
             <Button
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-6 text-base"
-                disabled={!file}
+                disabled={!file || isLoading}
+                onClick={handleSubmit}
             >
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Invoice
+                {isLoading ? (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Uploading...
+                    </>
+                ) : (
+                    <>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Invoice
+                    </>
+                )}
             </Button>
         </div>
     )

@@ -20,11 +20,11 @@ interface UserTableProps {
     users: User[]
     sortConfig: SortConfig
     onSort: (key: keyof User) => void
-    onDisableUser: (userId: string) => void
+    onUpdateStatus: (userId: string, status: "ACTIVE" | "SUSPENDED", reason?: string) => void
 }
 
-export function UserTable({ users, sortConfig, onSort, onDisableUser }: UserTableProps) {
-    const [userToDisable, setUserToDisable] = useState<string | null>(null)
+export function UserTable({ users, sortConfig, onSort, onUpdateStatus }: UserTableProps) {
+    const [statusUpdate, setStatusUpdate] = useState<{ id: string, status: "ACTIVE" | "SUSPENDED" } | null>(null)
 
     return (
         <>
@@ -73,13 +73,23 @@ export function UserTable({ users, sortConfig, onSort, onDisableUser }: UserTabl
                                         {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : "Never"}
                                     </TableCell>
                                     <TableCell className="px-6 text-center">
-                                        <Button
-                                            size="sm"
-                                            className="bg-[#ff4d4f] hover:bg-[#ff4d4f]/90 text-white font-bold h-8 px-4 rounded-md text-xs shadow-none"
-                                            onClick={() => setUserToDisable(user._id)}
-                                        >
-                                            Disable
-                                        </Button>
+                                        {user.status === 'active' ? (
+                                            <Button
+                                                size="sm"
+                                                className="bg-[#ff4d4f] hover:bg-[#ff4d4f]/90 text-white font-bold h-8 px-4 rounded-md text-xs shadow-none"
+                                                onClick={() => setStatusUpdate({ id: user._id, status: "SUSPENDED" })}
+                                            >
+                                                Disable
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                size="sm"
+                                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-8 px-4 rounded-md text-xs shadow-none"
+                                                onClick={() => setStatusUpdate({ id: user._id, status: "ACTIVE" })}
+                                            >
+                                                Enable
+                                            </Button>
+                                        )}
                                     </TableCell>
                                 </TableRow>
                             ))
@@ -89,12 +99,18 @@ export function UserTable({ users, sortConfig, onSort, onDisableUser }: UserTabl
             </div>
 
             <DisableUserDialog
-                open={!!userToDisable}
-                onOpenChange={(open) => !open && setUserToDisable(null)}
-                onConfirm={() => {
-                    if (userToDisable) {
-                        onDisableUser(userToDisable)
-                        setUserToDisable(null)
+                open={!!statusUpdate}
+                title={statusUpdate?.status === "ACTIVE" ? "Enable User" : "Disable User"}
+                description={statusUpdate?.status === "ACTIVE"
+                    ? "Are you sure you want to enable this user? They will regain access to the platform."
+                    : "Are you sure you want to disable this user? They will lose access to the platform."}
+                confirmText={statusUpdate?.status === "ACTIVE" ? "Enable User" : "Disable User"}
+                confirmVariant={statusUpdate?.status === "ACTIVE" ? "default" : "destructive"}
+                onOpenChange={(open) => !open && setStatusUpdate(null)}
+                onConfirm={(reason) => {
+                    if (statusUpdate) {
+                        onUpdateStatus(statusUpdate.id, statusUpdate.status, reason)
+                        setStatusUpdate(null)
                     }
                 }}
             />

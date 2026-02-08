@@ -12,30 +12,31 @@ type UpdateUserPayload = { status: "ACTIVE" | "INACTIVE" | "SUSPENDED" }
 interface CreateUserRequest {
     email: string;
     password: string;
-    firstName: string;
-    lastName: string;
+    firstName?: string;
+    lastName?: string;
     role: "SUPER_ADMIN" | "AUDITOR" | "REGULATOR" | "COMPANY_MANAGER" | "COMPANY_USER";
-    organizationId?: string;
+    orgId?: string;
 }
 
 export const UserService = {
     listUsers: async () => {
-        const { data } = await apiClient.get<{ success: boolean; data: User[] }>("/user/listUsers")
+        const { data } = await apiClient.get<{ ok: boolean; data: User[] }>("/user/listUsers")
         return data
     },
 
     getUser: async (id: string) => {
-        const { data } = await apiClient.get<{ success: boolean; data: User }>(`/user/${id}`)
+        const { data } = await apiClient.get<{ ok: boolean; data: User }>(`/user/${id}`)
         return data
     },
 
     createUser: async (user: CreateUserRequest) => {
-        const { data } = await apiClient.post<{ success: boolean; data: User }>("/user/createUser", user)
+        console.log("DEBUG: Creating user with payload:", user)
+        const { data } = await apiClient.post<{ ok: boolean; data: User }>("/user/createUser", user)
         return data
     },
 
-    updateUserStatus: async (id: string, status: UpdateUserPayload["status"]) => {
-        const { data } = await apiClient.put<{ success: boolean; data: User }>(`/user/updateUser/${id}`, { status })
+    updateUserStatus: async (id: string, status: UpdateUserPayload["status"], reason?: string) => {
+        const { data } = await apiClient.put<{ ok: boolean; data: User }>(`/user/updateUser/${id}`, { status, reason })
         return data
     },
 }

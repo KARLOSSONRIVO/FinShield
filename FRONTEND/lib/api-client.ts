@@ -23,14 +23,92 @@ apiClient.interceptors.request.use(
 )
 
 // Response Interceptor: Handle Errors
+interface QueueItem {
+    resolve: (value?: unknown) => void
+    reject: (error: unknown) => void
+}
+
+let isRefreshing = false
+let failedQueue: QueueItem[] = []
+
+const processQueue = (error: unknown, token: string | null = null) => {
+    failedQueue.forEach((prom) => {
+        if (error) {
+            prom.reject(error)
+        } else {
+            prom.resolve(token)
+        }
+    })
+
+    failedQueue = []
+}
+
+// Response Interceptor: Handle Errors & Token Refresh
 apiClient.interceptors.response.use(
     (response) => response,
-    (error) => {
-        if (error.response?.status === 401) {
-            // Unauthorized - clear token and redirect (optional)
-            // localStorage.removeItem("token")
-            // window.location.href = "/login"
+    async (error) => {
+        const originalRequest = error.config
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject })
+                })
+                    .then((token) => {
+                        originalRequest.headers["Authorization"] = `Bearer ${token}`
+                        return apiClient(originalRequest)
+                    })
+                    .catch((err) => Promise.reject(err))
+            }
+
+            originalRequest._retry = true
+            isRefreshing = true
+
+            try {
+                const refreshToken = localStorage.getItem("refreshToken")
+
+                if (!refreshToken) {
+                    throw new Error("No refresh token available")
+                }
+
+                // Call refresh endpoint using a fresh axios instance to avoid interceptor loops
+                // or just be careful. Since we don't attach the invalid access token
+                // to this request (axios instance attaches it via request interceptor if present),
+                // we might need to bypass the request interceptor or ensure we don't send the bad token.
+                // Actually, the request interceptor attaches the token if it exists in localStorage.
+                // The token in localStorage is the expired one.
+                // So we should probably use a clean axios instance for the refresh call.
+                const { data } = await axios.post(`${baseURL}/auth/refresh`, { refreshToken })
+                const { accessToken: newAccessToken, refreshToken: newRefreshToken } = data.data
+
+                if (!newAccessToken) {
+                    throw new Error("Refresh failed - no new access token")
+                }
+
+                localStorage.setItem("token", newAccessToken)
+                if (newRefreshToken) {
+                    localStorage.setItem("refreshToken", newRefreshToken)
+                }
+
+                // Update the header for the original request
+                apiClient.defaults.headers.common["Authorization"] = `Bearer ${newAccessToken}`
+                originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`
+
+                processQueue(null, newAccessToken)
+                return apiClient(originalRequest)
+            } catch (refreshError) {
+                processQueue(refreshError, null)
+                localStorage.removeItem("token")
+                localStorage.removeItem("refreshToken")
+                localStorage.removeItem("user")
+                document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+                window.location.href = "/login"
+                return Promise.reject(refreshError)
+            } finally {
+                isRefreshing = false
+            }
         }
+
         return Promise.reject(error)
     }
 )
