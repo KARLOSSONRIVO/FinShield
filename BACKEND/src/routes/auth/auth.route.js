@@ -8,13 +8,14 @@ import {
 } from "../../modules/validators/auth.validator.js";
 import { requireAuth } from "../../common/middlewares/auth.middleware.js";
 import { enforceMustChangePassword } from "../../common/middlewares/rbac.middleware.js";
+import { authLimiter } from "../../common/middlewares/rateLimit.middleware.js";
 import * as AuthController from "../../modules/controllers/auth.controller.js";
 
 const authRouter = Router();
 
-authRouter.post("/login", validate(loginSchema), AuthController.login);
+authRouter.post("/login", authLimiter, validate(loginSchema), AuthController.login);
 
-authRouter.post("/refresh", validate(refreshSchema), AuthController.refresh);
+authRouter.post("/refresh", authLimiter, validate(refreshSchema), AuthController.refresh);
 
 // Protected routes - auth required
 authRouter.use(requireAuth);

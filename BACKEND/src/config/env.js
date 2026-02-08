@@ -30,3 +30,10 @@ export const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY
 export const AWS_REGION = process.env.AWS_REGION || "us-east-1"
 export const AWS_S3_BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME
 
+// Rate Limiting (optional)
+export const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000)
+export const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX || 300)
+export const RATE_LIMIT_USER_MAX = Number(process.env.RATE_LIMIT_USER_MAX || 200)
+export const RATE_LIMIT_AUTH_MAX = Number(process.env.RATE_LIMIT_AUTH_MAX || 20)
+export const RATE_LIMIT_UPLOAD_MAX = Number(process.env.RATE_LIMIT_UPLOAD_MAX || 20)
+

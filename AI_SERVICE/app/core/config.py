@@ -63,7 +63,3 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# Tesseract / Poppler Configuration
-# Both rely on system PATH - ensure binaries are installed and accessible:
-# - Tesseract: pytesseract uses 'tesseract' command from PATH  
-# - Poppler: pdf2image uses 'pdftoppm' and 'pdftotext' from PATH
