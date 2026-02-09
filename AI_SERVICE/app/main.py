@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 from app.api.precheck import router as precheck_router
 from app.api.ocr import router as ocr_router
 from app.api.template import router as template_router
+from app.core.redis_client import get_redis_client, close_redis, is_redis_available
 
 # Import scheduler
 from scripts.scheduler import start_scheduler, stop_scheduler
@@ -24,9 +25,18 @@ async def lifespan(app: FastAPI):
     """Handle startup and shutdown events"""
     # Startup
     start_scheduler()
+
+    # Initialize Redis (non-blocking — service works without it)
+    try:
+        get_redis_client()
+    except Exception as e:
+        print(f"⚠️  Redis initialization skipped: {e}")
+
     yield
+
     # Shutdown
     stop_scheduler()
+    close_redis()
 
 
 app = FastAPI(
@@ -49,4 +59,5 @@ async def root():
         "service": "FinShield AI Service",
         "status": "running",
         "version": "2.0.0",
+        "redis": "connected" if is_redis_available() else "unavailable",
     }

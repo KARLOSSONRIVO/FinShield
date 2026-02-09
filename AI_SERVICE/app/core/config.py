@@ -9,6 +9,9 @@ MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB")
 IPFS_GATEWAY_BASE = os.getenv("IPFS_GATEWAY_BASE")
 
+# Redis Configuration
+REDIS_URL = os.getenv("REDIS_URL")
+
 # AWS S3 Configuration for Model Storage
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "")

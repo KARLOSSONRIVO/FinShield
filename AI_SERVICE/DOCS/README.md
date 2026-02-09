@@ -197,8 +197,9 @@ pytest tests/
 ## 📚 Documentation
 
 - **[RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)** - Complete Render.com deployment guide
-- **[CONCURRENT_UPLOAD_FLOW.md](DOCS/CONCURRENT_UPLOAD_FLOW.md)** - How concurrent uploads are handled
-- **[AI_SERVICE_GUIDE.md](DOCS/anomaly/AI_SERVICE_GUIDE.md)** - Architecture and scaling guide
+- **[REDIS_SETUP.md](REDIS_SETUP.md)** - Redis configuration, setup, and caching guide
+- **[CONCURRENT_UPLOAD_FLOW.md](CONCURRENT_UPLOAD_FLOW.md)** - How concurrent uploads are handled
+- **[AI_SERVICE_GUIDE.md](anomaly/AI_SERVICE_GUIDE.md)** - Architecture and scaling guide
 
 ---
 

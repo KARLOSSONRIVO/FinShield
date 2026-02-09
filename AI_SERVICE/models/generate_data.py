@@ -34,7 +34,7 @@ def generate_invoice(i):
     issued_to = random.choice(BAD_VENDORS if is_rejected else VENDORS)
 
     has_invoice_number = not (is_rejected and random.random() < 0.5)
-    invoice_number = str(uuid.uuid4())[:8] if has_invoice_number else ""
+    invoice_number = str(random.randint(10000000, 99999999)) if has_invoice_number else ""
 
     has_line_items = not (is_rejected and random.random() < 0.4)
     line_items = []
@@ -80,7 +80,7 @@ def generate_invoice(i):
 dataset = [generate_invoice(i) for i in range(1000)]
 
 # Save to JSON
-with open("synthetic_invoices_1000.json", "w") as f:
+with open("fraud_training_data.json", "w") as f:
     json.dump(dataset, f, indent=2)
 
-print("✅ Generated 1000 synthetic invoice samples")
+print("✅ Generated 1000 synthetic invoice samples -> fraud_training_data.json")
