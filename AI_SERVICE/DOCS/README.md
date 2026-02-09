@@ -198,6 +198,7 @@ pytest tests/
 
 - **[RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)** - Complete Render.com deployment guide
 - **[REDIS_SETUP.md](REDIS_SETUP.md)** - Redis configuration, setup, and caching guide
+- **[MODEL_CACHING_COMPARISON.md](MODEL_CACHING_COMPARISON.md)** - In-Memory vs Redis for ML models
 - **[CONCURRENT_UPLOAD_FLOW.md](CONCURRENT_UPLOAD_FLOW.md)** - How concurrent uploads are handled
 - **[AI_SERVICE_GUIDE.md](anomaly/AI_SERVICE_GUIDE.md)** - Architecture and scaling guide
 

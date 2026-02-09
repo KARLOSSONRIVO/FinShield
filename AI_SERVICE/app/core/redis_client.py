@@ -4,6 +4,7 @@ Redis Client - Caching and distributed state management.
 Provides:
 - Singleton Redis client with auto-reconnect
 - Cache helpers (get, set, delete, invalidate by pattern)
+- Binary cache for ML models (shared across workers)
 - Graceful degradation when Redis is unavailable
 """
 import json
@@ -16,12 +17,13 @@ from app.core.config import REDIS_URL
 
 logger = logging.getLogger(__name__)
 
-# Redis client singleton
-_redis_client: Optional[redis.Redis] = None
+# Redis client singletons
+_redis_client: Optional[redis.Redis] = None        # Text client (JSON data)
+_redis_binary_client: Optional[redis.Redis] = None  # Binary client (ML models)
 
 
 def get_redis_client() -> Optional[redis.Redis]:
-    """Get or create Redis client singleton."""
+    """Get or create Redis text client singleton (for JSON data)."""
     global _redis_client
 
     if _redis_client is None:
@@ -36,12 +38,41 @@ def get_redis_client() -> Optional[redis.Redis]:
             )
             # Test connection
             _redis_client.ping()
-            logger.info("✅ Redis connected")
+            logger.info("✅ Redis connected (text client)")
         except Exception as e:
             logger.warning(f"⚠️  Redis connection failed: {e}")
             _redis_client = None
 
     return _redis_client
+
+
+def get_redis_binary_client() -> Optional[redis.Redis]:
+    """
+    Get or create Redis binary client singleton (for ML models).
+    
+    Uses decode_responses=False so it can store/retrieve raw bytes
+    (pickle-serialized model objects). Separate from the text client
+    to avoid encoding conflicts.
+    """
+    global _redis_binary_client
+
+    if _redis_binary_client is None:
+        try:
+            _redis_binary_client = redis.from_url(
+                REDIS_URL,
+                decode_responses=False,  # Raw bytes for binary model data
+                socket_connect_timeout=5,
+                socket_timeout=10,       # Models can be large, allow more time
+                retry_on_timeout=True,
+                health_check_interval=30,
+            )
+            _redis_binary_client.ping()
+            logger.info("✅ Redis connected (binary client for models)")
+        except Exception as e:
+            logger.warning(f"⚠️  Redis binary connection failed: {e}")
+            _redis_binary_client = None
+
+    return _redis_binary_client
 
 
 def is_redis_available() -> bool:
@@ -126,13 +157,16 @@ def cache_invalidate_pattern(pattern: str) -> int:
 
 
 def close_redis() -> None:
-    """Close the Redis connection gracefully."""
-    global _redis_client
-    if _redis_client is not None:
-        try:
-            _redis_client.close()
-            logger.info("Redis connection closed")
-        except Exception as e:
-            logger.error(f"Error closing Redis: {e}")
-        finally:
-            _redis_client = None
+    """Close all Redis connections gracefully."""
+    global _redis_client, _redis_binary_client
+    
+    for name, client_ref in [("text", _redis_client), ("binary", _redis_binary_client)]:
+        if client_ref is not None:
+            try:
+                client_ref.close()
+                logger.info(f"Redis {name} connection closed")
+            except Exception as e:
+                logger.error(f"Error closing Redis {name}: {e}")
+    
+    _redis_client = None
+    _redis_binary_client = None
