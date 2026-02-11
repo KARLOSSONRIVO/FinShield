@@ -8,7 +8,7 @@ load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB")
 IPFS_GATEWAY_BASE = os.getenv("IPFS_GATEWAY_BASE")
-
+SERVICE_URL=os.getenv("SERVICE_URL") 
 # Redis Configuration
 REDIS_URL = os.getenv("REDIS_URL")
 
@@ -36,6 +36,7 @@ ANOMALY_RETRAIN_INTERVAL_DAYS = int(os.getenv("ANOMALY_RETRAIN_INTERVAL_DAYS")) 
 class Settings(BaseSettings):
     """Application settings with environment variable support"""
     
+    SERVICE_URL: str = SERVICE_URL
     # MongoDB
     MONGO_URI: str = MONGO_URI
     MONGO_DB: str = MONGO_DB

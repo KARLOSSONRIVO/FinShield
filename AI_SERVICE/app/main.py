@@ -16,15 +16,13 @@ from app.api.ocr import router as ocr_router
 from app.api.template import router as template_router
 from app.core.redis_client import get_redis_client, close_redis, is_redis_available
 
-# Import scheduler
-from scripts.scheduler import start_scheduler, stop_scheduler
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle startup and shutdown events"""
     # Startup
-    start_scheduler()
+    # NOTE: Scheduler runs as a separate process (scripts/run_scheduler.py)
+    # to avoid duplicate jobs when using multiple Gunicorn workers
 
     # Initialize Redis (non-blocking — service works without it)
     try:
@@ -35,7 +33,6 @@ async def lifespan(app: FastAPI):
     yield
 
     # Shutdown
-    stop_scheduler()
     close_redis()
 
 
