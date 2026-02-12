@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getPasswordErrorMessage } from "../../common/utils/passwordValidator.js";
 
 export const loginSchema = z.object({
   body: z.object({
@@ -10,7 +11,14 @@ export const loginSchema = z.object({
 export const changePasswordSchema = z.object({
   body: z.object({
     currentPassword: z.string().min(1, "Current password is required"),
-    newPassword: z.string().min(6, "New password must be at least 6 characters"),
+    newPassword: z.string()
+      .refine((pwd) => {
+        const errorMessage = getPasswordErrorMessage(pwd);
+        return errorMessage === null;
+      }, (pwd) => {
+        const errorMessage = getPasswordErrorMessage(pwd);
+        return { message: errorMessage || "Invalid password" };
+      }),
   }),
 })
 

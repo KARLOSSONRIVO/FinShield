@@ -4,8 +4,14 @@ export async function create(data) {
     return RefreshToken.create(data);
 }
 
+/**
+ * Find a refresh token by its token string.
+ * @param {string} token - The token string
+ * @param {boolean} includeRevoked - Whether to include revoked tokens (default: true for security checks)
+ */
 export async function findByToken(token) {
-    return RefreshToken.findOne({ token, isRevoked: false });
+    // We intentionally return revoked tokens so the service can detect reuse
+    return RefreshToken.findOne({ token });
 }
 
 export async function findActiveByUserId(userId) {

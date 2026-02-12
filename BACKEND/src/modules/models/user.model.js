@@ -37,6 +37,9 @@ const UserSchema = new mongoose.Schema({
   disabledAt: { type: Date, default: null },
   disableReason: { type: String, default: null, trim: true },
   lastLoginAt: { type: Date, default: null, index: true },
+  // Account lockout fields for security
+  failedLoginAttempts: { type: Number, default: 0 },
+  accountLockedUntil: { type: Date, default: null, index: true },
 },
   { timestamps: true }
 )
