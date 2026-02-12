@@ -5,12 +5,15 @@ import { uploadLimiter } from "../../common/middlewares/rateLimit.middleware.js"
 import * as InvoiceController from "../../modules/controllers/invoice.controller.js";
 import { validateInvoiceUpload } from "../../modules/validators/invoice.validator.js";
 
+import { validateFileType } from "../../common/middlewares/fileType.middleware.js";
+
 const invoiceRouter = Router()
 
 invoiceRouter.post(
     "/upload",
     uploadLimiter,
     uploadSingle("file"),
+    validateFileType,
     validateInvoiceUpload,
     allowRoles("COMPANY_MANAGER", "COMPANY_USER"),
     InvoiceController.uploadAndAnchorInvoice

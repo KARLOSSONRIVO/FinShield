@@ -16,7 +16,9 @@ FinShield Backend is an **Express.js REST API** with a **layered architecture** 
 - Validation: Zod
 - API Docs: Swagger/OpenAPI
 - Logging: Morgan
-- Security: Helmet, CORS, Bcrypt
+- Security: Helmet, CORS, Bcrypt, DOMPurify (XSS)
+- MFA: Speakeasy (TOTP) + QRCode
+- File Validation: file-type (Magic Numbers)
 
 ---
 
@@ -70,6 +72,8 @@ app.js             → Express app setup, middleware configuration
 | `validate.middleware.js` | Request body validation                                     |
 | `error.middleware.js`    | Global error handler, response formatting                   |
 | `notFound.middleware.js` | 404 handler                                                 |
+| `xss.middleware.js`      | DOMPurify sanitization for XSS prevention                   |
+| `fileType.middleware.js` | Magic number validation for file uploads                    |
 
 **Auth Flow:**
 
@@ -84,7 +88,7 @@ Check token blacklist (for logout)
   ↓
 Attach decoded payload to req.user & req.auth
   ↓
-Next middleware
+Next middleware (Controller)
 ```
 
 **RBAC Example:**
@@ -139,9 +143,18 @@ requireSameOrgParam("orgId");
 #### **`/db/database.js`**
 
 ```javascript
-connectDB()        → Mongoose connection with strictQuery
+
+
 disconnectDB()     → Graceful shutdown
 ```
+
+#### **`/mfa` - MFA Logic**
+
+| File                     | Purpose                                      |
+| ------------------------ | -------------------------------------------- |
+| `generateMfaSecret.js`   | Generate TOTP secret and QR code URL         |
+| `verifyMfaToken.js`      | Verify 6-digit TOTP code against secret      |
+| `setup.js`               | Business logic for setup, enablement, disable|
 
 #### **`/ai/`** (Client for Python AI Service)
 
@@ -382,7 +395,9 @@ anchorInvoiceInBackground(invoiceId)
 - `user.service.js` → User CRUD, role management
 - `organization.service.js` → Org CRUD, template management
 - `assignment.service.js` → Auditor assignments
+
 - `session.service.js` → Session tracking
+- `mfa.service.js` → MFA operations (Setup, Enable, Disable, Verification)
 
 #### **`/validators` - Request Validation**
 
@@ -416,11 +431,15 @@ toOrgPublic(); // Format org response
 ├── /health                (Health check - public)
 ├── /auth                  (Login, refresh, logout)
 │   ├── POST /login        (Public)
+│   ├── POST /login/mfa    (MFA Verification)
 │   ├── POST /refresh      (Public)
 │   └── [Protected routes]
 │       ├── GET /me
 │       ├── POST /change-password
-│       └── POST /logout
+│       ├── POST /logout
+│       ├── POST /mfa/setup
+│       ├── POST /mfa/enable
+│       └── POST /mfa/disable
 │
 └── [Protected routes - requireAuth middleware]
     ├── /organization      (Org management)
@@ -575,6 +594,25 @@ POST /auth/login { email, password }
   → Return: accessToken, refreshToken
            ↓
 Client stores tokens (localStorage, cookie, etc.)
+
+### **Login with MFA**
+
+```
+POST /auth/login { email, password }
+           ↓
+[SERVICE] returns { mfaRequired: true, tempToken: "ey..." }
+           ↓
+Client prompts for OTP
+           ↓
+POST /auth/login/mfa { tempToken, token: "123456" }
+           ↓
+[SERVICE] verifyMfaLogin()
+  → Validate tempToken (scope: 'mfa_pending')
+  → Verify OTP via mfaService (speakeasy)
+  → Sign Access/Refresh Tokens
+           ↓
+Return: accessToken, refreshToken
+```
 ```
 
 ### **Protected Route Access**
@@ -725,6 +763,10 @@ COMPANY_USER     Can: Upload invoices only
 - **Strong Password Policy** (12+ chars, uppercase, lowercase, digit, special char)
 - **Account Lockout** (5 failed attempts = 5 minute lockout)
 - **Refresh Token Reuse Detection** (Revokes all sessions on theft)
+- **Multi-Factor Authentication (MFA)**:
+    - TOTP-based (Google Authenticator)
+    - Step-up authentication flow (Login -> MFA)
+    - Secret encryption (Managed via Mongoose select: false)
 
 ### **Authorization**
 
@@ -739,6 +781,8 @@ COMPANY_USER     Can: Upload invoices only
 - File upload size limits (10MB)
 - MIME type validation
 - SHA-256 hashing for file deduplication
+- **XSS Prevention**: DOMPurify middleware sanitizes all incoming string data
+- **Magic Number Validation**: Verifies actual file types (rejects renamed .exe)
 
 ### **Audit Trail**
 
@@ -797,7 +841,10 @@ COMPANY_USER     Can: Upload invoices only
 | `express`            | Web framework                   |
 | `mongoose`           | MongoDB ODM                     |
 | `jsonwebtoken`       | JWT auth                        |
+| `jsonwebtoken`       | JWT auth                        |
 | `bcrypt`             | Password hashing                |
+| `speakeasy`          | TOTP Generation/Verification    |
+| `qrcode`             | QR Code generation for MFA Setup|
 | `axios`              | HTTP client (AI service calls)  |
 | `@aws-sdk/client-s3` | S3 file upload                  |
 | `ipfs-http-client`   | IPFS/Pinata client              |
