@@ -30,6 +30,8 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, lowercase: true, trim: true },
   username: { type: String, required: true, trim: true },
   passwordHash: { type: String, required: true, select: false },
+  mfaSecret: { type: Object, select: false }, // Store the entire secret object from speakeasy
+  mfaEnabled: { type: Boolean, default: false },
   status: { type: String, enum: USER_STATUS, default: "active", index: true },
   mustChangePassword: { type: Boolean, default: true },
   createdByUserId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
@@ -40,6 +42,8 @@ const UserSchema = new mongoose.Schema({
   // Account lockout fields for security
   failedLoginAttempts: { type: Number, default: 0 },
   accountLockedUntil: { type: Date, default: null, index: true },
+
+ 
 },
   { timestamps: true }
 )

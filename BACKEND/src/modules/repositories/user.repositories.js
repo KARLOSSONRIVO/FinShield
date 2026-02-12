@@ -1,7 +1,7 @@
 import User from "../models/user.model.js";
 
 export async function create(data) {
-  return User.create(data);
+    return User.create(data);
 }
 
 export async function findById(id) {
@@ -10,6 +10,10 @@ export async function findById(id) {
 
 export async function findByIdWithPassword(id) {
     return User.findById(id).select("+passwordHash").exec()
+}
+
+export async function findByIdWithMfaSecret(id) {
+    return User.findById(id).select("+mfaSecret").exec()
 }
 
 export async function findByEmail(email) {
