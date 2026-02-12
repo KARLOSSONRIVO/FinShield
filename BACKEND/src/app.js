@@ -7,6 +7,7 @@ import router from "./routes/index.js";
 import notFound from "./common/middlewares/notFound.middleware.js";
 import errorHandler from "./common/middlewares/error.middleware.js";
 import { xssMiddleware } from './common/middlewares/xss.middleware.js';
+import mongoSanitize from 'express-mongo-sanitize';
 
 
 const app = express()
@@ -25,6 +26,9 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 // Parse JSON bodies with limit
 app.use(express.json({ limit: '1mb' }))
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+// NoSQL Injection Prevention - Strip MongoDB operators
+app.use(mongoSanitize())
 
 // XSS Protection - Sanitize request data
 app.use(xssMiddleware)

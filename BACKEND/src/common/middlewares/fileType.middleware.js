@@ -1,6 +1,6 @@
 import { fileTypeFromBuffer } from 'file-type';
-import { AppError } from '../errors/AppErrors.js';
-import { asyncHandler } from '../utils/asyncHandler.js';
+import AppError from '../errors/AppErrors.js';
+import asyncHandler from '../utils/asyncHandler.js';
 
 export const validateFileType = asyncHandler(async (req, res, next) => {
     if (!req.file) {
