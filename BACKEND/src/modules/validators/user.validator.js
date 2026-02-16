@@ -1,5 +1,6 @@
 import { z } from "zod";
 import AppError from "../../common/errors/AppErrors.js";
+import { getPasswordErrorMessage } from "../../common/utils/passwordValidator.js";
 
 import { USER_ROLES } from "../../common/utils/role_helpers.js";
 
@@ -12,7 +13,14 @@ export const createUserSchema = z.object({
     role: z.enum(USER_ROLES),
     email: z.email("Invalid email"),
     username: z.string().min(3, "Username must be at least 3 characters"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+    password: z.string()
+      .refine((pwd) => {
+        const errorMessage = getPasswordErrorMessage(pwd);
+        return errorMessage === null;
+      }, (pwd) => {
+        const errorMessage = getPasswordErrorMessage(pwd);
+        return { message: errorMessage || "Invalid password" };
+      }),
     mustChangePassword: z.boolean().optional(),
   }),
   // Removed orgId refinement - service handles orgId logic based on actor role

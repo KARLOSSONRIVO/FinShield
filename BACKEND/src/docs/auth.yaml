@@ -18,11 +18,11 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: user@example.com
+                  example: admin@finshield.com
                 password:
                   type: string
                   format: password
-                  example: Password123!
+                  example: Password123#!
       responses:
         "200":
           description: Login successful

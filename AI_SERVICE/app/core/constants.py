@@ -43,6 +43,8 @@ TOTAL_KEYWORDS = [
 ]
 
 # Regex patterns for field extraction in app/utils/parser.py
+# NOTE: Invoice numbers are expected to be NUMERIC ONLY (3+ digits)
+# This pattern will NOT match alphanumeric invoice numbers like "INV-A123" or UUID-based numbers
 INVOICE_PATTERNS = [
     r"\binvoice\s*(?:number|no\.?|#)\s*[:\-]?\s*(\d{3,})",
     r"\bno\.?\s*[:\-]?\s*(\d{3,})",

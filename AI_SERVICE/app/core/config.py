@@ -8,6 +8,9 @@ load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB")
 IPFS_GATEWAY_BASE = os.getenv("IPFS_GATEWAY_BASE")
+SERVICE_URL=os.getenv("SERVICE_URL") 
+# Redis Configuration
+REDIS_URL = os.getenv("REDIS_URL")
 
 # AWS S3 Configuration for Model Storage
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "")
@@ -33,6 +36,7 @@ ANOMALY_RETRAIN_INTERVAL_DAYS = int(os.getenv("ANOMALY_RETRAIN_INTERVAL_DAYS")) 
 class Settings(BaseSettings):
     """Application settings with environment variable support"""
     
+    SERVICE_URL: str = SERVICE_URL
     # MongoDB
     MONGO_URI: str = MONGO_URI
     MONGO_DB: str = MONGO_DB
@@ -59,11 +63,8 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"  # Allow extra fields like UVICORN_* in .env
 
 
 settings = Settings()
 
-# Tesseract / Poppler Configuration
-# Both rely on system PATH - ensure binaries are installed and accessible:
-# - Tesseract: pytesseract uses 'tesseract' command from PATH  
-# - Poppler: pdf2image uses 'pdftoppm' and 'pdftotext' from PATH

@@ -13,9 +13,15 @@ def check_round_amount(amount: float) -> float:
     return 1.0
 
 def check_invoice_number(invoice_number: str) -> float:
+    """
+    Validates invoice number format. Prefers numeric-only invoice numbers.
+    Returns a score between 0.0 (highly suspicious) and 1.0 (valid).
+    """
     if not invoice_number:
         return 0.5
     invoice_number = invoice_number.strip()
+    
+    # Short numeric-only invoice numbers are suspicious (e.g., "123")
     if invoice_number.isdigit() and len(invoice_number) <= 3:
         return 0.6
     

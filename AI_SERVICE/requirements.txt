@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+gunicorn
 python-multipart
 requests
 pymongo
@@ -11,7 +12,7 @@ opencv-python
 python-docx
 sentence-transformers
 pandas
-dotenv
+python-dotenv
 pdf2image
 
 # Background Scheduler
@@ -25,5 +26,10 @@ numpy>=1.24.0
 # AWS S3 for Model Storage
 boto3>=1.34.0
 
+# Redis Caching
+redis>=5.0.0
+
 # Pydantic Settings
 pydantic-settings==2.1.0
+
+redis>=5.0.0

@@ -37,6 +37,17 @@ class VerificationPipeline:
     SCORE_CLEAN_THRESHOLD = 0.80
     SCORE_FLAGGED_THRESHOLD = 0.50
     
+    # Layer weights for overall score calculation
+    # Fraud is most important (supervised ML trained on confirmed fraud data)
+    # Anomaly is second (unsupervised ML, catches unknown patterns)
+    # Layout is third (heuristic-based, prone to false positives)
+    LAYER_WEIGHTS = {
+        "fraud_detection": 0.50,
+        "anomaly_detection": 0.30,
+        "layout_detection": 0.20,
+    }
+    DEFAULT_WEIGHT = 0.33  # Fallback for unknown layers
+    
     def __init__(self):
         self.stages = [
             LayoutDetectionLayer(),
@@ -88,13 +99,16 @@ class VerificationPipeline:
             stage_results.append(result.to_dict())
             all_flags.extend(result.flags)
             
-            # Only count non-skipped stages in score
+            # Only count non-skipped stages in score (with weight)
             if result.verdict != LayerVerdict.SKIP:
-                active_scores.append(result.score)
+                weight = self.LAYER_WEIGHTS.get(result.layer_name, self.DEFAULT_WEIGHT)
+                active_scores.append((result.score, weight))
         
-        # Calculate overall score (average of active stages)
+        # Calculate overall score (weighted average of active stages)
+        # Weights are re-normalized when stages are skipped
         if active_scores:
-            overall_score = sum(active_scores) / len(active_scores)
+            total_weight = sum(w for _, w in active_scores)
+            overall_score = sum(s * w for s, w in active_scores) / total_weight
         else:
             overall_score = 1.0  # All stages skipped
         

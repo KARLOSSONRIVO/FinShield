@@ -20,6 +20,7 @@ from bson import ObjectId
 from typing import Dict, Any, Optional
 
 from app.core.config import IPFS_GATEWAY_BASE
+from app.core.redis_client import cache_get, cache_set, is_redis_available
 from app.db.mongo import invoices, organizations
 from app.engines.tesseract.extractor import extract_text_simple, extract_text_with_layout
 from app.utils.parser import parse_invoice_fields
@@ -34,11 +35,27 @@ def _pick_filename(inv: dict) -> str:
 
 def _get_org_template_layout(org_id: str) -> Optional[Dict[str, Any]]:
     """
-    Fetch the organization's template layout signature from database.
+    Fetch the organization's template layout signature from cache or database.
     
+    Cache strategy:
+        - First checks Redis for cached template (key: org:template:<org_id>)
+        - On miss, fetches from MongoDB and caches for 1 hour
+        - Falls back to MongoDB-only if Redis is unavailable
+
     Returns:
         Layout signature dict or None if not found
     """
+    cache_key = f"org:template:{org_id}"
+
+    # Try cache first
+    if is_redis_available():
+        cached = cache_get(cache_key)
+        if cached is not None:
+            print(f"[OCR] ✅ Template cache HIT for org: {org_id}")
+            return cached
+        print(f"[OCR] ⚠️  Template cache MISS for org: {org_id}")
+
+    # Cache miss or Redis unavailable — fetch from MongoDB
     try:
         org = organizations.find_one({"_id": ObjectId(org_id)})
         if not org:
@@ -49,13 +66,20 @@ def _get_org_template_layout(org_id: str) -> Optional[Dict[str, Any]]:
         
         # Convert MongoDB Map types to regular dicts if needed
         if layout_sig:
-            return {
+            result = {
                 "fields": list(layout_sig.get("fields", [])),
                 "positions": dict(layout_sig.get("positions", {})),
                 "detected_fields": dict(layout_sig.get("detectedFields", {})),
                 "element_count": layout_sig.get("elementCount", 0),
                 "structural_features": dict(layout_sig.get("structural_features", {})),
             }
+
+            # Cache for 1 hour
+            if is_redis_available():
+                cache_set(cache_key, result, ttl=3600)
+                print(f"[OCR] 📦 Cached template for org: {org_id}")
+
+            return result
         return None
     except Exception as e:
         print(f"[OCR] Error fetching org template: {e}")

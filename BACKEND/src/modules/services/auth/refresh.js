@@ -10,9 +10,26 @@ import { signAccessToken } from "./token_helper.js";
 export async function refresh({ refreshToken, ipAddress, userAgent }) {
     if (!refreshToken) throw new AppError("Refresh token required", 400, "REFRESH_TOKEN_REQUIRED");
 
-    // Find the refresh token in database
+    // Find the refresh token in database (including revoked ones to check for reuse)
+    // We search by token string only, without isRevoked filter
     const storedToken = await RefreshTokenRepository.findByToken(refreshToken);
-    if (!storedToken) throw new AppError("Invalid refresh token", 401, "INVALID_REFRESH_TOKEN");
+
+    if (!storedToken) {
+        throw new AppError("Invalid refresh token", 401, "INVALID_REFRESH_TOKEN");
+    }
+
+    // Reuse Detection: If token is already revoked/replaced, someone is using an old token!
+    // This could be a theft attempt. Revoke EVERYTHING for this user.
+    if (storedToken.isRevoked || storedToken.replacedByToken) {
+        console.warn(`SECURITY ALERT: Reuse of revoked token detected for user ${storedToken.userId}. Revoking all sessions.`);
+        
+        await RefreshTokenRepository.revokeAllByUserId(storedToken.userId, {
+            revokedByIp: ipAddress,
+            reason: "token_reuse_detected"
+        });
+
+        throw new AppError("Refresh token was already used. Security alert: Please log in again.", 401, "TOKEN_REUSE_DETECTED");
+    }
 
     // Check if expired
     if (storedToken.expiresAt < new Date()) {
