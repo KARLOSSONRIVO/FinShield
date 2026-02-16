@@ -23,30 +23,78 @@ components:
         id:
           type: string
           example: "507f1f77bcf86cd799439011"
-        email:
+        orgId:
           type: string
-          format: email
-          example: user@example.com
-        firstName:
-          type: string
-          example: John
-        lastName:
-          type: string
-          example: Doe
+          nullable: true
+          example: "507f1f77bcf86cd799439011"
+          description: Organization ID (null for platform roles)
         role:
           type: string
           enum: [SUPER_ADMIN, AUDITOR, REGULATOR, COMPANY_MANAGER, COMPANY_USER]
           example: COMPANY_USER
-        organizationId:
+        email:
           type: string
-          example: "507f1f77bcf86cd799439011"
+          format: email
+          example: user@example.com
+        username:
+          type: string
+          example: johndoe
         status:
           type: string
-          enum: [ACTIVE, INACTIVE, SUSPENDED]
-          example: ACTIVE
+          enum: [active, disabled]
+          example: active
         mustChangePassword:
           type: boolean
           example: false
+        createdByUserId:
+          type: string
+          nullable: true
+          example: "507f1f77bcf86cd799439011"
+        disabledByUserId:
+          type: string
+          nullable: true
+          example: "507f1f77bcf86cd799439011"
+        disabledAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2026-02-16T10:30:00.000Z"
+        disableReason:
+          type: string
+          nullable: true
+          example: "Employee left the company"
+        mfaEnabled:
+          type: boolean
+          example: false
+        lastLoginAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2026-02-16T03:16:24.605Z"
+        employees:
+          type: array
+          description: List of employees (only present for COMPANY_MANAGER role)
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                example: "698db123..."
+              username:
+                type: string
+                example: "employee1"
+              status:
+                type: string
+                enum: [active, disabled]
+                example: "active"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-02-12T11:17:56.057Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-02-16T03:16:24.606Z"
 
     Organization:
       type: object

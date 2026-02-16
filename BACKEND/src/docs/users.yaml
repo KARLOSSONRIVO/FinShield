@@ -2,11 +2,23 @@ paths:
   /user/listUsers:
     get:
       summary: List all users
-      description: Get a list of all users (SUPER_ADMIN only)
+      description: |
+        Get a list of users. Current user is excluded from results.
+        - SUPER_ADMIN: Can list all users or filter by orgId (query parameter)
+        - COMPANY_MANAGER: Can only list users in their own organization
+        
+        Note: COMPANY_MANAGER users in the response will include an "employees" array showing their COMPANY_USER employees.
       tags:
         - Users
       security:
         - bearerAuth: []
+      parameters:
+        - in: query
+          name: orgId
+          schema:
+            type: string
+          description: Filter users by organization ID (SUPER_ADMIN only)
+          example: "698db6ce38263f5e8f5a8bbc"
       responses:
         "200":
           description: List of users
@@ -15,17 +27,104 @@ paths:
               schema:
                 type: object
                 properties:
-                  success:
+                  ok:
                     type: boolean
                     example: true
                   data:
                     type: array
                     items:
                       $ref: "#/components/schemas/User"
+              example:
+                ok: true
+                data:
+                  - id: "698db6e438263f5e8f5a8bc3"
+                    orgId: "698db6ce38263f5e8f5a8bbc"
+                    role: "COMPANY_MANAGER"
+                    email: "manager@finshield.com"
+                    username: "manager"
+                    status: "active"
+                    mustChangePassword: false
+                    mfaEnabled: false
+                    employees:
+                      - id: "698db123..."
+                        username: "employee1"
+                        status: "active"
+                      - id: "698db456..."
+                        username: "employee2"
+                        status: "active"
+                    createdAt: "2026-02-12T11:17:56.057Z"
+                    updatedAt: "2026-02-16T03:16:24.606Z"
+                  - id: "698db789..."
+                    orgId: "698db6ce38263f5e8f5a8bbc"
+                    role: "COMPANY_USER"
+                    email: "user@finshield.com"
+                    username: "user1"
+                    status: "active"
+                    mustChangePassword: true
+                    mfaEnabled: false
+                    createdAt: "2026-02-13T09:20:10.123Z"
+                    updatedAt: "2026-02-13T09:20:10.123Z"
         "401":
           description: Unauthorized
         "403":
-          description: Forbidden - SUPER_ADMIN only
+          description: Forbidden
+
+  /user/listEmployees:
+    get:
+      summary: List company employees
+      description: Get a list of all employees (COMPANY_USER role) in the manager's organization. Only accessible by COMPANY_MANAGER. Excludes the manager themselves.
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of employees
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+              example:
+                ok: true
+                data:
+                  - id: "698db123..."
+                    orgId: "698db6ce38263f5e8f5a8bbc"
+                    role: "COMPANY_USER"
+                    email: "employee1@company.com"
+                    username: "employee1"
+                    status: "active"
+                    mustChangePassword: false
+                    createdByUserId: "698db6e4..."
+                    mfaEnabled: false
+                    lastLoginAt: "2026-02-15T10:30:00.000Z"
+                    createdAt: "2026-02-10T10:00:00.000Z"
+                    updatedAt: "2026-02-15T10:30:00.000Z"
+                  - id: "698db456..."
+                    orgId: "698db6ce38263f5e8f5a8bbc"
+                    role: "COMPANY_USER"
+                    email: "employee2@company.com"
+                    username: "employee2"
+                    status: "active"
+                    mustChangePassword: true
+                    createdByUserId: "698db6e4..."
+                    mfaEnabled: false
+                    lastLoginAt: null
+                    createdAt: "2026-02-12T14:20:00.000Z"
+                    updatedAt: "2026-02-12T14:20:00.000Z"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden - COMPANY_MANAGER only
+        "400":
+          description: Bad Request - Organization not found for user
 
   /user/createUser:
     post:
@@ -123,8 +222,12 @@ paths:
 
   /user/updateUser/{id}:
     put:
-      summary: Update user
-      description: Update user status (SUPER_ADMIN only)
+      summary: Update user status
+      description: |
+        Update user status (enable/disable). 
+        - SUPER_ADMIN can update any user
+        - COMPANY_MANAGER can only update COMPANY_USER employees in their organization
+        - Cannot disable own account
       tags:
         - Users
       security:
@@ -142,11 +245,28 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - status
               properties:
                 status:
                   type: string
-                  enum: [ACTIVE, INACTIVE, SUSPENDED]
-                  example: ACTIVE
+                  enum: [active, disabled]
+                  example: disabled
+                  description: User status to set
+                reason:
+                  type: string
+                  example: "Employee left the company"
+                  description: Required when status is 'disabled'
+            examples:
+              disable:
+                summary: Disable user
+                value:
+                  status: disabled
+                  reason: "Employee left the company"
+              enable:
+                summary: Enable user
+                value:
+                  status: active
       responses:
         "200":
           description: User updated successfully
@@ -155,14 +275,84 @@ paths:
               schema:
                 type: object
                 properties:
-                  success:
+                  ok:
                     type: boolean
                     example: true
                   data:
                     $ref: "#/components/schemas/User"
+              example:
+                ok: true
+                data:
+                  id: "698db123..."
+                  orgId: "698db6ce38263f5e8f5a8bbc"
+                  role: "COMPANY_USER"
+                  email: "employee@company.com"
+                  username: "employee1"
+                  status: "disabled"
+                  disabledByUserId: "698db6e4..."
+                  disabledAt: "2026-02-16T10:30:00.000Z"
+                  disableReason: "Employee left the company"
+                  mfaEnabled: false
+                  createdAt: "2026-02-10T10:00:00.000Z"
+                  updatedAt: "2026-02-16T10:30:00.000Z"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                      code:
+                        type: string
+              examples:
+                cannotDisableSelf:
+                  summary: Cannot disable own account
+                  value:
+                    ok: false
+                    error:
+                      message: "You cannot disable your own account"
+                      code: "CANNOT_DISABLE_SELF"
         "401":
           description: Unauthorized
         "403":
-          description: Forbidden - SUPER_ADMIN only
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: false
+                  error:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                      code:
+                        type: string
+              examples:
+                forbiddenRole:
+                  summary: Cannot update this role
+                  value:
+                    ok: false
+                    error:
+                      message: "Company managers can only update employee accounts"
+                      code: "FORBIDDEN_ROLE"
+                forbiddenOrg:
+                  summary: Cannot update other organization's users
+                  value:
+                    ok: false
+                    error:
+                      message: "You can only update employees in your organization"
+                      code: "FORBIDDEN_ORG"
         "404":
           description: User not found

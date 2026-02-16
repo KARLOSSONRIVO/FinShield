@@ -62,3 +62,22 @@ All data entering the system is treated as untrusted until validated.
     *   `allowRoles(...)`: Restricts access to specific user roles (e.g., ADMIN, MANAGER).
     *   `allowPortals(...)`: Segregates "Admin Portal" vs. "Company Portal" access.
     *   `requireSameOrgParam(...)`: strictly enforces tenancy, ensuring users can only access data belonging to their own organization.
+
+## 4. Security Libraries & Dependencies
+
+The following key libraries are utilized to enforce the security policies described above:
+
+| Library | Purpose | Security Function |
+| :--- | :--- | :--- |
+| **bcrypt** | Password Hashing | Securely hashes passwords using Salted SHA-256 (Blowfish) to protect against rainbow table attacks. |
+| **jsonwebtoken** | Authentication | Generates and verifies cryptographically signed tokens (RFC 7519) for stateless session management. |
+| **helmet** | HTTP Hardening | Sets various HTTP headers (e.g., `X-Frame-Options`, `Content-Security-Policy`) to protect against XSS, clickjacking, and sniffing. |
+| **cors** | Access Control | Configures Cross-Origin Resource Sharing to restrict which domains can access the API. |
+| **express-rate-limit** | Denial of Service | Limits repeated requests from a single IP to prevent brute-force attacks and API abuse. |
+| **express-mongo-sanitize** | Injection Prevention | Sanitizes user-supplied data to prevent MongoDB Operator Injection (strips keys starting with `$`). |
+| **isomorphic-dompurify** | XSS Protection | Sanitizes HTML input to prevent Cross-Site Scripting (XSS) attacks. |
+| **speakeasy** | MFA | Implements One-Time Password algorithms (TOTP/HOTP) for Two-Factor Authentication. |
+| **zod** | Input Validation | Schema declaration and validation library that ensures all inputs match expected types and structures. |
+| **multer** | File Uploads | Handles `multipart/form-data` and enforces file size limits to prevent DoS. |
+| **file-type** | File Verification | Detects true file types from buffer data (Magic Numbers) to prevent malicious file uploads (e.g., renaming `.exe` to `.pdf`). |
+| **dotenv** | Configuration | Loads environment variables from `.env` files, keeping sensitive secrets out of the codebase. |

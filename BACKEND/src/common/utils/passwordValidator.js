@@ -66,8 +66,3 @@ export function getPasswordErrorMessage(password) {
   return result.errors.join("; ");
 }
 
-/**
- * Password strength requirements message
- */
-export const PASSWORD_REQUIREMENTS =
-  "Password must be at least 12 characters long and contain at least one uppercase letter, one lowercase letter, one digit, and one special character";
