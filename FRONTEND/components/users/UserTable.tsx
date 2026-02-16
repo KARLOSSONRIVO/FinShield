@@ -58,11 +58,11 @@ export function UserTable({ users, sortConfig, onSort, onUpdateStatus }: UserTab
                                     </TableCell>
                                     <TableCell className="px-6 text-center">
                                         <div className="bg-emerald-600 text-white px-3 py-1.5 rounded-md text-[10px] font-bold w-fit mx-auto uppercase tracking-wider">
-                                            {user.role}
+                                            {user.role.replace(/_/g, " ")}
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-6 text-center font-bold text-base text-black">
-                                        {user.orgId === "org-platform" ? "FinShield Platform" : "Company User"}
+                                        {user.organizationName || (user.orgId === "org-platform" ? "FinShield Platform" : "Company User")}
                                     </TableCell>
                                     <TableCell className="px-6 text-center">
                                         <div className={`${user.status === 'active' ? 'bg-emerald-600' : 'bg-red-600'} text-white px-3 py-1.5 rounded-md text-[10px] font-bold w-fit mx-auto uppercase tracking-wider`}>
@@ -70,7 +70,7 @@ export function UserTable({ users, sortConfig, onSort, onUpdateStatus }: UserTab
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-6 text-center font-bold text-base text-black">
-                                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : "Never"}
+                                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "Never"}
                                     </TableCell>
                                     <TableCell className="px-6 text-center">
                                         {user.status === 'active' ? (

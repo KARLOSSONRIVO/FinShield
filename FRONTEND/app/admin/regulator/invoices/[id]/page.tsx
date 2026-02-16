@@ -56,11 +56,11 @@ export default function RegulatorInvoiceDetailsPage({ params }: { params: Promis
               </div>
               <div>
                 <p className="text-xs font-bold text-black uppercase">Invoice Date</p>
-                <p className="text-sm font-medium mt-1">{new Date(invoice.invoiceDate).toLocaleDateString()}</p>
+                <p className="text-sm font-medium mt-1">{invoice.invoiceDate ? new Date(invoice.invoiceDate).toLocaleDateString() : 'N/A'}</p>
               </div>
               <div>
                 <p className="text-xs font-bold text-black uppercase">Total Amount</p>
-                <p className="text-xl font-extrabold text-black mt-1">${invoice.totals_total.toLocaleString()}</p>
+                <p className="text-xl font-extrabold text-black mt-1">${invoice.totals_total?.toLocaleString() ?? '0.00'}</p>
               </div>
               <div>
                 <p className="text-xs font-bold text-black uppercase">Uploaded By</p>
@@ -93,20 +93,20 @@ export default function RegulatorInvoiceDetailsPage({ params }: { params: Promis
               <Badge className={`${invoice.ai_verdict === 'clean' ? 'bg-emerald-600' :
                 invoice.ai_verdict === 'flagged' ? 'bg-yellow-500 text-black' : 'bg-red-600'
                 } hover:opacity-90 rounded-md px-4 capitalize`}>
-                {invoice.ai_verdict}
+                {invoice.ai_verdict ?? 'Unknown'}
               </Badge>
             </div>
             <div>
               <div className="flex justify-between items-center mb-2">
                 <span className="font-bold text-sm">Risk Score</span>
-                <span className="font-bold text-sm">{Math.round(invoice.ai_riskScore * 100)}%</span>
+                <span className="font-bold text-sm">{Math.round((invoice.ai_riskScore ?? 0) * 100)}%</span>
               </div>
               <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden border border-border">
                 <div
-                  className={`h-full ${invoice.ai_riskScore < 0.3 ? 'bg-emerald-500' :
-                    invoice.ai_riskScore < 0.79 ? 'bg-yellow-500' : 'bg-red-600'
+                  className={`h-full ${(invoice.ai_riskScore ?? 0) < 0.3 ? 'bg-emerald-500' :
+                    (invoice.ai_riskScore ?? 0) < 0.79 ? 'bg-yellow-500' : 'bg-red-600'
                     } transition-all duration-500`}
-                  style={{ width: `${invoice.ai_riskScore * 100}%` }}
+                  style={{ width: `${(invoice.ai_riskScore ?? 0) * 100}%` }}
                 />
               </div>
             </div>

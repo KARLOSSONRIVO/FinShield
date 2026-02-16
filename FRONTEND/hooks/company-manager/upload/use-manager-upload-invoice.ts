@@ -4,6 +4,7 @@ import type React from "react"
 import { useState } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { InvoiceService } from "@/services/invoice.service"
+import { toast } from "sonner"
 
 export function useManagerUploadInvoice() {
     const [file, setFile] = useState<File | null>(null)
@@ -45,7 +46,7 @@ export function useManagerUploadInvoice() {
         },
         onError: (error: any) => {
             console.error("Upload failed", error)
-            alert("Upload failed: " + (error.response?.data?.message || error.message))
+            toast.error("Upload failed: " + (error.response?.data?.message || error.message))
         }
     })
 

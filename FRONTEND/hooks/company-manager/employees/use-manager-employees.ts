@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react"
 import { mockUsers, mockInvoices } from "@/lib/mock-data"
 import { User } from "@/lib/types"
+import { toast } from "sonner"
 
 export type SortConfig = {
     key: keyof ManagerUser
@@ -17,6 +18,7 @@ export function useManagerEmployees() {
     const [disableUserId, setDisableUserId] = useState<string | null>(null)
     const [disableReason, setDisableReason] = useState("")
     const [newUser, setNewUser] = useState({ email: "", username: "", role: "COMPANY_USER", orgId: "org-company-1" })
+    const [createError, setCreateError] = useState<string | null>(null)
 
     // Pagination & Sort
     const [currentPage, setCurrentPage] = useState(1)
@@ -76,12 +78,22 @@ export function useManagerEmployees() {
     const currentUsers = filteredAndSortedUsers.slice(startIndex, startIndex + itemsPerPage)
 
     const handleCreateUser = () => {
-        alert(`Creating employee: ${newUser.email}`)
+        setCreateError(null)
+        // Mock validation/error
+        if (newUser.username === "duplicate") {
+            setCreateError("Username already exists")
+            toast.error("Username already exists")
+            return
+        }
+        // alert(`Creating employee: ${newUser.email}`) // Removed alert
+        toast.success(`Creating employee: ${newUser.email}`)
         setIsCreateOpen(false)
+        setCreateError(null)
     }
 
     const handleDisableUser = (userId: string) => {
-        alert(`Disabling employee ${userId}`)
+        // alert(`Disabling employee ${userId}`) // Removed alert
+        toast.info(`Disabling employee ${userId}`)
         setDisableUserId(null)
     }
 
@@ -96,6 +108,8 @@ export function useManagerEmployees() {
         setDisableReason,
         newUser,
         setNewUser,
+        createError,
+        setCreateError,
 
         users: currentUsers,
         handleCreateUser,

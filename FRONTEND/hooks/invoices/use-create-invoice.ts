@@ -19,10 +19,13 @@ export function useCreateInvoice() {
         },
         onError: (error: any) => {
             console.error("Upload failed:", error)
+            const errorMsg = error.response?.data?.message || error.message || "Unknown error";
+            const errorDetails = error.response?.data?.error || "";
+
             toast({
                 variant: "destructive",
                 title: "Upload Failed",
-                description: error.response?.data?.message || "There was a problem uploading your invoice.",
+                description: `Error: ${errorMsg} ${errorDetails ? `(${JSON.stringify(errorDetails)})` : ''}`,
             })
         }
     })

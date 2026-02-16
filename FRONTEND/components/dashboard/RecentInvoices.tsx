@@ -35,7 +35,7 @@ export function RecentInvoices({ invoices }: RecentInvoicesProps) {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="font-medium">${invoice.totals_total.toLocaleString()}</p>
+                                <p className="font-medium">${invoice.totals_total?.toLocaleString() ?? '0.00'}</p>
                                 <InvoiceStatusBadge status={invoice.status} />
                             </div>
                         </div>

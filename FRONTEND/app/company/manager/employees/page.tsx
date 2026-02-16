@@ -44,8 +44,17 @@ export default function ManagerEmployeesPage() {
         >
           <Plus className="h-4 w-4" />
           Create Employee
+
         </Button>
       </div>
+
+      <AddEmployeeDialog
+        isOpen={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        onSubmit={handleCreateUser}
+        newUser={newUser}
+        setNewUser={setNewUser}
+      />
 
       <div className="flex flex-col gap-4">
         <div className="flex gap-4">
@@ -103,6 +112,6 @@ export default function ManagerEmployeesPage() {
           onPageChange={setCurrentPage}
         />
       </div>
-    </div>
+    </div >
   )
 }

@@ -28,7 +28,7 @@ export function useSuperAdminBlockchain() {
             const lowerSearch = search.toLowerCase()
             result = result.filter(inv =>
                 inv.blockchain_txHash?.toLowerCase().includes(lowerSearch) ||
-                inv.invoiceNo.toLowerCase().includes(lowerSearch)
+                (inv.invoiceNo && inv.invoiceNo.toLowerCase().includes(lowerSearch))
             )
         }
 
@@ -37,9 +37,9 @@ export function useSuperAdminBlockchain() {
             const aValue = a[sortConfig.key]
             const bValue = b[sortConfig.key]
 
-            if (aValue === undefined && bValue === undefined) return 0
-            if (aValue === undefined) return 1
-            if (bValue === undefined) return -1
+            if ((aValue === undefined || aValue === null) && (bValue === undefined || bValue === null)) return 0
+            if (aValue === undefined || aValue === null) return 1
+            if (bValue === undefined || bValue === null) return -1
 
             if (aValue < bValue) {
                 return sortConfig.direction === "asc" ? -1 : 1

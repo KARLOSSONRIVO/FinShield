@@ -32,7 +32,7 @@ export default async function EmployeeInvoiceDetailPage({ params }: { params: Pr
   const barColor = isFraudulent ? "bg-red-600" : isFlagged ? "bg-amber-600" : "bg-emerald-600"
   const borderColor = isFraudulent ? "border-red-200" : isFlagged ? "border-amber-200" : "border-border"
 
-  const riskPercentage = (invoice.ai_riskScore * 100).toFixed(0)
+  const riskPercentage = ((invoice.ai_riskScore ?? 0) * 100).toFixed(0)
 
   return (
     <div className="p-6 space-y-6">
@@ -69,11 +69,11 @@ export default async function EmployeeInvoiceDetailPage({ params }: { params: Pr
               </div>
               <div>
                 <p className="text-xs font-bold text-black uppercase mb-1">Invoice Date</p>
-                <p className="text-sm font-medium text-muted-foreground">{new Date(invoice.invoiceDate).toLocaleDateString()}</p>
+                <p className="text-sm font-medium text-muted-foreground">{invoice.invoiceDate ? new Date(invoice.invoiceDate).toLocaleDateString() : 'N/A'}</p>
               </div>
               <div>
                 <p className="text-xs font-bold text-black uppercase mb-1">Total Amount</p>
-                <p className="text-lg font-bold text-black">${invoice.totals_total.toLocaleString()}</p>
+                <p className="text-lg font-bold text-black">${invoice.totals_total?.toLocaleString() ?? '0.00'}</p>
               </div>
               <div>
                 <p className="text-xs font-bold text-black uppercase mb-1">Uploaded By</p>
@@ -81,11 +81,11 @@ export default async function EmployeeInvoiceDetailPage({ params }: { params: Pr
               </div>
               <div>
                 <p className="text-xs font-bold text-black uppercase mb-1">Created At</p>
-                <p className="text-sm font-medium text-muted-foreground">{new Date(invoice.invoiceDate).toLocaleString()}</p>
+                <p className="text-sm font-medium text-muted-foreground">{invoice.invoiceDate ? new Date(invoice.invoiceDate).toLocaleString() : 'N/A'}</p>
               </div>
               <div>
                 <p className="text-xs font-bold text-black uppercase mb-1">Last Updated</p>
-                <p className="text-sm font-medium text-muted-foreground">{new Date(invoice.updatedAt || invoice.invoiceDate).toLocaleString()}</p>
+                <p className="text-sm font-medium text-muted-foreground">{invoice.updatedAt ? new Date(invoice.updatedAt).toLocaleString() : (invoice.invoiceDate ? new Date(invoice.invoiceDate).toLocaleString() : 'N/A')}</p>
               </div>
             </div>
           </CardContent>
@@ -103,7 +103,7 @@ export default async function EmployeeInvoiceDetailPage({ params }: { params: Pr
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between p-4 border rounded-xl bg-muted/20">
               <span className="font-bold text-sm">AI Verdict</span>
-              <AIVerdictBadge verdict={invoice.ai_verdict} score={invoice.ai_riskScore} />
+              <AIVerdictBadge verdict={invoice.ai_verdict ?? 'clean'} score={invoice.ai_riskScore ?? 0} />
             </div>
 
             <div className="p-4 border rounded-xl bg-muted/20">

@@ -5,11 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Upload, FileText, CheckCircle, X, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCreateInvoice } from "@/hooks/invoices/use-create-invoice"
+import { useAuth } from "@/hooks/use-auth"
 
 export function UploadInvoiceForm() {
     const [isDragging, setIsDragging] = useState(false)
     const [file, setFile] = useState<File | null>(null)
     const [isSuccess, setIsSuccess] = useState(false)
+
+    const { user } = useAuth()
 
     const { mutate: uploadInvoice, isPending: isLoading } = useCreateInvoice()
 
@@ -113,14 +116,14 @@ export function UploadInvoiceForm() {
                             id="file-upload"
                             type="file"
                             className="hidden"
-                            accept=".pdf,.png,.jpg,.jpeg"
+                            accept=".pdf,.docx"
                             onChange={handleFileChange}
                         />
                         <div className="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
                             <Upload className="h-6 w-6" />
                         </div>
                         <h4 className="font-medium text-gray-900 mb-1">Click to upload or drag and drop</h4>
-                        <p className="text-xs text-muted-foreground">PDF, PNG or JPG (Max 10MB)</p>
+                        <p className="text-xs text-muted-foreground">PDF or DOCX (Max 10MB)</p>
                     </div>
                 ) : (
                     <div className="border rounded-xl p-4 flex items-center justify-between bg-gray-50">

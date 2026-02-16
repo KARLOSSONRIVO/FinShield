@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react"
 import { OrganizationService, Organization } from "@/services/organization.service"
+import { toast } from "sonner"
 
 export type SortConfig = {
     key: keyof Organization
@@ -122,20 +123,21 @@ export function useOrganizations() {
             setNewOrgType("")
             setNewOrgEmployeeCount("")
             setNewOrgStatus("active")
-        } catch (error) {
+            toast.success("Organization created")
+        } catch (error: any) {
             console.error("Failed to create org:", error)
-            alert("Failed to create organization")
+            toast.error("Failed to create organization: " + (error.message || "Unknown error"))
         }
     }
 
     const handleEditOrg = (org: Organization) => {
         console.log("Updating organization:", org);
-        alert("Update Organization functionality is not yet fully implemented in Backend (needs generic update endpoint).");
+        toast.info("Update Organization functionality is not yet fully implemented in Backend.");
     }
 
     const handleDeleteOrg = (id: string) => {
         // console.log("Deleting organization:", id);
-        alert("Delete Organization functionality is not yet fully implemented in Backend.");
+        toast.info("Delete Organization functionality is not yet fully implemented in Backend.");
     }
 
     return {

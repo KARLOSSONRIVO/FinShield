@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/popover"
 import Link from "next/link"
 
+import { useAuth } from "@/hooks/use-auth"
+
 export interface NotificationItem {
     title: string
     time: string
@@ -25,6 +27,7 @@ export interface NotificationItem {
 
 interface TopBarProps {
     title: string;
+    // Props are now optional overrides
     organizationName?: string;
     userName?: string;
     notifications?: NotificationItem[];
@@ -35,13 +38,30 @@ const DEFAULT_NOTIFICATIONS: NotificationItem[] = [
     { title: "System Update", time: "1h ago", message: "System maintenance scheduled for tonight." }
 ]
 
+const formatRole = (role?: string) => {
+    if (!role) return "User"
+    return role
+        .toLowerCase()
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
+}
+
 export function TopBar({
     title,
-    organizationName = "Company Position",
-    userName = "User",
+    organizationName,
+    userName,
     notifications = DEFAULT_NOTIFICATIONS,
     profileLink = "/settings"
 }: TopBarProps) {
+    const { user } = useAuth()
+
+    const displayUserName = userName || user?.username || "User"
+    // Prefer the formatted role from user if organizationName is not passed, 
+    // BUT organizationName prop currently overrides it. 
+    // We will remove organizationName from parents, so this logic holds.
+    const displayRole = organizationName || formatRole(user?.role)
+
     return (
         <header className="h-20 border-b border-border bg-background px-6 flex items-center justify-between">
             {/* Page Title */}
@@ -88,8 +108,8 @@ export function TopBar({
                                 <User className="h-4 w-4" />
                             </div>
                             <div className="flex flex-col items-start text-sm">
-                                <span className="font-semibold leading-none">{userName}</span>
-                                <span className="text-xs text-muted-foreground leading-none mt-1">{organizationName}</span>
+                                <span className="font-semibold leading-none">{displayUserName}</span>
+                                <span className="text-xs text-muted-foreground leading-none mt-1">{displayRole}</span>
                             </div>
                             <ChevronUp className="h-3 w-3 text-muted-foreground ml-2 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                         </Button>

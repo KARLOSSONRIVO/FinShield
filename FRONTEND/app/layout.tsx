@@ -6,6 +6,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 import { QueryProvider } from "@/components/providers/QueryProvider"
 import { AuthProvider } from "@/components/providers/auth-provider"
+import { Toaster } from "@/components/ui/sonner"
 
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -39,6 +40,13 @@ export default function RootLayout({
           </QueryProvider>
         </ThemeProvider>
         <Analytics />
+        <Toaster
+          position="bottom-right"
+          duration={30000}
+          closeButton
+          visibleToasts={2}
+          richColors
+        />
       </body>
     </html>
   )

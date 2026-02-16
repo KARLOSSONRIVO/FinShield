@@ -5,19 +5,19 @@ import { mockInvoices } from "@/lib/mock-data"
 export function useManagerReports() {
     const companyInvoices = mockInvoices.filter((i) => i.companyOrgId === "org-company-1")
 
-    const totalValue = companyInvoices.reduce((sum, inv) => sum + inv.totals_total, 0)
+    const totalValue = companyInvoices.reduce((sum, inv) => sum + (inv.totals_total ?? 0), 0)
 
     const verifiedValue = companyInvoices
         .filter((i) => i.status === "verified")
-        .reduce((sum, inv) => sum + inv.totals_total, 0)
+        .reduce((sum, inv) => sum + (inv.totals_total ?? 0), 0)
 
     const flaggedValue = companyInvoices
         .filter((i) => i.status === "flagged" || i.ai_verdict === "flagged")
-        .reduce((sum, inv) => sum + inv.totals_total, 0)
+        .reduce((sum, inv) => sum + (inv.totals_total ?? 0), 0)
 
     const fraudulentValue = companyInvoices
         .filter((i) => i.status === "fraudulent")
-        .reduce((sum, inv) => sum + inv.totals_total, 0)
+        .reduce((sum, inv) => sum + (inv.totals_total ?? 0), 0)
 
     const statusCounts = {
         verified: companyInvoices.filter((i) => i.status === "verified").length,
@@ -27,7 +27,7 @@ export function useManagerReports() {
     }
 
     const averageRiskScore = companyInvoices.length > 0
-        ? companyInvoices.reduce((sum, inv) => sum + inv.ai_riskScore, 0) / companyInvoices.length
+        ? companyInvoices.reduce((sum, inv) => sum + (inv.ai_riskScore ?? 0), 0) / companyInvoices.length
         : 0
 
     const cleanCount = companyInvoices.filter((i) => i.ai_verdict === "clean").length

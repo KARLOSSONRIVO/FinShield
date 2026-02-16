@@ -31,11 +31,11 @@ export function PendingReviews({ invoices }: PendingReviewsProps) {
                         <div key={invoice._id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
                             <div>
                                 <p className="font-bold">{invoice.companyName}</p>
-                                <p className="text-xs text-muted-foreground">{invoice.invoiceNo} • {new Date(invoice.invoiceDate).toLocaleDateString()}</p>
+                                <p className="text-xs text-muted-foreground">{invoice.invoiceNo} • {invoice.invoiceDate ? new Date(invoice.invoiceDate).toLocaleDateString() : 'N/A'}</p>
                             </div>
                             <div className="text-right">
                                 <p className="font-bold text-sm text-orange-600">Pending</p>
-                                <p className="text-xs font-medium">${invoice.totals_total.toLocaleString()}</p>
+                                <p className="text-xs font-medium">${invoice.totals_total?.toLocaleString() ?? '0.00'}</p>
                             </div>
                         </div>
                     ))}

@@ -39,6 +39,7 @@ export interface User {
   disabledAt?: Date
   disableReason?: string
   lastLoginAt?: Date
+  organizationName?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -57,15 +58,37 @@ export interface CompanyAssignment {
 
 export interface Invoice {
   _id: string
-  companyOrgId: string
+  // Backend returns "orgId", frontend was expecting "companyOrgId"
+  // We'll support both for compatibility or switch to orgId
+  orgId?: string
+  companyOrgId?: string
+
+  // Backend returns "uploadedByUserId", frontend was "uploadedByUserId" (match)
   uploadedByUserId: string
-  invoiceNo: string
-  invoiceDate: Date
-  totals_total: number
-  ai_verdict: AIVerdict
-  ai_riskScore: number
-  blockchain_txHash?: string
-  blockchain_anchoredAt?: Date
+
+  invoiceNo: string | null
+  invoiceDate: Date | null
+  totals_total: number | null // Backend can return null
+
+  // Backend uses "aiVerdict", frontend "ai_verdict"
+  aiVerdict?: AIVerdict
+  ai_verdict?: AIVerdict
+
+  // Backend "aiRiskScore", frontend "ai_riskScore"
+  aiRiskScore?: number
+  ai_riskScore?: number
+
+  // Backend: "fileHashSha256", "ipfsCid"
+  fileHashSha256: string
+  ipfsCid: string
+
+  // Frontend specific or joined
+  blockchain_txHash?: string // Backend alias for anchorTxHash?
+  anchorTxHash?: string
+
+  blockchain_anchoredAt?: Date // Backend alias for anchoredAt?
+  anchoredAt?: Date
+
   status: InvoiceStatus
   createdAt: Date
   updatedAt: Date

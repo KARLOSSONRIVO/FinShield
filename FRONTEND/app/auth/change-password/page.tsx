@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Eye, EyeOff } from "lucide-react"
+import { toast } from "sonner"
 
 export default function ChangePasswordPage() {
     const router = useRouter()
@@ -22,20 +23,21 @@ export default function ChangePasswordPage() {
         mutationFn: AuthService.changePassword,
         onSuccess: (data) => {
             console.log("Password changed successfully", data)
-            alert("Password changed successfully! Resuming login...")
-            // Re-login logic or just simple redirect? 
-            // In a real app we might need to re-login with new credentials or update local state.
-            // But since the token is valid, we might just be able to go to /
-            // However, the backend might REQUIRE re-login if the token was invalidated or if the "mustChangePassword" claim is inside the token (which it is).
-            // So we MUST logout and re-login.
-            AuthService.logout()
-            localStorage.removeItem("token")
-            localStorage.removeItem("refreshToken")
-            router.push("/login")
+            toast.success("Password changed successfully! Redirecting to login...")
+
+            // Logout and redirect after a short delay to let the toast be seen
+            setTimeout(() => {
+                AuthService.logout()
+                localStorage.removeItem("token")
+                localStorage.removeItem("refreshToken")
+                router.push("/login")
+            }, 2000)
         },
         onError: (err: any) => {
             console.error(err)
-            setError(err.response?.data?.message || "Failed to change password")
+            const msg = err.response?.data?.message || "Failed to change password"
+            toast.error(msg)
+            setError(msg)
         }
     })
 
@@ -67,11 +69,7 @@ export default function ChangePasswordPage() {
                 </CardHeader>
                 <form onSubmit={handleSubmit}>
                     <CardContent className="space-y-6 pt-0">
-                        {error && (
-                            <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm border border-red-200">
-                                {error}
-                            </div>
-                        )}
+
 
                         <div className="space-y-2">
                             <Label htmlFor="current-password" className="font-bold text-base">Current Password</Label>
@@ -83,6 +81,7 @@ export default function ChangePasswordPage() {
                                 required
                                 placeholder="Enter current password"
                                 className="border border-black rounded-lg h-11"
+                                minLength={1} // Just to ensure it's not empty, effectively handled by required
                             />
                         </div>
 
@@ -96,6 +95,10 @@ export default function ChangePasswordPage() {
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     required
                                     className="pr-10 border border-black rounded-lg h-11"
+                                    minLength={8}
+                                    maxLength={64}
+                                    pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$"
+                                    title="Password must be at least 8 characters and include at least one letter and one number"
                                 />
                                 <button
                                     type="button"
@@ -116,6 +119,7 @@ export default function ChangePasswordPage() {
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
                                 className="border border-black rounded-lg h-11"
+                                minLength={8}
                             />
                         </div>
                     </CardContent>

@@ -13,6 +13,7 @@ import { Eye, EyeOff } from "lucide-react"
 import { usePasswordVisibility } from "@/hooks"
 import { useAuth } from "@/hooks/use-auth"
 import { toast } from "sonner"
+import { sanitizeInput } from "@/lib/utils"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -28,7 +29,7 @@ export default function LoginPage() {
     e.preventDefault()
     setIsPending(true)
     try {
-      await login({ email, password })
+      await login({ email: sanitizeInput(email), password })
       toast.success("Login successful")
     } catch (error: any) {
       console.error("Login failed", error)
@@ -71,6 +72,9 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-6">
+            {/* Error Display */}
+            {/* The toast handles main errors, but we can also show a localized alert if needed */}
+
             {/* Email Field */}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-700 text-sm font-medium">
@@ -83,6 +87,9 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                maxLength={100}
+                pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$"
+                title="Please enter a valid email address"
                 className="!bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 h-14 rounded-xl focus:border-emerald-500 focus:ring-emerald-500 shadow-sm text-base"
               />
             </div>
@@ -100,6 +107,8 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  minLength={8}
+                  maxLength={64}
                   className="!bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 h-14 rounded-xl focus:border-emerald-500 focus:ring-emerald-500 shadow-sm pr-12 text-base"
                 />
                 <button

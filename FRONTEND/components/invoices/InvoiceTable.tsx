@@ -69,10 +69,10 @@ export function InvoiceTable({ invoices, mode, baseUrl }: InvoiceTableProps) {
                                 {mode === 'manager' && (
                                     <TableCell className="px-2 font-bold text-base text-black">{row.uploadedByName || 'Unknown'}</TableCell>
                                 )}
-                                <TableCell className="px-2 font-bold text-base text-black">{new Date(row.invoiceDate).toLocaleDateString()}</TableCell>
-                                <TableCell className="px-2 font-bold text-base text-black">${row.totals_total.toLocaleString()}</TableCell>
+                                <TableCell className="px-2 font-bold text-base text-black">{row.invoiceDate ? new Date(row.invoiceDate).toLocaleDateString() : 'N/A'}</TableCell>
+                                <TableCell className="px-2 font-bold text-base text-black">${row.totals_total?.toLocaleString() ?? '0.00'}</TableCell>
                                 <TableCell className="px-2 text-center">
-                                    <AIVerdictBadge verdict={row.ai_verdict} hideScore={true} />
+                                    {row.ai_verdict && <AIVerdictBadge verdict={row.ai_verdict} hideScore={true} />}
                                 </TableCell>
                                 <TableCell className="px-2 text-center">
                                     <InvoiceStatusBadge status={row.status} />

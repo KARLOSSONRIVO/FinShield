@@ -73,8 +73,6 @@ export default function SuperAdminLayout({
                 <div className="sticky top-0 z-40">
                     <TopBar
                         title={title}
-                        userName={user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "Super Admin"}
-                        organizationName="Global Administrator"
                         profileLink="/admin/super-admin/settings"
                         notifications={[
                             { title: "New Fraud Alert", time: "2m ago", message: "Invoice INV-2024-100 tagged for review." },

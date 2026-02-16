@@ -1485,6 +1485,8 @@ export interface components {
              * @example user@example.com
              */
             email?: string;
+            /** @example super_admin */
+            username?: string;
             /** @example John */
             firstName?: string;
             /** @example Doe */

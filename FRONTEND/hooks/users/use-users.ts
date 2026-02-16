@@ -6,6 +6,7 @@ import { UserService } from "@/services/user.service"
 import { OrganizationService } from "@/services/organization.service"
 import { mockOrganizations } from "@/lib/mock-data"
 import { User as FrontendUser, Organization } from "@/lib/types"
+import { toast } from "sonner"
 
 export type SortConfig = {
     key: keyof FrontendUser
@@ -69,27 +70,46 @@ export function useUsers() {
             const response = await UserService.listUsers()
 
             // Map API User to Frontend User
-            const mapped = (response.data || []).map((u: any) => ({
-                _id: u.id,
-                orgId: u.organizationId || "org-unknown",
-                portal: "user", // Default
-                role: u.role,
-                email: u.email,
-                username: u.username || u.email, // Use username if available
-                status: (u.status || "active").toLowerCase(),
-                mustChangePassword: u.mustChangePassword,
-                createdAt: new Date(u.createdAt || 0),
-                updatedAt: new Date(u.updatedAt || 0),
-            } as FrontendUser))
+            const mapped = (response.data || []).map((u: any) => {
+                // Find organization name from the already fetched organizations list
+                // Note: realOrganizations might be empty initially, so we might need to rely on queryClient state or just refetch
+                // Better approach: Since useQuery runs in parallel, we can't easily access realOrganizations here inside queryFn of another query
+                // UNFORTUNATELY, this is a race condition.
+                // Standard fix: Return raw data here, and do the mapping in the component or useMemo.
+                // BUT, the UI expects `organizationName` on the user object.
+                // Let's return the user with orgId, and let `filteredAndSortedUsers` or `UserTable` handle the lookup?
+                // Or better: fetch orgs inside this queryFn if needed? No, that's redundant.
+                // The cleanest frontend-only way:
+                // Return `orgId`. In the `useMemo` downstream, map it.
+
+                return {
+                    _id: u.id,
+                    orgId: u.organizationId || u.orgId || "", // Backend sends organizationId or orgId? Mapper sends orgId.
+                    // Fallback to "FinShield Platform" if orgId is "org-platform" or null/empty (for platform users)
+                    // But we can't look up the name yet.
+                    portal: "user",
+                    role: u.role,
+                    email: u.email,
+                    username: u.username || u.email,
+                    status: (u.status || "active").toLowerCase(),
+                    mustChangePassword: u.mustChangePassword,
+                    lastLoginAt: u.lastLoginAt ? new Date(u.lastLoginAt) : undefined,
+                    createdAt: new Date(u.createdAt || 0),
+                    updatedAt: new Date(u.updatedAt || 0),
+                } as FrontendUser
+            })
 
             console.log("Mapped Users:", mapped);
             return mapped;
         }
     })
 
+    const [createError, setCreateError] = useState<string | null>(null)
+
     // Create User Mutation
     const createUserMutation = useMutation({
         mutationFn: async () => {
+            setCreateError(null) // Clear previous errors
             // Validate payload before sending
             if (["COMPANY_MANAGER", "COMPANY_USER"].includes(newUser.role) && !newUser.orgId) {
                 throw new Error("Company is required for this role");
@@ -108,12 +128,15 @@ export function useUsers() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["users"] })
-            alert("User created successfully!")
+            toast.success("User created successfully!")
             setIsCreateOpen(false)
             setNewUser({ email: "", username: "", role: "", orgId: "" })
+            setCreateError(null)
         },
         onError: (error: any) => {
-            alert("Failed to create user: " + (error.response?.data?.message || error.message))
+            const msg = error.response?.data?.message || error.message || "Failed to create user"
+            setCreateError(msg)
+            toast.error(msg)
         }
     })
 
@@ -128,9 +151,10 @@ export function useUsers() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["users"] })
+            toast.success("User status updated")
         },
         onError: (error: any) => {
-            alert("Failed to update user status: " + (error.response?.data?.message || error.message))
+            toast.error("Failed to update user status: " + (error.response?.data?.message || error.message))
         }
     })
 
@@ -183,6 +207,32 @@ export function useUsers() {
             })
         }
 
+        // Map organization names
+        // This is safe because realOrganizations is a dependency
+        processed = processed.map(u => {
+            const org = realOrganizations.find(o => o._id === u.orgId)
+            let orgName = "FinShield"
+
+            if (org) {
+                orgName = org.name
+            } else if (u.orgId === "org-platform") {
+                orgName = "FinShield Platform"
+            } else if (u.orgId && u.orgId !== "org-unknown") {
+                // Keep existing ID if it's not empty and not matched (edge case)
+                // But user asked for "FinShield" if no org id. 
+                // If u.orgId exists but org not found, it might be a bug or stale data. 
+                // Let's stick to: if no org found, check if it's platform, else "FinShield" or maybe "FinShield (Unlinked)"?
+                // User said: "if they do not havee an org id" -> implies u.orgId is empty/null.
+                // If u.orgId is "org-unknown", treat as no org id.
+                orgName = "FinShield"
+            }
+
+            return {
+                ...u,
+                organizationName: orgName
+            }
+        })
+
         return processed
     }, [apiUsers, search, sortConfig, userTypeFilter])
 
@@ -219,6 +269,8 @@ export function useUsers() {
         isUpdatingStatus: updateStatusMutation.isPending,
         isLoading,
         isError,
+        createError,
+        setCreateError,
 
         currentPage,
         totalPages,

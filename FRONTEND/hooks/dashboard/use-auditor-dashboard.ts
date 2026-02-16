@@ -15,7 +15,7 @@ export function useAuditorDashboard() {
 
     // Filter relevant lists
     const pendingReviews = allInvoices.filter(i => i.status === "pending")
-        .sort((a, b) => new Date(a.invoiceDate).getTime() - new Date(b.invoiceDate).getTime())
+        .sort((a, b) => new Date(a.invoiceDate ?? 0).getTime() - new Date(b.invoiceDate ?? 0).getTime())
 
     const flaggedInvoices = allInvoices.filter(i => i.status === "flagged" || i.status === "fraudulent")
 

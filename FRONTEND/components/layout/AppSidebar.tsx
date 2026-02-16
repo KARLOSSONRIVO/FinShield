@@ -43,7 +43,10 @@ export function AppSidebar({ links, collapsed, setCollapsed, title = "FinShield"
             )}
         >
             {/* Header / Logo Area */}
-            <div className="h-20 flex items-center justify-between px-4 border-b border-sidebar-border">
+            <div className={cn(
+                "h-20 flex items-center px-4 border-b border-sidebar-border",
+                collapsed ? "justify-center" : "justify-between"
+            )}>
                 {!collapsed && (
                     <div className="flex items-center gap-3">
                         {/* Shield Icon - Green Box with White Outline */}

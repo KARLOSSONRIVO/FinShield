@@ -34,6 +34,8 @@ export function CreateUserDialog({
     organizations,
     onCreateUser,
 }: CreateUserDialogProps) {
+    const itemsDisabled = newUser.role === "AUDITOR" || newUser.role === "REGULATOR"
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[825px] border border-black shadow-none rounded-xl flex flex-col" showCloseButton={false}>
@@ -44,7 +46,14 @@ export function CreateUserDialog({
                         <span className="sr-only">Close</span>
                     </DialogClose>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
+
+                <form
+                    className="grid gap-4 py-4"
+                    onSubmit={(e) => {
+                        e.preventDefault()
+                        onCreateUser()
+                    }}
+                >
                     <div className="grid gap-2">
                         <Label htmlFor="username" className="font-bold text-base">Username</Label>
                         <Input
@@ -53,6 +62,11 @@ export function CreateUserDialog({
                             value={newUser.username}
                             onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
                             className="border border-black rounded-lg h-11"
+                            required
+                            pattern="^[a-zA-Z0-9_]+$"
+                            minLength={3}
+                            maxLength={20}
+                            title="Username can only contain letters, numbers, and underscores (3-20 chars)"
                         />
                     </div>
 
@@ -65,12 +79,25 @@ export function CreateUserDialog({
                             value={newUser.email}
                             onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                             className="border border-black rounded-lg h-11"
+                            required
+                            maxLength={100}
                         />
                     </div>
 
                     <div className="grid gap-2">
                         <Label htmlFor="role" className="font-bold text-base">Role</Label>
-                        <Select value={newUser.role} onValueChange={(v) => setNewUser({ ...newUser, role: v })}>
+                        <Select
+                            value={newUser.role}
+                            onValueChange={(v) => {
+                                // If switching to a non-company role, clear the organization
+                                const shouldClearOrg = v === "AUDITOR" || v === "REGULATOR"
+                                setNewUser({
+                                    ...newUser,
+                                    role: v,
+                                    orgId: shouldClearOrg ? "" : newUser.orgId
+                                })
+                            }}
+                        >
                             <SelectTrigger className="border border-black rounded-lg h-11 w-full">
                                 <SelectValue placeholder="Select Role" />
                             </SelectTrigger>
@@ -83,10 +110,19 @@ export function CreateUserDialog({
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="org" className="font-bold text-base">Company</Label>
-                        <Select value={newUser.orgId} onValueChange={(v) => setNewUser({ ...newUser, orgId: v })}>
-                            <SelectTrigger className="border border-black rounded-lg h-11 w-full">
-                                <SelectValue placeholder="Select Company" />
+                        <Label
+                            htmlFor="org"
+                            className={`font-bold text-base ${itemsDisabled ? "text-muted-foreground" : ""}`}
+                        >
+                            Company
+                        </Label>
+                        <Select
+                            value={newUser.orgId}
+                            onValueChange={(v) => setNewUser({ ...newUser, orgId: v })}
+                            disabled={itemsDisabled}
+                        >
+                            <SelectTrigger className="border border-black rounded-lg h-11 w-full disabled:opacity-50 disabled:cursor-not-allowed">
+                                <SelectValue placeholder={itemsDisabled ? "Not applicable for this role" : "Select Company"} />
                             </SelectTrigger>
                             <SelectContent className="border border-black rounded-lg">
                                 {organizations
@@ -110,13 +146,14 @@ export function CreateUserDialog({
                         <p className="text-xs text-muted-foreground">Default password will be set automatically.</p>
                     </div>
 
-                </div>
-                <DialogFooter>
-                    <Button onClick={onCreateUser} className="w-full bg-[#00C28C] hover:bg-[#00C28C]/90 text-white font-bold h-11 rounded-lg text-base">
-                        Create User
-                    </Button>
-                </DialogFooter>
+
+                    <DialogFooter className="px-6 pb-6">
+                        <Button type="submit" className="w-full bg-[#00C28C] hover:bg-[#00C28C]/90 text-white font-bold h-11 rounded-lg text-base">
+                            Create User
+                        </Button>
+                    </DialogFooter>
+                </form>
             </DialogContent>
-        </Dialog>
+        </Dialog >
     )
 }

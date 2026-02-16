@@ -260,6 +260,8 @@ export const mockInvoices: Invoice[] = [
     updatedAt: new Date("2024-12-02"),
     companyName: "Acme Corporation",
     uploadedByName: "John Doe",
+    fileHashSha256: "sha256-hash-001",
+    ipfsCid: "QmHash001",
   },
   {
     _id: "inv-002",
@@ -277,6 +279,8 @@ export const mockInvoices: Invoice[] = [
     updatedAt: new Date("2024-12-05"),
     companyName: "Acme Corporation",
     uploadedByName: "John Doe",
+    fileHashSha256: "sha256-hash-002",
+    ipfsCid: "QmHash002",
   },
   {
     _id: "inv-003",
@@ -294,6 +298,8 @@ export const mockInvoices: Invoice[] = [
     updatedAt: new Date("2024-12-10"),
     companyName: "Acme Corporation",
     uploadedByName: "Jane Smith",
+    fileHashSha256: "sha256-hash-003",
+    ipfsCid: "QmHash003",
   },
   {
     _id: "inv-004",
@@ -309,6 +315,8 @@ export const mockInvoices: Invoice[] = [
     updatedAt: new Date("2024-12-16"),
     companyName: "Acme Corporation",
     uploadedByName: "John Doe",
+    fileHashSha256: "sha256-hash-004",
+    ipfsCid: "QmHash004",
   },
   {
     _id: "inv-005",
@@ -326,6 +334,8 @@ export const mockInvoices: Invoice[] = [
     updatedAt: new Date("2024-12-09"),
     companyName: "TechStart Inc.",
     uploadedByName: "TechStart Manager",
+    fileHashSha256: "sha256-hash-005",
+    ipfsCid: "QmHash005",
   },
   {
     _id: "inv-006",
@@ -341,6 +351,8 @@ export const mockInvoices: Invoice[] = [
     updatedAt: new Date("2024-12-12"),
     companyName: "TechStart Inc.",
     uploadedByName: "TechStart Manager",
+    fileHashSha256: "sha256-hash-006",
+    ipfsCid: "QmHash006",
   },
   {
     _id: "inv-007",
@@ -358,6 +370,8 @@ export const mockInvoices: Invoice[] = [
     updatedAt: new Date("2024-12-14"),
     companyName: "Global Finance Ltd.",
     uploadedByName: "GF Manager",
+    fileHashSha256: "sha256-hash-007",
+    ipfsCid: "QmHash007",
   },
 ]
 
