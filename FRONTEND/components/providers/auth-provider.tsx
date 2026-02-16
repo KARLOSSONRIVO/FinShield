@@ -13,8 +13,11 @@ interface AuthContextType {
     user: User | null
     isAuthenticated: boolean
     isLoading: boolean
-    login: (credentials: LoginRequest) => Promise<void>
+    login: (credentials: LoginRequest) => Promise<any>
     logout: () => Promise<void>
+    verifyMfaLogin: (tempToken: string, token: string) => Promise<void>
+    enableMfa: (token: string) => Promise<void>
+    disableMfa: (password: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -30,8 +33,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const token = localStorage.getItem("token")
             if (token) {
                 try {
-                    // If we have a stored user in local storage, use it initially for speed
-                    // Ideally, we might want to validate the token with a /me endpoint here
                     const storedUser = localStorage.getItem("user")
                     if (storedUser) {
                         setUser(JSON.parse(storedUser))
@@ -48,37 +49,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         initializeAuth()
     }, [])
 
+    const handleAuthSuccess = (data: any) => {
+        const userData = data?.user || (data?.data && data.data.user)
+        const accessToken = data?.accessToken || (data?.data && data.data.accessToken)
+        const refreshToken = data?.refreshToken || (data?.data && data.data.refreshToken)
+
+        if (accessToken && userData) {
+            localStorage.setItem("token", accessToken)
+            localStorage.setItem("user", JSON.stringify(userData))
+            if (refreshToken) {
+                localStorage.setItem("refreshToken", refreshToken)
+            }
+
+            // Set cookie for middleware
+            document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Strict`
+
+            setUser(userData)
+            navigateBasedOnRole(userData)
+        } else {
+            throw new Error("Invalid response structure from server")
+        }
+    }
+
     const login = async (credentials: LoginRequest) => {
         setIsLoading(true)
         try {
-            const response = await AuthService.login(credentials)
+            const response: any = await AuthService.login(credentials)
+            // Check if MFA is required
+            if (response.data?.mfaRequired || response.mfaRequired) {
+                setIsLoading(false) // Stop loading so UI can show MFA input
+                return {
+                    mfaRequired: true,
+                    tempToken: response.data?.tempToken || response.tempToken
+                }
+            }
 
-            const success = response.success || (response as any).ok
+            const success = response.success || response.ok || (response.data && (response.data.accessToken || response.data.user))
 
             if (success) {
-                // Handle variations in response structure as seen in original code
-                const data = response.data as any
-                const userData = data?.user || (data?.data && data.data.user)
-                const accessToken = data?.accessToken || (data?.data && data.data.accessToken)
-                const refreshToken = data?.refreshToken || (data?.data && data.data.refreshToken)
-
-                if (accessToken && userData) {
-                    localStorage.setItem("token", accessToken)
-                    localStorage.setItem("user", JSON.stringify(userData))
-                    if (refreshToken) {
-                        localStorage.setItem("refreshToken", refreshToken)
-                    }
-
-                    // Set cookie for middleware
-                    document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Strict`
-
-                    setUser(userData)
-
-                    // Redirect based on role
-                    navigateBasedOnRole(userData)
-                } else {
-                    throw new Error("Invalid response structure from server")
-                }
+                handleAuthSuccess(response)
+                return { success: true }
             } else {
                 throw new Error("Login failed")
             }
@@ -87,6 +97,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             throw error
         } finally {
             setIsLoading(false)
+        }
+    }
+
+    const verifyMfaLogin = async (tempToken: string, token: string) => {
+        setIsLoading(true)
+        try {
+            const response = await AuthService.verifyMfa({ tempToken, token })
+            handleAuthSuccess(response)
+        } catch (error) {
+            console.error("MFA Verify error:", error)
+            throw error
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    const enableMfa = async (token: string) => {
+        try {
+            await AuthService.enableMfa({ token })
+            if (user) {
+                const updatedUser = { ...user, mfaEnabled: true }
+                setUser(updatedUser)
+                localStorage.setItem("user", JSON.stringify(updatedUser))
+            }
+        } catch (error) {
+            throw error
+        }
+    }
+
+    const disableMfa = async (password: string) => {
+        try {
+            await AuthService.disableMfa({ password })
+            if (user) {
+                const updatedUser = { ...user, mfaEnabled: false }
+                setUser(updatedUser)
+                localStorage.setItem("user", JSON.stringify(updatedUser))
+            }
+        } catch (error) {
+            throw error
         }
     }
 
@@ -136,7 +185,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout }}>
+        <AuthContext.Provider value={{
+            user,
+            isAuthenticated: !!user,
+            isLoading,
+            login,
+            logout,
+            verifyMfaLogin,
+            enableMfa,
+            disableMfa
+        }}>
             {children}
         </AuthContext.Provider>
     )

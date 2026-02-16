@@ -11,5 +11,14 @@ interface ManagerEmployeeTableProps {
 }
 
 export function ManagerEmployeeTable(props: ManagerEmployeeTableProps) {
-    return <UserTable {...props} />
+    return (
+        <UserTable
+            {...props}
+            onUpdateStatus={(userId, status) => {
+                if (status === "SUSPENDED") {
+                    props.onDisableUser(userId)
+                }
+            }}
+        />
+    )
 }

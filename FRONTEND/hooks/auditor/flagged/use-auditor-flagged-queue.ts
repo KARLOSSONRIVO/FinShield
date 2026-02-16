@@ -23,7 +23,9 @@ const mappedInvoices: Invoice[] = MOCK_AUDITOR_INVOICES.map(inv => ({
     ai_riskScore: inv.ai_riskScore || 0,
     ai_analysis: "",
     blockchain_txHash: "",
-    blockchain_anchoredAt: undefined
+    blockchain_anchoredAt: undefined,
+    fileHashSha256: "mock-hash",
+    ipfsCid: "mock-cid"
 }))
 
 export function useAuditorFlaggedQueue() {
@@ -49,7 +51,7 @@ export function useAuditorFlaggedQueue() {
             i.ai_verdict === 'flagged' ||
             i.status === 'flagged' ||
             i.status === 'fraudulent' ||
-            i.ai_riskScore >= 60 // Mock data uses 0-100 score? Let's check. Yes, 65, 85.
+            (i.ai_riskScore || 0) >= 60 // Mock data uses 0-100 score? Let's check. Yes, 65, 85.
         )
     }, [])
 
@@ -60,7 +62,7 @@ export function useAuditorFlaggedQueue() {
         if (search) {
             const lowerSearch = search.toLowerCase()
             processed = processed.filter(inv =>
-                inv.invoiceNo.toLowerCase().includes(lowerSearch) ||
+                (inv.invoiceNo || "").toLowerCase().includes(lowerSearch) ||
                 (inv.companyName && inv.companyName.toLowerCase().includes(lowerSearch))
             )
         }

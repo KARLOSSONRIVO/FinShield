@@ -29,6 +29,7 @@ export function useRegulatorDashboard() {
         fraudulentCount: stats?.fraudulentCount || 0,
         recentLogs,
         recentInvoices,
-        totalInvoices: stats?.activeInvoices || 0
+        totalInvoices: stats?.activeInvoices || 0,
+        isLoading: !stats || !logs || !invoices // Simplified
     }
 }

@@ -40,7 +40,7 @@ export function ManagerRecentInvoices({
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-bold text-lg mb-1">${invoice.totals_total.toLocaleString()}</p>
+                                    <p className="font-bold text-lg mb-1">${(invoice.totals_total || 0).toLocaleString()}</p>
                                     <div className="flex items-center justify-end gap-2">
                                         <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded">Verified</span>
                                         <span className="border border-emerald-200 text-emerald-700 text-xs font-bold px-2 py-0.5 rounded">Risk: 5%</span>

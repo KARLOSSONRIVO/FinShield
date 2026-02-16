@@ -44,8 +44,7 @@ export default function RootLayout({
           position="bottom-right"
           duration={30000}
           closeButton
-          visibleToasts={2}
-          richColors
+          visibleToasts={1}
         />
       </body>
     </html>

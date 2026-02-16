@@ -1,6 +1,7 @@
 "use client"
 
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
+import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 import { useSuperAdminInvoices } from "@/hooks/invoices/use-super-admin-invoices"
 import { Pagination } from "@/components/ui/pagination-custom"
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
@@ -16,7 +17,8 @@ export default function AllInvoicesPage() {
     totalPages,
     setCurrentPage,
     sortConfig,
-    requestSort
+    requestSort,
+    isLoading // Destructure isLoading
   } = useSuperAdminInvoices()
 
   return (
@@ -34,11 +36,15 @@ export default function AllInvoicesPage() {
         onSortChange={requestSort}
       />
 
-      <InvoiceTable
-        invoices={invoices}
-        mode="super-admin"
-        baseUrl="/admin/super-admin/invoices"
-      />
+      {isLoading ? (
+        <InvoiceTableSkeleton />
+      ) : (
+        <InvoiceTable
+          invoices={invoices}
+          mode="super-admin"
+          baseUrl="/admin/super-admin/invoices"
+        />
+      )}
 
       <div className="mt-4 flex justify-center">
         <Pagination

@@ -1,11 +1,12 @@
 import axios from "axios"
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+const baseURL = process.env.NEXT_PUBLIC_API_URL
 
 export const apiClient = axios.create({
     baseURL,
     headers: {
         "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true",
     },
     withCredentials: true, // For cookies
 })
@@ -71,13 +72,6 @@ apiClient.interceptors.response.use(
                     throw new Error("No refresh token available")
                 }
 
-                // Call refresh endpoint using a fresh axios instance to avoid interceptor loops
-                // or just be careful. Since we don't attach the invalid access token
-                // to this request (axios instance attaches it via request interceptor if present),
-                // we might need to bypass the request interceptor or ensure we don't send the bad token.
-                // Actually, the request interceptor attaches the token if it exists in localStorage.
-                // The token in localStorage is the expired one.
-                // So we should probably use a clean axios instance for the refresh call.
                 const { data } = await axios.post(`${baseURL}/auth/refresh`, { refreshToken })
                 const { accessToken: newAccessToken, refreshToken: newRefreshToken } = data.data
 

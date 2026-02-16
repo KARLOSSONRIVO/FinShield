@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { UserService } from "@/services/user.service"
 import { OrganizationService } from "@/services/organization.service"
-import { mockOrganizations } from "@/lib/mock-data"
+import { mockOrganizations, mockUsers } from "@/lib/mock-data"
 import { User as FrontendUser, Organization } from "@/lib/types"
 import { toast } from "sonner"
 
@@ -24,19 +24,17 @@ export function useUsers() {
     const { data: realOrganizations = [] } = useQuery<Organization[]>({
         queryKey: ["organizations"],
         queryFn: async () => {
-            const response = await OrganizationService.listOrganizations()
-            if (!response.ok || !response.data) return []
-
-            // Map API response to Frontend Organization interface
-            return response.data.map((o: any) => ({
-                _id: o.id,
-                name: o.name,
-                type: o.type === "COMPANY" ? "company" : "platform", // Map types appropriately
-                status: o.status === "ACTIVE" ? "active" : "inactive",
-                employees: o.employees || 0,
-                createdAt: o.createdAt ? new Date(o.createdAt) : new Date(0),
-                updatedAt: o.updatedAt ? new Date(o.updatedAt) : new Date(0)
-            }))
+            // Simulate API Loading
+            await new Promise(resolve => setTimeout(resolve, 500))
+            return mockOrganizations.map(o => ({
+                ...o,
+                // Ensure type compatibility if needed, though mockOrganizations matches Organization type mostly
+                // But frontend Organization type might differ slightly from backend mock?
+                // Let's just return mockOrganizations as any -> Organization[] casting to be safe
+                // or map it if fields are missing.
+                // Mock data has _id, type, name, status, employees, createdAt.
+                // Frontend Organization interface has these too.
+            })) as Organization[]
         }
     })
 
@@ -65,42 +63,9 @@ export function useUsers() {
     const { data: apiUsers = [], isLoading, isError } = useQuery({
         queryKey: ["users"],
         queryFn: async () => {
-            const token = localStorage.getItem("token");
-
-            const response = await UserService.listUsers()
-
-            // Map API User to Frontend User
-            const mapped = (response.data || []).map((u: any) => {
-                // Find organization name from the already fetched organizations list
-                // Note: realOrganizations might be empty initially, so we might need to rely on queryClient state or just refetch
-                // Better approach: Since useQuery runs in parallel, we can't easily access realOrganizations here inside queryFn of another query
-                // UNFORTUNATELY, this is a race condition.
-                // Standard fix: Return raw data here, and do the mapping in the component or useMemo.
-                // BUT, the UI expects `organizationName` on the user object.
-                // Let's return the user with orgId, and let `filteredAndSortedUsers` or `UserTable` handle the lookup?
-                // Or better: fetch orgs inside this queryFn if needed? No, that's redundant.
-                // The cleanest frontend-only way:
-                // Return `orgId`. In the `useMemo` downstream, map it.
-
-                return {
-                    _id: u.id,
-                    orgId: u.organizationId || u.orgId || "", // Backend sends organizationId or orgId? Mapper sends orgId.
-                    // Fallback to "FinShield Platform" if orgId is "org-platform" or null/empty (for platform users)
-                    // But we can't look up the name yet.
-                    portal: "user",
-                    role: u.role,
-                    email: u.email,
-                    username: u.username || u.email,
-                    status: (u.status || "active").toLowerCase(),
-                    mustChangePassword: u.mustChangePassword,
-                    lastLoginAt: u.lastLoginAt ? new Date(u.lastLoginAt) : undefined,
-                    createdAt: new Date(u.createdAt || 0),
-                    updatedAt: new Date(u.updatedAt || 0),
-                } as FrontendUser
-            })
-
-            console.log("Mapped Users:", mapped);
-            return mapped;
+            // Simulate API Loading
+            await new Promise(resolve => setTimeout(resolve, 800))
+            return mockUsers as unknown as FrontendUser[]
         }
     })
 

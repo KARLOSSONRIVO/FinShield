@@ -13,6 +13,7 @@ export function useCreateInvoice() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["invoices"] })
             toast({
+                variant: 'success',
                 title: "Upload Successful",
                 description: "Your invoice has been uploaded and queued for anchoring.",
             })

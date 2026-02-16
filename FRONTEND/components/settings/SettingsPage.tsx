@@ -1,8 +1,9 @@
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { MFASettings } from "./MFASettings"
 import { AppearanceSettings } from "./AppearanceSettings"
-import { User, Shield, Lock } from "lucide-react"
+import { User, Shield, Lock, KeyRound } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -38,7 +39,9 @@ export function SettingsPage() {
                         Appearance
                     </TabsTrigger>
                 </TabsList>
-                <TabsContent value="profile" className="space-y-4">
+
+                <TabsContent value="profile" className="space-y-6">
+                    {/* Profile Information Card */}
                     <div className="p-6 border rounded-xl bg-card text-card-foreground shadow-sm space-y-6">
                         <div>
                             <h4 className="font-semibold text-lg">Profile Information</h4>
@@ -72,28 +75,42 @@ export function SettingsPage() {
                                     className="bg-muted cursor-default focus-visible:ring-0 select-none"
                                 />
                             </div>
+                        </div>
+                    </div>
 
-                            <div className="grid gap-2">
-                                <Label>Password</Label>
-                                <div className="flex gap-2">
-                                    <Input
-                                        type="password"
-                                        value="********"
-                                        readOnly
-                                        className="bg-muted cursor-default focus-visible:ring-0 select-none"
-                                    />
-                                    <Button
-                                        onClick={() => setChangePasswordOpen(true)}
-                                        className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
-                                    >
-                                        <Lock className="h-4 w-4" />
-                                        Change Password
-                                    </Button>
-                                </div>
+                    {/* Authentication Card (MFA) */}
+                    <MFASettings />
+
+                    {/* Change Password Card */}
+                    <div className="p-6 border rounded-xl bg-card text-card-foreground shadow-sm space-y-6">
+                        <div>
+                            <h4 className="font-semibold text-lg flex items-center gap-2">
+                                <KeyRound className="h-5 w-5 text-emerald-500" />
+                                Password Management
+                            </h4>
+                            <p className="text-sm text-muted-foreground">
+                                Regularly update your password to keep your account secure.
+                            </p>
+                        </div>
+                        <div className="flex items-center justify-between bg-muted/50 p-4 rounded-lg">
+                            <div>
+                                <p className="font-medium text-sm">Change Password</p>
+                                <p className="text-xs text-muted-foreground">
+                                    Update your password to a new one.
+                                </p>
                             </div>
+                            <Button
+                                onClick={() => setChangePasswordOpen(true)}
+                                className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                                size="sm"
+                            >
+                                <Lock className="h-4 w-4" />
+                                Update Password
+                            </Button>
                         </div>
                     </div>
                 </TabsContent>
+
                 <TabsContent value="appearance" className="space-y-4">
                     <AppearanceSettings />
                 </TabsContent>

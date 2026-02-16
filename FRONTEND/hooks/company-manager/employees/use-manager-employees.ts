@@ -19,6 +19,16 @@ export function useManagerEmployees() {
     const [disableReason, setDisableReason] = useState("")
     const [newUser, setNewUser] = useState({ email: "", username: "", role: "COMPANY_USER", orgId: "org-company-1" })
     const [createError, setCreateError] = useState<string | null>(null)
+    const [isLoading, setIsLoading] = useState(true)
+
+    // Simulate loading
+    const [mounted, setMounted] = useState(false)
+    if (!mounted) {
+        setTimeout(() => {
+            setIsLoading(false)
+            setMounted(true)
+        }, 1000)
+    }
 
     // Pagination & Sort
     const [currentPage, setCurrentPage] = useState(1)
@@ -119,6 +129,7 @@ export function useManagerEmployees() {
         totalPages,
         setCurrentPage,
         sortConfig,
-        requestSort
+        requestSort,
+        isLoading
     }
 }

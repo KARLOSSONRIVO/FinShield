@@ -41,7 +41,7 @@ export function EmployeeRecentInvoices({
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-bold text-base text-black">${invoice.totals_total.toLocaleString()}</p>
+                                    <p className="font-bold text-base text-black">${(invoice.totals_total ?? 0).toLocaleString()}</p>
                                     <div className="bg-emerald-600 text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase w-fit ml-auto mt-1">
                                         VERIFIED
                                     </div>

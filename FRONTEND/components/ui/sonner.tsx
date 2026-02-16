@@ -16,6 +16,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
           description: "group-[.toast]:text-muted-foreground",
           actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
+          success: "group-[.toaster]:!bg-white group-[.toaster]:!text-green-600 group-[.toaster]:!border-green-200",
+          error: "group-[.toaster]:!bg-white group-[.toaster]:!text-red-600 group-[.toaster]:!border-red-200",
         },
         style: {
           zIndex: 9999, // Ensure it's above everything including Radix dialogs (z-50)

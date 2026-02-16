@@ -57,11 +57,11 @@ export default function ManagerInvoiceDetailPage({ params }: { params: Promise<{
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Invoice Date</p>
-                <p className="font-medium">{new Date(invoice.invoiceDate).toLocaleDateString()}</p>
+                <p className="font-medium">{invoice.invoiceDate ? new Date(invoice.invoiceDate).toLocaleDateString() : 'N/A'}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Amount</p>
-                <p className="font-medium text-lg">${invoice.totals_total.toLocaleString()}</p>
+                <p className="font-medium text-lg">${(invoice.totals_total || 0).toLocaleString()}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Uploaded By</p>
@@ -91,22 +91,22 @@ export default function ManagerInvoiceDetailPage({ params }: { params: Promise<{
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg">
               <span className="text-sm text-muted-foreground">AI Verdict</span>
-              <AIVerdictBadge verdict={invoice.ai_verdict} score={invoice.ai_riskScore} />
+              <AIVerdictBadge verdict={invoice.ai_verdict || "clean"} score={invoice.ai_riskScore || 0} />
             </div>
             <div className="p-4 bg-secondary/50 rounded-lg">
               <p className="text-sm text-muted-foreground mb-2">Risk Score</p>
               <div className="w-full bg-background rounded-full h-4">
                 <div
-                  className={`h-4 rounded-full transition-all ${invoice.ai_riskScore > 0.7
+                  className={`h-4 rounded-full transition-all ${(invoice.ai_riskScore || 0) > 0.7
                     ? "bg-destructive"
-                    : invoice.ai_riskScore > 0.4
+                    : (invoice.ai_riskScore || 0) > 0.4
                       ? "bg-warning"
                       : "bg-primary"
                     }`}
-                  style={{ width: `${invoice.ai_riskScore * 100}%` }}
+                  style={{ width: `${(invoice.ai_riskScore || 0) * 100}%` }}
                 />
               </div>
-              <p className="text-right text-sm mt-1 font-mono">{(invoice.ai_riskScore * 100).toFixed(0)}%</p>
+              <p className="text-right text-sm mt-1 font-mono">{((invoice.ai_riskScore || 0) * 100).toFixed(0)}%</p>
             </div>
           </CardContent>
         </Card>

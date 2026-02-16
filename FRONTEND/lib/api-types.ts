@@ -1505,6 +1505,7 @@ export interface components {
             status?: "ACTIVE" | "INACTIVE" | "SUSPENDED";
             /** @example false */
             mustChangePassword?: boolean;
+            mfaEnabled?: boolean;
         };
         Organization: {
             /** @example 507f1f77bcf86cd799439011 */

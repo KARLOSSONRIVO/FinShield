@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+import { EmployeeTableSkeleton } from "@/components/skeletons/employee-table-skeleton"
+
 export default function ManagerEmployeesPage() {
   const {
     search,
@@ -31,7 +33,8 @@ export default function ManagerEmployeesPage() {
     newUser,
     setNewUser,
     handleCreateUser,
-    setDisableUserId
+    setDisableUserId,
+    isLoading // Destructure isLoading
   } = useManagerEmployees()
 
   return (
@@ -98,12 +101,16 @@ export default function ManagerEmployeesPage() {
         </div>
       </div>
 
-      <ManagerEmployeeTable
-        users={users}
-        sortConfig={sortConfig}
-        onSort={requestSort}
-        onDisableUser={(id) => setDisableUserId(id)}
-      />
+      {isLoading ? (
+        <EmployeeTableSkeleton />
+      ) : (
+        <ManagerEmployeeTable
+          users={users}
+          sortConfig={sortConfig}
+          onSort={requestSort}
+          onDisableUser={(id) => setDisableUserId(id)}
+        />
+      )}
 
       <div className="mt-4 flex justify-center">
         <Pagination

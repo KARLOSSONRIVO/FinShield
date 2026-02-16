@@ -34,6 +34,8 @@ export interface User {
   username: string
   status: UserStatus
   mustChangePassword: boolean
+  mfaEnabled?: boolean
+  mfaSecret?: any
   createdByUserId?: string
   disabledByUserId?: string
   disabledAt?: Date

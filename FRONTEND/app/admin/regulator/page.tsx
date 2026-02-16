@@ -9,6 +9,8 @@ import { RecentActivity } from "@/components/dashboard/RecentActivity"
 import { Eye } from "lucide-react"
 import { useRegulatorDashboard } from "@/hooks/dashboard/use-regulator-dashboard"
 
+import { DashboardContentSkeleton } from "@/components/skeletons/dashboard-content-skeleton"
+
 export default function RegulatorDashboard() {
   const {
     companiesCount,
@@ -17,7 +19,8 @@ export default function RegulatorDashboard() {
     fraudulentCount,
     recentLogs,
     recentInvoices,
-    totalInvoices
+    totalInvoices,
+    isLoading // Destructure isLoading
   } = useRegulatorDashboard()
 
   return (
@@ -28,22 +31,28 @@ export default function RegulatorDashboard() {
         </h1>
       </div>
 
-      <RegulatorStats
-        companiesCount={companiesCount}
-        totalInvoices={totalInvoices}
-        totalValue={totalValue}
-        verifiedOnChain={verifiedOnChain}
-        fraudulentCount={fraudulentCount}
-      />
+      {isLoading ? (
+        <DashboardContentSkeleton />
+      ) : (
+        <>
+          <RegulatorStats
+            companiesCount={companiesCount}
+            totalInvoices={totalInvoices}
+            totalValue={totalValue}
+            verifiedOnChain={verifiedOnChain}
+            fraudulentCount={fraudulentCount}
+          />
 
-      <div className="grid grid-cols-1 lg:grid-cols-8 gap-6">
-        <div className="lg:col-span-5">
-          <RecentInvoices invoices={recentInvoices} />
-        </div>
-        <div className="lg:col-span-3">
-          <RecentActivity logs={recentLogs} title="System Activity" icon={Eye} />
-        </div>
-      </div>
+          <div className="grid grid-cols-1 lg:grid-cols-8 gap-6">
+            <div className="lg:col-span-5">
+              <RecentInvoices invoices={recentInvoices} />
+            </div>
+            <div className="lg:col-span-3">
+              <RecentActivity logs={recentLogs} title="System Activity" icon={Eye} />
+            </div>
+          </div>
+        </>
+      )}
     </>
   )
 }

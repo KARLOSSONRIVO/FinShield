@@ -8,6 +8,8 @@ import { EmployeeRecentInvoices } from "@/components/dashboard/EmployeeRecentInv
 import { EmployeeAIAlerts } from "@/components/dashboard/EmployeeAIAlerts"
 import { useEmployeeDashboard } from "@/hooks/company-employee/dashboard/use-employee-dashboard"
 
+import { DashboardContentSkeleton } from "@/components/skeletons/dashboard-content-skeleton"
+
 export default function EmployeeDashboard() {
   const { user } = useAuth()
   const {
@@ -17,7 +19,8 @@ export default function EmployeeDashboard() {
     flaggedCount,
     totalValue,
     recentInvoices,
-    flaggedInvoices
+    flaggedInvoices,
+    isLoading // Destructure isLoading
   } = useEmployeeDashboard()
 
   return (
@@ -36,18 +39,24 @@ export default function EmployeeDashboard() {
         </a>
       </div>
 
-      <EmployeeStats
-        myInvoicesCount={myInvoicesCount}
-        pendingCount={pendingCount}
-        verifiedCount={verifiedCount}
-        flaggedCount={flaggedCount}
-        totalValue={totalValue}
-      />
+      {isLoading ? (
+        <DashboardContentSkeleton />
+      ) : (
+        <>
+          <EmployeeStats
+            myInvoicesCount={myInvoicesCount}
+            pendingCount={pendingCount}
+            verifiedCount={verifiedCount}
+            flaggedCount={flaggedCount}
+            totalValue={totalValue}
+          />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <EmployeeRecentInvoices invoices={recentInvoices} title="My Recent Invoices" description="Your latest submissions" />
-        <EmployeeAIAlerts invoices={flaggedInvoices} />
-      </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <EmployeeRecentInvoices invoices={recentInvoices} title="My Recent Invoices" description="Your latest submissions" />
+            <EmployeeAIAlerts invoices={flaggedInvoices} />
+          </div>
+        </>
+      )}
     </div>
 
   )

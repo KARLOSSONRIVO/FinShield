@@ -31,5 +31,6 @@ export function useAuditorDashboard() {
         stats: legacyStats,
         pendingReviews,
         flaggedInvoices,
+        isLoading: !stats || allInvoices.length === 0 // Basic check or use proper query loading
     }
 }

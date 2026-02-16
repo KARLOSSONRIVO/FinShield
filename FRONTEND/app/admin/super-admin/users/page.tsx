@@ -16,6 +16,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+import { UserTableSkeleton } from "@/components/skeletons/user-table-skeleton"
+import { CompanyEmployeesTable } from "@/components/users/CompanyEmployeesTable"
+
 export default function PlatformUsersPage() {
   const {
     search,
@@ -34,7 +37,8 @@ export default function PlatformUsersPage() {
     handleCreateUser,
     handleUpdateStatus,
     userTypeFilter,
-    setUserTypeFilter
+    setUserTypeFilter,
+    isLoading // Destructure isLoading
   } = useUsers()
 
   return (
@@ -112,12 +116,23 @@ export default function PlatformUsersPage() {
         </div>
       </div>
 
-      <UserTable
-        users={users}
-        sortConfig={sortConfig}
-        onSort={requestSort}
-        onUpdateStatus={handleUpdateStatus}
-      />
+      {isLoading ? (
+        <UserTableSkeleton />
+      ) : (
+        <UserTable
+          users={users}
+          sortConfig={sortConfig}
+          onSort={requestSort}
+          onUpdateStatus={handleUpdateStatus}
+          renderSubComponent={(user) => {
+            if (user.role === 'COMPANY_MANAGER' && user.orgId) {
+              return <CompanyEmployeesTable orgId={user.orgId} managerId={user._id} />
+            }
+            return null
+          }}
+        />
+      )}
+
 
       <div className="mt-4 flex justify-center">
         <Pagination

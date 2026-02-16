@@ -36,8 +36,8 @@ export function useManagerInvoices() {
         if (search) {
             const lowerSearch = search.toLowerCase()
             result = result.filter(invoice =>
-                invoice.invoiceNo.toLowerCase().includes(lowerSearch) ||
-                invoice.totals_total.toString().includes(lowerSearch)
+                (invoice.invoiceNo || "").toLowerCase().includes(lowerSearch) ||
+                (invoice.totals_total || 0).toString().includes(lowerSearch)
             )
         }
 
@@ -51,9 +51,9 @@ export function useManagerInvoices() {
             const aValue = a[sortConfig.key]
             const bValue = b[sortConfig.key]
 
-            if (aValue === undefined && bValue === undefined) return 0
-            if (aValue === undefined) return 1
-            if (bValue === undefined) return -1
+            if ((aValue === undefined || aValue === null) && (bValue === undefined || bValue === null)) return 0
+            if (aValue === undefined || aValue === null) return 1
+            if (bValue === undefined || bValue === null) return -1
 
             if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1
             if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1

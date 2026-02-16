@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
+import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 import { MOCK_AUDITOR_INVOICES } from "@/hooks/mock-data"
 import { useAuditorInvoices } from "@/hooks/invoices/use-auditor-invoices"
 import type { Invoice } from "@/lib/types"
@@ -30,7 +31,8 @@ export default function AuditorInvoicesPage() {
     totalPages,
     setCurrentPage,
     sortConfig,
-    requestSort
+    requestSort,
+    isLoading // Destructure isLoading
   } = useAuditorInvoices(mappedInvoices)
 
   return (
@@ -47,11 +49,15 @@ export default function AuditorInvoicesPage() {
         onSortChange={requestSort}
       />
 
-      <InvoiceTable
-        invoices={invoices}
-        mode="auditor"
-        baseUrl="/admin/auditor/invoices"
-      />
+      {isLoading ? (
+        <InvoiceTableSkeleton />
+      ) : (
+        <InvoiceTable
+          invoices={invoices}
+          mode="auditor"
+          baseUrl="/admin/auditor/invoices"
+        />
+      )}
 
       {/* Pagination Controls */}
       <div className="mt-8 flex items-center justify-center gap-2">

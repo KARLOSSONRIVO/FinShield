@@ -4,6 +4,7 @@ import { InvoiceTable } from "@/components/invoices/InvoiceTable"
 import { useManagerInvoices } from "@/hooks/company-manager/invoices/use-manager-invoices"
 import { Pagination } from "@/components/ui/pagination-custom"
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
+import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 
 export default function ManagerInvoicesPage() {
   const {
@@ -16,7 +17,8 @@ export default function ManagerInvoicesPage() {
     totalPages,
     setCurrentPage,
     sortConfig,
-    requestSort
+    requestSort,
+    isLoading // Destructure isLoading
   } = useManagerInvoices()
 
   return (
@@ -35,11 +37,15 @@ export default function ManagerInvoicesPage() {
         onSortChange={requestSort}
       />
 
-      <InvoiceTable
-        invoices={invoices}
-        mode="manager"
-        baseUrl="/company/manager/invoices"
-      />
+      {isLoading ? (
+        <InvoiceTableSkeleton />
+      ) : (
+        <InvoiceTable
+          invoices={invoices}
+          mode="manager"
+          baseUrl="/company/manager/invoices"
+        />
+      )}
 
       <div className="mt-4 flex justify-center">
         <Pagination

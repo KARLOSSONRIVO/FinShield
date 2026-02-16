@@ -14,8 +14,8 @@
 // ============================================
 // GLOBAL HOOKS - Used across all pages
 // ============================================
-export { useToast, toast } from "./global"
 export { useIsMobile } from "./global"
+export { useToast, toast } from "./use-toast"
 
 // ============================================
 // AUTH HOOKS - Login, Forgot Password, User Creation

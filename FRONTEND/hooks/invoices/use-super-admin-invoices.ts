@@ -34,9 +34,9 @@ export function useSuperAdminInvoices() { // Renamed from useInvoices
         if (search) {
             const lowerSearch = search.toLowerCase()
             result = result.filter(invoice =>
-                invoice.invoiceNo.toLowerCase().includes(lowerSearch) ||
+                (invoice.invoiceNo && invoice.invoiceNo.toLowerCase().includes(lowerSearch)) ||
                 (invoice.companyName || "").toLowerCase().includes(lowerSearch) ||
-                invoice.totals_total.toString().includes(lowerSearch)
+                (invoice.totals_total && invoice.totals_total.toString().includes(lowerSearch))
             )
         }
 
@@ -56,9 +56,9 @@ export function useSuperAdminInvoices() { // Renamed from useInvoices
             const bValue = b[sortConfig.key]
 
             // Handle undefined values
-            if (aValue === undefined && bValue === undefined) return 0
-            if (aValue === undefined) return 1
-            if (bValue === undefined) return -1
+            if ((aValue === undefined || aValue === null) && (bValue === undefined || bValue === null)) return 0
+            if (aValue === undefined || aValue === null) return 1
+            if (bValue === undefined || bValue === null) return -1
 
             if (aValue < bValue) {
                 return sortConfig.direction === "asc" ? -1 : 1

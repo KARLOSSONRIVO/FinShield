@@ -62,11 +62,11 @@ export function EmployeeAlertSection({
                                     <p className="text-sm text-muted-foreground">
                                         {invoice.uploadedByName ? `by ${invoice.uploadedByName}` : ""}
                                         {invoice.uploadedByName && variant !== "default" ? " - " : ""}
-                                        ${invoice.totals_total.toLocaleString()}
-                                        {variant === "default" && ` - ${new Date(invoice.invoiceDate).toLocaleDateString()}`}
+                                        ${(invoice.totals_total || 0).toLocaleString()}
+                                        {variant === "default" && ` - ${invoice.invoiceDate ? new Date(invoice.invoiceDate).toLocaleDateString() : 'N/A'}`}
                                     </p>
                                     {variant === "warning" && (
-                                        <AIVerdictBadge verdict={invoice.ai_verdict} score={invoice.ai_riskScore} />
+                                        <AIVerdictBadge verdict={invoice.ai_verdict || "clean"} score={invoice.ai_riskScore || 0} />
                                     )}
                                 </div>
                                 {variant === "default" && (

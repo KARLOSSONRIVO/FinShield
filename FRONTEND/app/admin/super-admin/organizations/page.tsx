@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+import { OrganizationTableSkeleton } from "@/components/skeletons/organization-table-skeleton"
+
 export default function OrganizationsPage() {
   const {
     search,
@@ -39,7 +41,8 @@ export default function OrganizationsPage() {
     requestSort,
     handleEditOrg,
     handleDeleteOrg,
-    error // Extract error
+    error, // Extract error
+    isLoading // Destructure isLoading
   } = useOrganizations()
 
   return (
@@ -117,13 +120,17 @@ export default function OrganizationsPage() {
         </DropdownMenu>
       </div>
 
-      <OrganizationTable
-        organizations={organizations}
-        sortConfig={sortConfig}
-        onSort={requestSort}
-        onEdit={handleEditOrg}
-        onDelete={handleDeleteOrg}
-      />
+      {isLoading ? (
+        <OrganizationTableSkeleton />
+      ) : (
+        <OrganizationTable
+          organizations={organizations}
+          sortConfig={sortConfig}
+          onSort={requestSort}
+          onEdit={handleEditOrg}
+          onDelete={handleDeleteOrg}
+        />
+      )}
 
       <div className="mt-4 flex justify-center">
         <Pagination

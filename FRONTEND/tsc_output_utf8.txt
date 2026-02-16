@@ -1,0 +1,70 @@
+﻿app/admin/auditor/invoices/page.tsx(34,26): error TS2554: Expected 0 arguments, but got 1.
+app/admin/super-admin/invoices/[id]/page.tsx(59,67): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number | Date'.
+      Type 'null' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number'.
+      Type 'null' is not assignable to type 'string | number'.
+app/admin/super-admin/invoices/[id]/page.tsx(63,73): error TS18047: 'invoice.totals_total' is possibly 'null'.
+app/admin/super-admin/invoices/[id]/page.tsx(102,65): error TS18048: 'invoice.ai_riskScore' is possibly 'undefined'.
+app/admin/super-admin/invoices/[id]/page.tsx(106,40): error TS18048: 'invoice.ai_riskScore' is possibly 'undefined'.
+app/admin/super-admin/invoices/[id]/page.tsx(107,21): error TS18048: 'invoice.ai_riskScore' is possibly 'undefined'.
+app/admin/super-admin/invoices/[id]/page.tsx(109,38): error TS18048: 'invoice.ai_riskScore' is possibly 'undefined'.
+app/company/employee/invoices/page.tsx(29,7): error TS18047: 'invoice.invoiceNo' is possibly 'null'.
+app/company/employee/invoices/page.tsx(31,7): error TS18047: 'invoice.totals_total' is possibly 'null'.
+app/company/manager/alerts/page.tsx(15,58): error TS18048: 'i.ai_riskScore' is possibly 'undefined'.
+app/company/manager/invoices/[id]/page.tsx(60,54): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number | Date'.
+      Type 'null' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number'.
+      Type 'null' is not assignable to type 'string | number'.
+app/company/manager/invoices/[id]/page.tsx(64,54): error TS18047: 'invoice.totals_total' is possibly 'null'.
+app/company/manager/invoices/[id]/page.tsx(94,31): error TS2322: Type 'AIVerdict | undefined' is not assignable to type 'AIVerdict'.
+  Type 'undefined' is not assignable to type 'AIVerdict'.
+app/company/manager/invoices/[id]/page.tsx(100,65): error TS18048: 'invoice.ai_riskScore' is possibly 'undefined'.
+app/company/manager/invoices/[id]/page.tsx(102,23): error TS18048: 'invoice.ai_riskScore' is possibly 'undefined'.
+app/company/manager/invoices/[id]/page.tsx(106,38): error TS18048: 'invoice.ai_riskScore' is possibly 'undefined'.
+app/company/manager/invoices/[id]/page.tsx(109,66): error TS18048: 'invoice.ai_riskScore' is possibly 'undefined'.
+components/alerts/EmployeeAlertSection.tsx(65,43): error TS18047: 'invoice.totals_total' is possibly 'null'.
+components/alerts/EmployeeAlertSection.tsx(66,82): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number | Date'.
+      Type 'null' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number'.
+      Type 'null' is not assignable to type 'string | number'.
+components/alerts/EmployeeAlertSection.tsx(69,57): error TS2322: Type 'AIVerdict | undefined' is not assignable to type 'AIVerdict'.
+  Type 'undefined' is not assignable to type 'AIVerdict'.
+components/alerts/ManagerAlertSection.tsx(65,43): error TS18047: 'invoice.totals_total' is possibly 'null'.
+components/alerts/ManagerAlertSection.tsx(66,82): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number | Date'.
+      Type 'null' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'Date | null' is not assignable to parameter of type 'string | number'.
+      Type 'null' is not assignable to type 'string | number'.
+components/alerts/ManagerAlertSection.tsx(69,57): error TS2322: Type 'AIVerdict | undefined' is not assignable to type 'AIVerdict'.
+  Type 'undefined' is not assignable to type 'AIVerdict'.
+components/dashboard/EmployeeRecentInvoices.tsx(44,85): error TS18047: 'invoice.totals_total' is possibly 'null'.
+components/dashboard/ManagerAIAlerts.tsx(43,77): error TS18047: 'invoice.totals_total' is possibly 'null'.
+components/dashboard/ManagerRecentInvoices.tsx(43,77): error TS18047: 'invoice.totals_total' is possibly 'null'.
+components/users/ManagerEmployeeTable.tsx(14,13): error TS2741: Property 'onUpdateStatus' is missing in type '{ users: User[]; sortConfig: any; onSort: (key: any) => void; onDisableUser: (userId: string) => void; }' but required in type 'UserTableProps'.
+hooks/auditor/flagged/use-auditor-flagged-queue.ts(9,7): error TS2322: Type '{ _id: string; invoiceNo: string; companyName: string; invoiceDate: Date; totals_total: number; ai_verdict: "clean" | "flagged"; status: any; companyOrgId: string; uploadedByUserId: string; ... 6 more ...; blockchain_anchoredAt: undefined; }[]' is not assignable to type 'Invoice[]'.
+  Type '{ _id: string; invoiceNo: string; companyName: string; invoiceDate: Date; totals_total: number; ai_verdict: "clean" | "flagged"; status: any; companyOrgId: string; uploadedByUserId: string; ... 6 more ...; blockchain_anchoredAt: undefined; }' is missing the following properties from type 'Invoice': fileHashSha256, ipfsCid
+hooks/auditor/flagged/use-auditor-flagged-queue.ts(52,13): error TS18048: 'i.ai_riskScore' is possibly 'undefined'.
+hooks/auditor/flagged/use-auditor-flagged-queue.ts(63,17): error TS18047: 'inv.invoiceNo' is possibly 'null'.
+hooks/company-employee/dashboard/use-employee-dashboard.ts(11,62): error TS18047: 'inv.totals_total' is possibly 'null'.
+hooks/company-manager/dashboard/use-manager-dashboard.ts(9,67): error TS18047: 'inv.totals_total' is possibly 'null'.
+hooks/company-manager/invoices/use-manager-invoices.ts(39,17): error TS18047: 'invoice.invoiceNo' is possibly 'null'.
+hooks/company-manager/invoices/use-manager-invoices.ts(40,17): error TS18047: 'invoice.totals_total' is possibly 'null'.
+hooks/company-manager/invoices/use-manager-invoices.ts(58,17): error TS18047: 'aValue' is possibly 'null'.
+hooks/company-manager/invoices/use-manager-invoices.ts(58,26): error TS18047: 'bValue' is possibly 'null'.
+hooks/company-manager/invoices/use-manager-invoices.ts(59,17): error TS18047: 'aValue' is possibly 'null'.
+hooks/company-manager/invoices/use-manager-invoices.ts(59,26): error TS18047: 'bValue' is possibly 'null'.
+hooks/global/index.ts(8,33): error TS2307: Cannot find module './use-toast' or its corresponding type declarations.
+hooks/super-admin/flagged/use-flagged-queue.ts(31,13): error TS18048: 'i.ai_riskScore' is possibly 'undefined'.
+hooks/super-admin/flagged/use-flagged-queue.ts(41,17): error TS18047: 'inv.invoiceNo' is possibly 'null'.
+services/dashboard.service.ts(86,61): error TS18047: 'inv.totals_total' is possibly 'null'.

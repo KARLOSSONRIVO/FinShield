@@ -26,14 +26,15 @@ export default function EmployeeInvoicesPage() {
   // Filter logic
   const filteredInvoices = rawInvoices.filter((invoice) => {
     const matchesSearch =
-      invoice.invoiceNo.toLowerCase().includes(search.toLowerCase()) ||
+      (invoice.invoiceNo || "").toLowerCase().includes(search.toLowerCase()) ||
       (invoice.companyName && invoice.companyName.toLowerCase().includes(search.toLowerCase())) ||
-      invoice.totals_total.toString().includes(search)
+      (invoice.totals_total || 0).toString().includes(search)
 
-    const matchesStatus =
-      statusFilter === "all" ? true :
-        statusFilter === "flagged" ? (invoice.status === "flagged" || invoice.ai_verdict === "flagged") :
-          invoice.status === statusFilter
+    const matchesStatus = (() => {
+      if (statusFilter === "all") return true
+      if (statusFilter === "flagged") return invoice.status === "flagged" || invoice.ai_verdict === "flagged"
+      return invoice.status === statusFilter
+    })()
 
     return matchesSearch && matchesStatus
   })

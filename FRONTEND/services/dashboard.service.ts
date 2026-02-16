@@ -33,7 +33,7 @@ export const DashboardService = {
             const invoices = mockInvoices // Still mocked
 
             return {
-                totalRevenue: invoices.reduce((acc, curr) => acc + curr.totals_total, 0),
+                totalRevenue: invoices.reduce((acc, curr) => acc + (curr.totals_total || 0), 0),
                 activeInvoices: invoices.length,
                 flaggedInvoices: invoices.filter((i) => i.ai_verdict === "flagged").length,
                 verifiedInvoices: invoices.filter((i) => i.status === "verified").length,
@@ -83,7 +83,7 @@ export const DashboardService = {
             verifiedInvoices: 0, // Not used directly
             companiesCount: mockOrganizations.filter(o => o.type === "company").length,
             verifiedOnChain: invoices.filter(i => i.blockchain_txHash).length,
-            totalValue: invoices.reduce((sum, inv) => sum + inv.totals_total, 0),
+            totalValue: invoices.reduce((sum, inv) => sum + (inv.totals_total ?? 0), 0),
             fraudulentCount: invoices.filter(i => i.status === "fraudulent").length
         }
     }

@@ -23,5 +23,26 @@ export const AuthService = {
     changePassword: async (payload: { currentPassword?: string; newPassword: string }) => {
         const { data } = await apiClient.post("/auth/change-password", payload)
         return data
+    },
+
+    // MFA Methods
+    verifyMfa: async (payload: { tempToken: string; token: string }) => {
+        const { data } = await apiClient.post("/auth/login/mfa", payload)
+        return data
+    },
+
+    setupMfa: async () => {
+        const { data } = await apiClient.post("/auth/mfa/setup")
+        return data
+    },
+
+    enableMfa: async (payload: { token: string }) => {
+        const { data } = await apiClient.post("/auth/mfa/enable", payload)
+        return data
+    },
+
+    disableMfa: async (payload: { password: string }) => {
+        const { data } = await apiClient.post("/auth/mfa/disable", payload)
+        return data
     }
 }

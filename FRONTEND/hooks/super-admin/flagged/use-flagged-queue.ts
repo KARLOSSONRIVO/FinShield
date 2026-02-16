@@ -28,7 +28,7 @@ export function useFlaggedQueue() {
             i.ai_verdict === 'flagged' ||
             i.status === 'flagged' ||
             i.status === 'fraudulent' ||
-            i.ai_riskScore >= 0.7
+            (i.ai_riskScore || 0) >= 0.7
         )
     }, [])
 
@@ -38,7 +38,7 @@ export function useFlaggedQueue() {
         // Filter by Search
         if (search) {
             processed = processed.filter(inv =>
-                inv.invoiceNo.toLowerCase().includes(search.toLowerCase()) ||
+                (inv.invoiceNo || "").toLowerCase().includes(search.toLowerCase()) ||
                 (inv.companyName && inv.companyName.toLowerCase().includes(search.toLowerCase()))
             )
         }

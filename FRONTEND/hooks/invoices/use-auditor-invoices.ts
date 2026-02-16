@@ -12,7 +12,7 @@ export type SortConfig = {
     direction: 'asc' | 'desc'
 }
 
-export function useAuditorInvoices() {
+export function useAuditorInvoices(initialData?: Invoice[]) {
     const [search, setSearch] = useState("")
     const [statusFilter, setStatusFilter] = useState<InvoiceStatusFilter>("all")
     const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -22,10 +22,13 @@ export function useAuditorInvoices() {
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(5)
 
-    const { data: invoices = [], isLoading } = useQuery({
+    const { data: fetchedInvoices = [], isLoading } = useQuery({
         queryKey: ["invoices"],
-        queryFn: InvoiceService.getAll
+        queryFn: InvoiceService.getAll,
+        enabled: !initialData
     })
+
+    const invoices = initialData || fetchedInvoices
 
     const filteredAndSortedInvoices = useMemo(() => {
         let result = [...invoices]
@@ -34,9 +37,9 @@ export function useAuditorInvoices() {
         if (search) {
             const lowerSearch = search.toLowerCase()
             result = result.filter(invoice =>
-                invoice.invoiceNo.toLowerCase().includes(lowerSearch) ||
+                (invoice.invoiceNo && invoice.invoiceNo.toLowerCase().includes(lowerSearch)) ||
                 (invoice.companyName && invoice.companyName.toLowerCase().includes(lowerSearch)) ||
-                invoice.totals_total.toString().includes(lowerSearch)
+                (invoice.totals_total && invoice.totals_total.toString().includes(lowerSearch))
             )
         }
 
@@ -44,7 +47,7 @@ export function useAuditorInvoices() {
         if (statusFilter !== "all") {
             result = result.filter(invoice => {
                 const status = invoice.status.toLowerCase()
-                const verdict = invoice.ai_verdict.toLowerCase()
+                const verdict = (invoice.ai_verdict || "").toLowerCase()
 
                 if (statusFilter === "pending") return status === "pending"
                 if (statusFilter === "verified") return status === "verified"
@@ -60,9 +63,9 @@ export function useAuditorInvoices() {
             const bValue = b[sortConfig.key]
 
             // Handle undefined values
-            if (aValue === undefined && bValue === undefined) return 0
-            if (aValue === undefined) return 1
-            if (bValue === undefined) return -1
+            if ((aValue === undefined || aValue === null) && (bValue === undefined || bValue === null)) return 0
+            if (aValue === undefined || aValue === null) return 1
+            if (bValue === undefined || bValue === null) return -1
 
             if (aValue < bValue) {
                 return sortConfig.direction === "asc" ? -1 : 1
@@ -100,6 +103,7 @@ export function useAuditorInvoices() {
         invoices: paginatedInvoices,
         currentPage,
         totalPages,
-        setCurrentPage
+        setCurrentPage,
+        isLoading
     }
 }

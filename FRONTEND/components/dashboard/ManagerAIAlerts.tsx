@@ -40,7 +40,7 @@ export function ManagerAIAlerts({ invoices }: AIAlertsProps) {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-bold text-lg mb-1">${invoice.totals_total.toLocaleString()}</p>
+                                    <p className="font-bold text-lg mb-1">${(invoice.totals_total || 0).toLocaleString()}</p>
                                     <div className="flex items-center justify-end gap-2">
                                         {invoice.status === 'fraudulent' ? (
                                             <>

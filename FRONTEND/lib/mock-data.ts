@@ -172,6 +172,35 @@ export const mockUsers: User[] = [
     createdAt: new Date("2024-03-01"),
     updatedAt: new Date("2024-03-01"),
   },
+  // Company Users - TechStart Inc. Employees
+  {
+    _id: "user-employee-4",
+    orgId: "org-company-2",
+    portal: "user",
+    role: "COMPANY_USER",
+    email: "dev@techstart.com",
+    username: "tech_dev",
+    status: "active",
+    mustChangePassword: false,
+    createdByUserId: "user-manager-2",
+    lastLoginAt: new Date("2024-12-20"),
+    createdAt: new Date("2024-03-05"),
+    updatedAt: new Date("2024-03-05"),
+  },
+  {
+    _id: "user-employee-5",
+    orgId: "org-company-2",
+    portal: "user",
+    role: "COMPANY_USER",
+    email: "qa@techstart.com",
+    username: "tech_qa",
+    status: "active",
+    mustChangePassword: false,
+    createdByUserId: "user-manager-2",
+    lastLoginAt: new Date("2024-12-19"),
+    createdAt: new Date("2024-03-10"),
+    updatedAt: new Date("2024-03-10"),
+  },
 ]
 
 // Mock Company Assignments

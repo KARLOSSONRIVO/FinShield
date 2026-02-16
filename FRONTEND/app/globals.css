@@ -125,88 +125,76 @@
 }
 
 /* Custom Toaster Layout: Content | Border | X */
+/* Custom Toaster Layout: Pill Shape */
 [data-sonner-toast] {
+  border-radius: 9999px !important;
+  padding: 12px 16px !important;
+  padding-right: 48px !important;
+  /* Space for absolute close button */
   display: flex !important;
-  align-items: stretch !important;
-  padding-right: 0 !important;
-  /* Remove padding right for flush button */
-  padding-left: 16px !important;
-  /* Add padding left for content spacing */
-  overflow: hidden !important;
+  align-items: center !important;
 }
 
 [data-sonner-toast]>[data-content] {
-  flex: 1 !important;
-  padding-right: 12px;
-  /* Spacing from divider */
+  margin-right: 8px;
 }
 
 /* Error Toast Styling - Bright Red & White */
 [data-sonner-toast][data-type="error"] {
   background-color: #dc2626 !important;
-  /* Bright Red (red-600) */
   color: #ffffff !important;
-  border-color: #b91c1c !important;
-  /* Darker red border */
+  border: none !important;
 }
 
 [data-sonner-toast][data-type="error"] [data-close-button] {
   color: #ffffff !important;
-  border-left-color: rgba(255, 255, 255, 0.2) !important;
+  background-color: rgba(255, 255, 255, 0.2) !important;
 }
 
 [data-sonner-toast][data-type="error"] [data-icon] {
   color: #ffffff !important;
 }
 
-/* Close Button Styling */
+/* Close Button Styling - Circular & Absolute */
 [data-sonner-toast] [data-close-button] {
-  order: 1 !important;
-  /* Move to end (Right) */
-  position: static !important;
-  transform: none !important;
-  margin-left: auto !important;
-  /* Push to right */
-  margin-right: 0 !important;
-  border-left: 1px solid var(--border) !important;
-  /* Divider on left side of button */
-  border-right: none !important;
-  border-radius: 0 !important;
-  min-width: 48px !important;
-  /* Wider hit area */
-  width: 48px !important;
-  height: 100% !important;
-  /* Force full height */
-  min-height: 100% !important;
+  position: absolute !important;
+  right: 8px !important;
+  /* Interior padding */
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  border-radius: 9999px !important;
+  border: none !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background: transparent !important;
-  color: currentColor !important;
   opacity: 0.8;
-  transition: opacity 0.2s, background-color 0.2s;
+  transition: all 0.2s ease;
+  margin: 0 !important;
+  left: auto !important;
+  /* Reset standard styles */
+  background: rgba(0, 0, 0, 0.05);
+  /* Default subtle bg */
 }
 
 [data-sonner-toast] [data-close-button]:hover {
   opacity: 1 !important;
-  background-color: rgba(0, 0, 0, 0.05) !important;
-  /* Subtle dark overlay instead of solid color */
-}
-
-[data-sonner-toast] [data-close-button]:active {
   background-color: rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Fix for dark mode or colored toasts */
-[data-sonner-toast][data-type="error"] [data-close-button]:hover,
-[data-sonner-toast][data-type="success"] [data-close-button]:hover {
-  background-color: rgba(255, 255, 255, 0.1) !important;
-  /* Subtle white overlay for colored backgrounds */
+[data-sonner-toast][data-type="error"] [data-close-button]:hover {
+  background-color: rgba(255, 255, 255, 0.3) !important;
 }
 
 /* Ensure icons align nicely with text */
 [data-sonner-toast] [data-icon] {
-  margin-top: 2px;
+  margin-top: 0 !important;
+  display: flex;
+  align-items: center;
 }
 
 @layer base {

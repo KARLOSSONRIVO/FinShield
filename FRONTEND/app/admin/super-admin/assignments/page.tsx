@@ -5,6 +5,7 @@ import { Search, Filter, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AssignmentTableContent } from "@/components/assignments/AssignmentTable"
 import { useAssignments } from "@/hooks/assignments/use-assignments"
+import { AssignmentTableSkeleton } from "@/components/skeletons/assignment-table-skeleton"
 import { Pagination } from "@/components/ui/pagination-custom"
 import { CreateAssignmentDialog } from "@/components/assignments/CreateAssignmentDialog"
 import { AssignmentSortFilter } from "@/components/assignments/AssignmentSortFilter"
@@ -27,7 +28,8 @@ export default function AssignmentsPage() {
     handleDeleteAssignment,
     handleUpdateAssignment,
     auditors,
-    companies
+    companies,
+    isLoading // Destructure isLoading
   } = useAssignments()
 
   return (
@@ -71,15 +73,19 @@ export default function AssignmentsPage() {
         />
       </div>
 
-      <AssignmentTableContent
-        assignments={assignments}
-        sortConfig={sortConfig}
-        onSort={requestSort}
-        onDelete={handleDeleteAssignment}
-        onUpdate={handleUpdateAssignment}
-        companies={companies}
-        auditors={auditors}
-      />
+      {isLoading ? (
+        <AssignmentTableSkeleton />
+      ) : (
+        <AssignmentTableContent
+          assignments={assignments}
+          sortConfig={sortConfig}
+          onSort={requestSort}
+          onDelete={handleDeleteAssignment}
+          onUpdate={handleUpdateAssignment}
+          companies={companies}
+          auditors={auditors}
+        />
+      )}
 
       <div className="mt-4 flex justify-center">
         <Pagination

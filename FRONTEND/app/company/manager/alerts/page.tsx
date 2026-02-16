@@ -12,7 +12,7 @@ export default function ManagerAlertsPage() {
   const flaggedInvoices = companyInvoices.filter((i) => i.ai_verdict === "flagged" || i.status === "flagged")
   const fraudulentInvoices = companyInvoices.filter((i) => i.status === "fraudulent")
   const pendingInvoices = companyInvoices.filter((i) => i.status === "pending")
-  const highRiskInvoices = companyInvoices.filter((i) => i.ai_riskScore > 0.7)
+  const highRiskInvoices = companyInvoices.filter((i) => (i.ai_riskScore || 0) > 0.7)
 
   return (
     <div className="space-y-6">
