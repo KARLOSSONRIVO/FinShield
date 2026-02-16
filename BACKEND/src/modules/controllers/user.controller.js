@@ -12,6 +12,11 @@ export const list = asyncHandler(async(req,res)=>{
     res.json({ok: true, data})
 })
 
+export const listEmployees = asyncHandler(async(req,res)=>{
+    const data = await UserServices.listEmployees({actor: req.auth})
+    res.json({ok: true, data})
+})
+
 export const getOne = asyncHandler(async(req,res)=>{
     const data = await UserServices.getUserById({actor: req.auth, userId: req.params.id})
     res.json({ok: true, data})

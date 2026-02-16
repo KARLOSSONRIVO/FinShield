@@ -10,10 +10,12 @@ const userRouter = Router()
 
 userRouter.get('/listUsers', allowRoles("SUPER_ADMIN"), UserController.list)
 
+userRouter.get('/listEmployees', allowRoles("COMPANY_MANAGER"), UserController.listEmployees)
+
 userRouter.post('/createUser', validateCreateUser, allowRoles("SUPER_ADMIN", "COMPANY_MANAGER"), UserController.createUser)
 
 userRouter.get('/:id', allowRoles("SUPER_ADMIN", "COMPANY_MANAGER"), UserController.getOne)
 
-userRouter.put('/updateUser/:id', validate(updateUserSchema), allowRoles("SUPER_ADMIN"), UserController.update)
+userRouter.put('/updateUser/:id', validate(updateUserSchema), allowRoles("SUPER_ADMIN", "COMPANY_MANAGER"), UserController.update)
 
 export default userRouter

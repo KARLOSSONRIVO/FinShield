@@ -1,4 +1,5 @@
 import swaggerJsdoc from 'swagger-jsdoc';
+import path from 'path';
 import { PORT, HOST, NODE_ENV } from './env.js';
 
 const options = {
@@ -14,15 +15,19 @@ const options = {
     },
     servers: [
       {
-        url: NODE_ENV === 'production' 
-          ? `https://${HOST}` 
-          : `http://${HOST}:${PORT}`,
+        url: NODE_ENV === 'production'
+          ? `https://${HOST}`
+          : `http://${HOST}:${PORT}/api`,
         description: NODE_ENV === 'production' ? 'Production server' : 'Development server',
       },
+      {
+        url: `http://localhost:${PORT}/api`,
+        description: 'Local Docker'
+      }
     ],
   },
-  // Load documentation from separate YAML files (cleaner and easier to manage)
-  apis: ['./src/docs/*.yaml'],
+  // Use absolute path for Docker compatibility
+  apis: [path.join(process.cwd(), 'src/docs/*.yaml')],
 };
 
 const swaggerSpec = swaggerJsdoc(options);

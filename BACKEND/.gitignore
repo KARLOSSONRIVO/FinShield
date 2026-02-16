@@ -10,12 +10,6 @@ package-lock.json
 pnpm-lock.yaml
 yarn.lock
 
-# Test files
-test-invoice-upload.js
-test-invoice-upload.sh
-test-invoice-upload.bat
-test-invoice.pdf
-
 # Logs
 logs/
 *.log

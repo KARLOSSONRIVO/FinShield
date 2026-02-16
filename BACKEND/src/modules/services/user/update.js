@@ -4,14 +4,32 @@ import { toUserPublic } from "../../mappers/user.mapper.js";
 
 export async function updateUser({ actor, userId, status, reason }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED")
-    if (actor.role !== "SUPER_ADMIN") throw new AppError("Forbidden", 403, "FORBIDDEN")
+    
+    // Only SUPER_ADMIN and COMPANY_MANAGER can update users
+    if (actor.role !== "SUPER_ADMIN" && actor.role !== "COMPANY_MANAGER") {
+        throw new AppError("Forbidden", 403, "FORBIDDEN")
+    }
 
+    // Cannot disable own account
     if (status === "disabled" && String(actor.sub) === String(userId)) {
         throw new AppError("You cannot disable your own account", 400, "CANNOT_DISABLE_SELF")
     }
 
     const user = await UsersRepositories.findById(userId);
     if (!user) throw new AppError("User not found", 404, "USER_NOT_FOUND")
+
+    // COMPANY_MANAGER specific restrictions
+    if (actor.role === "COMPANY_MANAGER") {
+        // Can only update COMPANY_USER (employees)
+        if (user.role !== "COMPANY_USER") {
+            throw new AppError("Company managers can only update employee accounts", 403, "FORBIDDEN_ROLE")
+        }
+
+        // Must be in the same organization
+        if (String(user.orgId) !== String(actor.orgId)) {
+            throw new AppError("You can only update employees in your organization", 403, "FORBIDDEN_ORG")
+        }
+    }
 
     const updateData = {
         status,
