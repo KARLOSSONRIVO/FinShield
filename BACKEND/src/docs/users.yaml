@@ -48,9 +48,11 @@ paths:
                     employees:
                       - id: "698db123..."
                         username: "employee1"
+                        email: "employee1@finshield.com"
                         status: "active"
                       - id: "698db456..."
                         username: "employee2"
+                        email: "employee2@finshield.com"
                         status: "active"
                     createdAt: "2026-02-12T11:17:56.057Z"
                     updatedAt: "2026-02-16T03:16:24.606Z"

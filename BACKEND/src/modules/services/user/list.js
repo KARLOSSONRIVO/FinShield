@@ -41,6 +41,7 @@ export async function listUsers({ actor, orgId }) {
                     .map(emp => ({
                         id: String(emp._id),
                         username: emp.username,
+                        email: emp.email,
                         status: emp.status
                     }))
 

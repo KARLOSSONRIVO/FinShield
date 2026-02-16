@@ -83,6 +83,10 @@ components:
               username:
                 type: string
                 example: "employee1"
+              email:
+                type: string
+                format: email
+                example: "employee1@company.com"
               status:
                 type: string
                 enum: [active, disabled]
