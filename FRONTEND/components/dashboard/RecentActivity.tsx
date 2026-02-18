@@ -1,8 +1,8 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/layout/card'
 import { TrendingUp, type LucideIcon } from "lucide-react"
-import type { AuditLog } from "@/lib/types"
+import type { AuditLog } from '@/types'
 
 interface RecentActivityProps {
     logs: AuditLog[]

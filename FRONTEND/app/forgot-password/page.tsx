@@ -4,9 +4,9 @@ import type React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/layout/card'
+import { Input } from '@/components/ui/forms/input'
+import { Label } from '@/components/ui/forms/label'
 import { FinShieldLogo } from "@/components/common/FinShieldLogo"
 import Link from "next/link"
 import { ArrowLeft, Mail } from "lucide-react"

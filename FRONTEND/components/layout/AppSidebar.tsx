@@ -29,7 +29,7 @@ interface AppSidebarProps {
     links: NavLink[]
     collapsed: boolean
     setCollapsed: (collapsed: boolean) => void
-    title?: string // Optional role title if needed
+    title?: string 
 }
 
 export function AppSidebar({ links, collapsed, setCollapsed, title = "FinShield" }: AppSidebarProps) {
@@ -42,14 +42,14 @@ export function AppSidebar({ links, collapsed, setCollapsed, title = "FinShield"
                 collapsed ? "w-20" : "w-72",
             )}
         >
-            {/* Header / Logo Area */}
+            {}
             <div className={cn(
                 "h-20 flex items-center px-4 border-b border-sidebar-border",
                 collapsed ? "justify-center" : "justify-between"
             )}>
                 {!collapsed && (
                     <div className="flex items-center gap-3">
-                        {/* Shield Icon - Green Box with White Outline */}
+                        {}
                         <div className="flex items-center justify-center bg-emerald-600 rounded-lg h-9 w-9 shadow-sm">
                             <Shield className="h-5 w-5 text-white" fill="none" strokeWidth={2.5} />
                         </div>
@@ -70,7 +70,7 @@ export function AppSidebar({ links, collapsed, setCollapsed, title = "FinShield"
                 </div>
             </div>
 
-            {/* Navigation Links */}
+            {}
             <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
                 {links.map((link) => {
                     const isActive = pathname === link.href
@@ -101,7 +101,7 @@ export function AppSidebar({ links, collapsed, setCollapsed, title = "FinShield"
                 })}
             </nav>
 
-            {/* Footer / Sign Out */}
+            {}
             <div className="p-4 border-t border-sidebar-border mt-auto">
                 <Link href="/">
                     <div className={cn(

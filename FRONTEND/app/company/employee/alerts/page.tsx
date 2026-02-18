@@ -1,6 +1,6 @@
 import { AlertTriangle, Clock, Info, XCircle } from "lucide-react"
 import { mockInvoices } from "@/lib/mock-data"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/layout/card'
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { AIVerdictBadge } from "@/components/common/StatusBadge"
@@ -9,11 +9,11 @@ import { cn } from "@/lib/utils"
 export default function EmployeeFlaggedQueuePage() {
     const myInvoices = mockInvoices.filter((i) => i.uploadedByUserId === "user-employee-1")
 
-    // Split invoices by category
+    
     const fraudulentInvoices = myInvoices.filter((i) => i.status === "fraudulent")
     const flaggedInvoices = myInvoices.filter((i) => i.status === "flagged" || i.ai_verdict === "flagged")
 
-    // Mock review history
+    
     const reviewHistory = [
         {
             id: 1,
@@ -31,16 +31,16 @@ export default function EmployeeFlaggedQueuePage() {
 
     return (
         <div className="p-6 space-y-8">
-            {/* Header */}
+            {}
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold">Flagged Invoices</h1>
             </div>
 
-            {/* Flagged Invoices Section */}
+            {}
             <div className="space-y-4">
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Fraudulent Invoices Column */}
+                    {}
                     <div className="rounded-xl border shadow-sm bg-white overflow-hidden flex flex-col">
                         <div className="bg-red-600 p-4 border-b border-red-700">
                             <h3 className="font-bold text-lg flex items-center gap-2 text-white">
@@ -72,7 +72,7 @@ export default function EmployeeFlaggedQueuePage() {
                         </div>
                     </div>
 
-                    {/* Flagged Invoices Column */}
+                    {}
                     <div className="rounded-xl border shadow-sm bg-white overflow-hidden flex flex-col">
                         <div className="bg-amber-500 p-4 border-b border-amber-600">
                             <h3 className="font-bold text-lg flex items-center gap-2 text-white">
@@ -104,7 +104,7 @@ export default function EmployeeFlaggedQueuePage() {
                 </div>
             </div>
 
-            {/* Review History Section */}
+            {}
             <div className="space-y-4">
                 <div className="flex items-center gap-2">
                     <Clock className="h-5 w-5 text-muted-foreground" />

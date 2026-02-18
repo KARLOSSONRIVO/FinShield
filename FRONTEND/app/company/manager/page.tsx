@@ -17,7 +17,7 @@ export default function CompanyManagerDashboard() {
     totalValue,
     recentInvoices,
     flaggedInvoices,
-    isLoading // Destructure isLoading
+    isLoading 
   } = useManagerDashboard()
 
   return (
@@ -42,11 +42,11 @@ export default function CompanyManagerDashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="space-y-4">
-              {/* Pending Reviews Section - Using Recent Invoices as placeholder for now, styled as 'Pending Reviews' */}
+              {}
               <ManagerRecentInvoices invoices={recentInvoices} description="Latest invoice submissions for your decision" />
             </div>
             <div className="space-y-4">
-              {/* Flagged Items Section */}
+              {}
               <ManagerAIAlerts invoices={flaggedInvoices} />
             </div>
           </div>

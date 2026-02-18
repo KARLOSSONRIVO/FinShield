@@ -1,13 +1,13 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
+import { Input } from '@/components/ui/forms/input'
 import { Search } from "lucide-react"
 import { BlockchainTable } from "@/components/blockchain/BlockchainTable"
-import { useRegulatorBlockchain as useAuditorBlockchain } from "@/hooks/blockchain/use-regulator-blockchain" // Reusing hook logic for now if specific one doesn't exist
-import { Pagination } from "@/components/ui/pagination-custom"
+import { useRegulatorBlockchain as useAuditorBlockchain } from "@/hooks/blockchain/use-regulator-blockchain" 
+import { Pagination } from '@/components/ui/data-display/pagination-custom'
 
 export default function AuditorBlockchainPage() {
-  // Using regulator hook or similar logic since Auditor views behave same as Regulator for readonly ledger
+  
   const {
     search,
     setSearch,

@@ -5,8 +5,8 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Input } from '@/components/ui/forms/input'
+import { Label } from '@/components/ui/forms/label'
 import Link from "next/link"
 import Image from "next/image"
 import { Eye, EyeOff } from "lucide-react"
@@ -25,7 +25,7 @@ export default function LoginPage() {
   const [otp, setOtp] = useState("")
   const { login, verifyMfaLogin, isLoading } = useAuth()
 
-  // Local state for error handling since the hook throws
+  
   const [isPending, setIsPending] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -149,10 +149,10 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Side - Login Form */}
+      {}
       <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-8 md:px-16 lg:px-24 xl:px-32 py-12 bg-[#f5f5f0]">
         <div className="w-full max-w-md">
-          {/* Logo */}
+          {}
           <div className="mb-8 flex justify-center">
             <Link href="/">
               <Image
@@ -165,7 +165,7 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          {/* Header */}
+          {}
           <div className="mb-10 text-center">
             <h1 className="text-3xl md:text-4xl text-gray-800 mb-3">
               Hello, <span className="font-bold">Welcome Back!</span>
@@ -175,12 +175,12 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Form */}
+          {}
           <form onSubmit={handleLogin} className="space-y-6">
-            {/* Error Display */}
-            {/* The toast handles main errors, but we can also show a localized alert if needed */}
+            {}
+            {}
 
-            {/* Email Field */}
+            {}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-700 text-sm font-medium">
                 Email
@@ -198,7 +198,7 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Password Field */}
+            {}
             <div className="space-y-2">
               <Label htmlFor="password" className="text-gray-700 text-sm font-medium">
                 Password
@@ -225,7 +225,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Forgot Password Link */}
+            {}
             <div className="text-right">
               <Link
                 href="/forgot-password"
@@ -235,7 +235,7 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            {/* Login Button */}
+            {}
             <Button
               type="submit"
               disabled={isPending || isLoading}
@@ -247,11 +247,11 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Side - Feature Showcase */}
+      {}
       <div className="hidden lg:flex lg:w-1/2 relative bg-[#0a0a0a] flex-col justify-center p-10 xl:p-16">
-        {/* Main Content */}
+        {}
         <div className="flex-1 flex flex-col">
-          {/* Headline */}
+          {}
           <h2 className="text-4xl xl:text-5xl 2xl:text-6xl font-bold text-white leading-tight mb-8">
             <span className="text-emerald-400">Secure</span> your invoices with{" "}
             <span className="text-emerald-400">AI-powered</span>
@@ -259,7 +259,7 @@ export default function LoginPage() {
             fraud detection
           </h2>
 
-          {/* Subtitle */}
+          {}
           <p className="text-gray-400 text-base xl:text-lg leading-relaxed mb-14 max-w-lg">
             FinShield combines{" "}
             <span className="text-emerald-400">advanced AI anomaly detection</span> with{" "}
@@ -267,9 +267,9 @@ export default function LoginPage() {
             organization from <span className="text-emerald-400">invoice fraud</span>.
           </p>
 
-          {/* Feature List */}
+          {}
           <div className="space-y-8">
-            {/* Feature 1 */}
+            {}
             <div className="flex items-start gap-5">
               <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                 <svg className="w-7 h-7 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
@@ -282,7 +282,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Feature 2 */}
+            {}
             <div className="flex items-start gap-5">
               <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                 <svg className="w-7 h-7 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
@@ -295,7 +295,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Feature 3 */}
+            {}
             <div className="flex items-start gap-5">
               <div className="w-14 h-14 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                 <svg className="w-7 h-7 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
@@ -310,7 +310,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Footer */}
+        {}
         <div className="mt-auto pt-6">
           <p className="text-gray-600 text-xs tracking-widest uppercase font-medium">
             Trusted by finance companies around the globe

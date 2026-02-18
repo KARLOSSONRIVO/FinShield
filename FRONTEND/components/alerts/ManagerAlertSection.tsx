@@ -1,10 +1,10 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/layout/card'
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { AIVerdictBadge, InvoiceStatusBadge } from "@/components/common/StatusBadge"
-import type { Invoice } from "@/lib/types"
+import type { Invoice } from '@/types'
 import { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 

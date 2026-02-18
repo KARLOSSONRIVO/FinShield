@@ -17,18 +17,18 @@ interface AuditorStatsProps {
 export function AuditorStats({ stats }: AuditorStatsProps) {
     if (!stats || stats.length < 4) return null
 
-    // Helper to get icon based on label or index logic
-    // We match the hook's output order: 
-    // 0: Pending Reviews, 1: Flagged Invoices, 2: Verified Invoices, 3: Total Audited
+    
+    
+    
 
-    // Design expects:
-    // 1. Total/Assigned (FileText)
-    // 2. Verified (CheckCircle)
-    // 3. Pending (Clock)
-    // 4. Flagged (AlertTriangle)
+    
+    
+    
+    
+    
 
-    // We can just map them directly if the hook order is fixed, or find by label.
-    // Finding by label is safer.
+    
+    
 
     const totalItem = stats.find(s => s.label.includes("Total") || s.label.includes("Assigned")) || stats[3]
     const verifiedItem = stats.find(s => s.label.includes("Verified")) || stats[2]

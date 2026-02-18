@@ -1,13 +1,13 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
+import { Input } from '@/components/ui/forms/input'
 import { Button } from "@/components/ui/button"
 import { Search, Filter, ChevronUp, ChevronDown } from "lucide-react"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Separator } from "@/components/ui/separator"
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/data-display/popover'
+import { Separator } from '@/components/ui/layout/separator'
 import { cn } from "@/lib/utils"
 import { InvoiceStatusFilter, SortConfig } from "@/hooks/invoices/use-auditor-invoices"
-import { Invoice } from "@/lib/types"
+import { Invoice } from '@/types'
 
 interface InvoiceFilterProps {
     search: string
@@ -27,7 +27,7 @@ export function InvoiceFilter({
     onSortChange
 }: InvoiceFilterProps) {
 
-    // Helper for Sort selection
+    
     const SortItem = ({ label, sortKey, direction }: { label: string, sortKey: keyof Invoice, direction?: "asc" | "desc" }) => {
         const isActive = sortConfig?.key === sortKey && (!direction || sortConfig.direction === direction)
 
@@ -45,7 +45,7 @@ export function InvoiceFilter({
         )
     }
 
-    // Helper for Filter selection
+    
     const FilterItem = ({ label, value }: { label: string, value: InvoiceStatusFilter }) => {
         const isActive = statusFilter === value
         return (
@@ -84,7 +84,7 @@ export function InvoiceFilter({
                 </PopoverTrigger>
                 <PopoverContent className="w-64 p-0" align="end">
                     <div className="py-2">
-                        {/* Status Sections */}
+                        {}
                         <div className="px-3 py-2 text-sm font-medium text-black">Filter By Status</div>
                         <div className="px-1">
                             <FilterItem label="All Invoices" value="all" />
@@ -96,7 +96,7 @@ export function InvoiceFilter({
 
                         <Separator className="my-2" />
 
-                        {/* Sort Sections */}
+                        {}
                         <div className="px-3 py-2 text-sm font-medium text-black">Sort By Date</div>
                         <div className="px-1">
                             <SortItem label="Invoice Date" sortKey="invoiceDate" />

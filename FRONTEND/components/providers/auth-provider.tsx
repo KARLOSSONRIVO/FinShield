@@ -4,7 +4,7 @@ import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AuthService } from "@/services/auth.service"
-import type { components } from "@/lib/api-types"
+import type { components } from '@/types/api'
 
 type User = components["schemas"]["User"]
 type LoginRequest = Parameters<typeof AuthService.login>[0]
@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true)
     const router = useRouter()
 
-    // Initialize auth state
+    
     useEffect(() => {
         const initializeAuth = async () => {
             const token = localStorage.getItem("token")
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 localStorage.setItem("refreshToken", refreshToken)
             }
 
-            // Set cookie for middleware
+            
             document.cookie = `token=${accessToken}; path=/; max-age=86400; SameSite=Strict`
 
             setUser(userData)
@@ -75,9 +75,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(true)
         try {
             const response: any = await AuthService.login(credentials)
-            // Check if MFA is required
+            
             if (response.data?.mfaRequired || response.mfaRequired) {
-                setIsLoading(false) // Stop loading so UI can show MFA input
+                setIsLoading(false) 
                 return {
                     mfaRequired: true,
                     tempToken: response.data?.tempToken || response.tempToken
@@ -149,7 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             localStorage.removeItem("refreshToken")
             localStorage.removeItem("user")
 
-            // Remove cookie
+            
             document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
 
             setUser(null)

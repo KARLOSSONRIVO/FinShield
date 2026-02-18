@@ -1,12 +1,12 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
+import { Input } from '@/components/ui/forms/input'
 import { Search, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 import { AuditLogTable } from "@/components/audit-logs/AuditLogTable"
 import { useRegulatorAuditLogs, EntityFilter } from "@/hooks/audit-logs/use-regulator-audit-logs"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { Pagination } from '@/components/ui/data-display/pagination-custom'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuLabel,
   DropdownMenuSeparator
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/data-display/dropdown-menu'
 import { cn } from "@/lib/utils"
 
 export default function RegulatorAuditLogsPage() {

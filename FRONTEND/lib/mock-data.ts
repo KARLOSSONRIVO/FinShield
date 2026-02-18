@@ -1,6 +1,6 @@
 import type { Organization, User, CompanyAssignment, Invoice, Review, AuditLog } from "./types"
 
-// Mock Organizations
+
 export const mockOrganizations: Organization[] = [
   {
     _id: "org-platform",
@@ -40,9 +40,9 @@ export const mockOrganizations: Organization[] = [
   },
 ]
 
-// Mock Users
+
 export const mockUsers: User[] = [
-  // Platform Users
+  
   {
     _id: "user-superadmin",
     orgId: "org-platform",
@@ -98,7 +98,7 @@ export const mockUsers: User[] = [
     createdAt: new Date("2024-02-20"),
     updatedAt: new Date("2024-02-20"),
   },
-  // Company Users - Acme Corporation
+  
   {
     _id: "user-manager-1",
     orgId: "org-company-1",
@@ -157,7 +157,7 @@ export const mockUsers: User[] = [
     createdAt: new Date("2024-03-01"),
     updatedAt: new Date("2024-11-01"),
   },
-  // Company Users - TechStart Inc.
+  
   {
     _id: "user-manager-2",
     orgId: "org-company-2",
@@ -172,7 +172,7 @@ export const mockUsers: User[] = [
     createdAt: new Date("2024-03-01"),
     updatedAt: new Date("2024-03-01"),
   },
-  // Company Users - TechStart Inc. Employees
+  
   {
     _id: "user-employee-4",
     orgId: "org-company-2",
@@ -203,7 +203,7 @@ export const mockUsers: User[] = [
   },
 ]
 
-// Mock Company Assignments
+
 export const mockAssignments: CompanyAssignment[] = [
   {
     _id: "assign-sj-01",
@@ -231,7 +231,7 @@ export const mockAssignments: CompanyAssignment[] = [
     _id: "assign-mr-03",
     companyOrgId: "org-company-3",
     auditorUserId: "auditor-mike",
-    status: "active", // Changed from implied active to explicit
+    status: "active", 
     assignedByUserId: "user-superadmin",
     assignedAt: new Date("2024-03-15"),
     taskName: "Compliance Check",
@@ -271,7 +271,7 @@ export const mockAssignments: CompanyAssignment[] = [
   },
 ]
 
-// Mock Invoices
+
 export const mockInvoices: Invoice[] = [
   {
     _id: "inv-001",
@@ -404,7 +404,7 @@ export const mockInvoices: Invoice[] = [
   },
 ]
 
-// Mock Reviews
+
 export const mockReviews: Review[] = [
   {
     _id: "review-001",
@@ -438,7 +438,7 @@ export const mockReviews: Review[] = [
   },
 ]
 
-// Mock Audit Logs
+
 export const mockAuditLogs: AuditLog[] = [
   {
     _id: "log-001",

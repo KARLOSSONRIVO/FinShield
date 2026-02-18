@@ -1,12 +1,12 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
+import { Input } from '@/components/ui/forms/input'
 import { Search, Filter, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AssignmentTableContent } from "@/components/assignments/AssignmentTable"
 import { useAssignments } from "@/hooks/assignments/use-assignments"
 import { AssignmentTableSkeleton } from "@/components/skeletons/assignment-table-skeleton"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { Pagination } from '@/components/ui/data-display/pagination-custom'
 import { CreateAssignmentDialog } from "@/components/assignments/CreateAssignmentDialog"
 import { AssignmentSortFilter } from "@/components/assignments/AssignmentSortFilter"
 
@@ -29,7 +29,7 @@ export default function AssignmentsPage() {
     handleUpdateAssignment,
     auditors,
     companies,
-    isLoading // Destructure isLoading
+    isLoading 
   } = useAssignments()
 
   return (

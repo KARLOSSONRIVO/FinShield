@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Filter, Plus, Search, CalendarIcon, Building } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/layout/tabs'
+import { Input } from '@/components/ui/forms/input'
 import {
     Table,
     TableBody,
@@ -13,7 +13,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
+} from '@/components/ui/data-display/table'
 import {
     Dialog,
     DialogContent,
@@ -22,45 +22,45 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog"
+} from '@/components/ui/layout/dialog'
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
+} from '@/components/ui/forms/select'
+import { Label } from '@/components/ui/forms/label'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/data-display/popover'
+import { Calendar } from '@/components/ui/data-display/calendar'
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { useState, useMemo } from "react"
 import { mockAssignments, mockUsers, mockOrganizations } from "@/lib/mock-data"
-import { CompanyAssignment } from "@/lib/types"
+import { CompanyAssignment } from '@/types'
 
 export default function AssignmentDetailPage() {
     const params = useParams()
     const username = params.id as string
 
-    // Find auditor
+    
     const auditor = mockUsers.find(u => u.username === username)
     const auditorName = auditor ? auditor.username : username
 
-    // State for local assignments (to simulate adding new ones)
+    
     const [localAssignments, setLocalAssignments] = useState<CompanyAssignment[]>(() => {
-        // Filter initial assignments for this auditor
+        
         return mockAssignments.filter(a => {
-            // Match by auditor ID if we had a way to map username -> ID reliably, 
-            // or just cheat for the mockup if IDs don't match usernames perfectly.
-            // Converting username to ID for mock data consistency:
-            // mockUsers has "user-auditor-1" with username "auditor1"
+            
+            
+            
+            
             if (!auditor) return false
             return a.auditorUserId === auditor._id
         }).sort((a, b) => new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime())
     })
 
-    // Add Assignment State
+    
     const [isAddOpen, setIsAddOpen] = useState(false)
     const [newAssignmentData, setNewAssignmentData] = useState<{
         companyName: string
@@ -72,11 +72,11 @@ export default function AssignmentDetailPage() {
         dueDate: undefined
     })
 
-    // View Assignment State
+    
     const [viewAssignment, setViewAssignment] = useState<CompanyAssignment | null>(null)
     const [isViewOpen, setIsViewOpen] = useState(false)
 
-    // Handlers
+    
     const handleAddAssignment = () => {
         if (!newAssignmentData.companyName || !newAssignmentData.taskName || !newAssignmentData.dueDate) return
 
@@ -90,7 +90,7 @@ export default function AssignmentDetailPage() {
             assignedAt: new Date(),
             taskName: newAssignmentData.taskName,
             dueDate: newAssignmentData.dueDate,
-            // notes: undefined // Explicitly no notes
+            
         }
 
         setLocalAssignments([newAssign, ...localAssignments])
@@ -103,11 +103,11 @@ export default function AssignmentDetailPage() {
         setIsViewOpen(true)
     }
 
-    // Tabs logic
+    
     const activeAssignments = localAssignments.filter(a => a.status === 'active')
     const inactiveAssignments = localAssignments.filter(a => a.status === 'inactive')
 
-    // Helper to get company name
+    
     const getCompanyName = (orgId: string) => {
         const org = mockOrganizations.find(o => o._id === orgId)
         return org ? org.name : "Unknown Company"

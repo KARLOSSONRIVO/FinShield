@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { InvoiceService } from "@/services/invoice.service"
-import type { Invoice } from "@/lib/types"
+import type { Invoice } from '@/types'
 
 export type InvoiceStatusFilter = "all" | "pending" | "verified" | "flagged" | "fraudulent"
 
@@ -30,7 +30,7 @@ export function useRegulatorInvoices() {
     const filteredAndSortedInvoices = useMemo(() => {
         let result = [...invoices]
 
-        // 1. Search
+        
         if (search) {
             const lowerSearch = search.toLowerCase()
             result = result.filter(invoice =>
@@ -40,7 +40,7 @@ export function useRegulatorInvoices() {
             )
         }
 
-        // 2. Status Filter
+        
         if (statusFilter !== "all") {
             result = result.filter(invoice => {
                 const status = invoice.status.toLowerCase()
@@ -48,7 +48,7 @@ export function useRegulatorInvoices() {
             })
         }
 
-        // 3. Sorting
+        
         result.sort((a, b) => {
             const aValue = a[sortConfig.key]
             const bValue = b[sortConfig.key]
@@ -69,7 +69,7 @@ export function useRegulatorInvoices() {
         return result
     }, [search, statusFilter, sortConfig])
 
-    // Pagination
+    
     const totalPages = Math.ceil(filteredAndSortedInvoices.length / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
     const currentInvoices = filteredAndSortedInvoices.slice(startIndex, startIndex + itemsPerPage)

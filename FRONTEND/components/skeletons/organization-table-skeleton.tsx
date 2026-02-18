@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from '@/components/ui/feedback/skeleton'
 import {
     Table,
     TableBody,
@@ -6,7 +6,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
+} from '@/components/ui/data-display/table'
 
 export function OrganizationTableSkeleton() {
     return (
@@ -25,30 +25,30 @@ export function OrganizationTableSkeleton() {
                 <TableBody>
                     {Array.from({ length: 5 }).map((_, i) => (
                         <TableRow key={i} className="h-24 hover:bg-muted/30 transition-colors border-b border-border/50">
-                            {/* Name */}
+                            {}
                             <TableCell className="px-6">
                                 <div className="flex flex-col gap-2">
                                     <Skeleton className="h-5 w-40" />
                                     <Skeleton className="h-3 w-24" />
                                 </div>
                             </TableCell>
-                            {/* Type */}
+                            {}
                             <TableCell className="px-6 text-center">
                                 <Skeleton className="h-6 w-20 rounded-full mx-auto" />
                             </TableCell>
-                            {/* Employees */}
+                            {}
                             <TableCell className="px-6 text-center">
                                 <Skeleton className="h-5 w-8 mx-auto" />
                             </TableCell>
-                            {/* Created At */}
+                            {}
                             <TableCell className="px-6 text-center">
                                 <Skeleton className="h-4 w-32 mx-auto" />
                             </TableCell>
-                            {/* Status */}
+                            {}
                             <TableCell className="px-6 text-center">
                                 <Skeleton className="h-6 w-20 rounded-full mx-auto" />
                             </TableCell>
-                            {/* Action */}
+                            {}
                             <TableCell className="px-6 text-center">
                                 <Skeleton className="h-8 w-20 rounded-md mx-auto" />
                             </TableCell>

@@ -2,9 +2,9 @@
 
 import { use } from "react"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/layout/card'
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from '@/components/ui/data-display/badge'
 import { mockInvoices, mockReviews } from "@/lib/mock-data"
 import { InvoiceStatusBadge, AIVerdictBadge, DecisionBadge } from "@/components/common/StatusBadge"
 import { ArrowLeft, FileText, Brain, Link2, ClipboardCheck } from "lucide-react"
@@ -44,7 +44,7 @@ export default function ManagerInvoiceDetailPage({ params }: { params: Promise<{
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Invoice Details */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle>Invoice Details</CardTitle>
@@ -79,7 +79,7 @@ export default function ManagerInvoiceDetailPage({ params }: { params: Promise<{
           </CardContent>
         </Card>
 
-        {/* AI Analysis */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -111,7 +111,7 @@ export default function ManagerInvoiceDetailPage({ params }: { params: Promise<{
           </CardContent>
         </Card>
 
-        {/* Blockchain Verification */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -145,7 +145,7 @@ export default function ManagerInvoiceDetailPage({ params }: { params: Promise<{
           </CardContent>
         </Card>
 
-        {/* Review History */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

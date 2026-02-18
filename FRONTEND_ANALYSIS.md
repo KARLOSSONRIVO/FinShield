@@ -66,7 +66,11 @@ app/
 
 ### **2. `/components` - UI Library**
 
--   **`/ui`**: Atomic, reusable components (Button, Card, Input) primarily from Shadcn UI.
+-   **`/ui`**: Atomic, reusable components organized by category:
+    -   **`/forms`**: Input, Select, Checkbox, Form, etc.
+    -   **`/feedback`**: Toast, Alert, Skeleton, Spinner, etc.
+    -   **`/layout`**: Card, Sheet, Dialog, Sidebar, etc.
+    -   **`/data-display`**: Table, Avatar, Badge, Charts, etc.
 -   **`/common`**: Shared business components (`StatusBadge`, `BackButton`).
 -   **`/invoices`**: specific components like `InvoiceTable`, `InvoiceUploadForm`.
 -   **`/dashboard`**: Widgets like `RecentActivity`, `StatsCard`.
@@ -101,15 +105,20 @@ export function useAuditorInvoices() {
 
 Axios instances configured with interceptors for JWT token injection.
 
--   `api-client.ts`: Base axios instance.
+-   `api-client.ts`: Base axios instance with standardized interceptors.
 -   `auth.service.ts`: Login, Logout, Refresh Token.
--   `invoice.service.ts`: Upload, fetch all, fetch by ID.
+-   `invoice.service.ts`: Upload, fetch all, fetch by ID (uses `apiClient`).
 
 ### **5. `/lib` - Utilities**
 
--   `types.ts`: TypeScript interfaces mirroring Backend models (`Invoice`, `User`, `Organization`).
+-   `config.ts`: Centralized application constants (API URLs, etc.).
 -   `mock-data.ts`: Extensive static data used when the backend is unreachable or for prototyping.
 -   `utils.ts`: Helper functions (Shadcn `cn` utility, formatters).
+
+### **6. `/types` - Type Definitions**
+
+-   `index.ts`: Shared domain models (`Invoice`, `User`, `Organization`).
+-   `api.ts`: API-specific response/request types.
 
 ---
 
@@ -164,6 +173,7 @@ export function middleware(request: NextRequest) {
 -   **Type Safety:** Strong TypeScript usage reduces runtime errors (recently improved null safety).
 -   **Responsive UI:** Tailwind + Shadcn ensures a modern, consistent look.
 -   **Role Isolation:** Folder structure prevents code leakage between different user roles.
+-   **Clean Codebase:** Recent refactoring removed legacy comments, centralized types, and standardized service configurations.
 
 ### **Areas for Attention**
 -   **Mock Data Reliance:** The application is currently heavily relying on `mock-data.ts` for complex views (like Blockchain hooks). Full integration with the backend endpoints is the next critical step.

@@ -14,10 +14,10 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog"
+} from '@/components/ui/layout/dialog'
 import { Button } from "@/components/ui/button"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-import { Label } from "@/components/ui/label"
+import { Label } from '@/components/ui/forms/label'
 
 export function MfaSetupDialog({
     children,
@@ -34,7 +34,7 @@ export function MfaSetupDialog({
     const setupMutation = useMutation({
         mutationFn: AuthService.setupMfa,
         onSuccess: (data) => {
-            setQrData(data.data || data) // Backend wrapper might return { ok: true, data: ... } or just data
+            setQrData(data.data || data) 
             setStep("scan")
         },
         onError: (error: any) => {
@@ -71,7 +71,7 @@ export function MfaSetupDialog({
         }
     }
 
-    // Reset state when dialgo closes
+    
     const handleOpenChange = (newOpen: boolean) => {
         setOpen(newOpen)
         if (!newOpen) {
@@ -112,8 +112,8 @@ export function MfaSetupDialog({
                     <div className="space-y-6 py-4">
                         <div className="flex flex-col items-center justify-center space-y-4">
                             <div className="border p-2 rounded-lg bg-white">
-                                {/* Backend returns data URL directly */}
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                {}
+                                {}
                                 <img src={qrData.qrCodeUrl} alt="MFA QR Code" className="w-48 h-48" />
                             </div>
                             <div className="flex items-center space-x-2 text-sm text-muted-foreground">

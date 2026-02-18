@@ -1,9 +1,9 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/layout/card'
 import { InvoiceStatusBadge } from "@/components/common/StatusBadge"
 import { FileText } from "lucide-react"
-import type { Invoice } from "@/lib/types"
+import type { Invoice } from '@/types'
 
 interface RecentInvoicesProps {
     invoices: Invoice[]

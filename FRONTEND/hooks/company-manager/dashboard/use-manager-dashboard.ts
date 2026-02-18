@@ -12,7 +12,7 @@ export function useManagerDashboard() {
 
     const [isLoading, setIsLoading] = useState(true)
 
-    // Simulate loading
+    
     const [mounted, setMounted] = useState(false)
     if (!mounted) {
         setTimeout(() => {

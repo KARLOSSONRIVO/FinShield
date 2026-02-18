@@ -20,7 +20,7 @@ export default function EmployeeDashboard() {
     totalValue,
     recentInvoices,
     flaggedInvoices,
-    isLoading // Destructure isLoading
+    isLoading 
   } = useEmployeeDashboard()
 
   return (

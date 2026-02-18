@@ -1,12 +1,12 @@
 "use client"
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/layout/tabs'
 import { MFASettings } from "./MFASettings"
 import { AppearanceSettings } from "./AppearanceSettings"
 import { User, Shield, Lock, KeyRound } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Input } from '@/components/ui/forms/input'
+import { Label } from '@/components/ui/forms/label'
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { ChangePasswordDialog } from "./ChangePasswordDialog"
@@ -41,7 +41,7 @@ export function SettingsPage() {
                 </TabsList>
 
                 <TabsContent value="profile" className="space-y-6">
-                    {/* Profile Information Card */}
+                    {}
                     <div className="p-6 border rounded-xl bg-card text-card-foreground shadow-sm space-y-6">
                         <div>
                             <h4 className="font-semibold text-lg">Profile Information</h4>
@@ -78,10 +78,10 @@ export function SettingsPage() {
                         </div>
                     </div>
 
-                    {/* Authentication Card (MFA) */}
+                    {}
                     <MFASettings />
 
-                    {/* Change Password Card */}
+                    {}
                     <div className="p-6 border rounded-xl bg-card text-card-foreground shadow-sm space-y-6">
                         <div>
                             <h4 className="font-semibold text-lg flex items-center gap-2">

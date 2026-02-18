@@ -5,9 +5,9 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog"
+} from '@/components/ui/layout/dialog'
 import { Organization } from "@/services/organization.service"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from '@/components/ui/data-display/badge'
 
 interface ViewOrganizationDialogProps {
     open: boolean

@@ -1,8 +1,8 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
+import { Badge } from '@/components/ui/data-display/badge'
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/layout/card'
 import { ArrowLeft, FileText, Blocks, History, ShieldAlert, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 import { use } from "react"
@@ -18,7 +18,7 @@ export default function RegulatorInvoiceDetailsPage({ params }: { params: Promis
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-4">
           <div className="h-12 w-12 bg-gray-100 rounded-lg flex items-center justify-center border border-border">
@@ -37,10 +37,10 @@ export default function RegulatorInvoiceDetailsPage({ params }: { params: Promis
         </Link>
       </div>
 
-      {/* Main Grid */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        {/* Card 1: Invoice Details */}
+        {}
         <Card className="border-2 border-border shadow-sm rounded-xl">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-lg font-bold">
@@ -78,7 +78,7 @@ export default function RegulatorInvoiceDetailsPage({ params }: { params: Promis
           </CardContent>
         </Card>
 
-        {/* Card 2: AI Fraud Analysis */}
+        {}
         <Card className="border-2 border-border shadow-sm rounded-xl">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-lg font-bold">
@@ -113,7 +113,7 @@ export default function RegulatorInvoiceDetailsPage({ params }: { params: Promis
           </CardContent>
         </Card>
 
-        {/* Card 3: Blockchain Verification */}
+        {}
         <Card className="border-2 border-border shadow-sm rounded-xl h-full">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-lg font-bold">
@@ -158,7 +158,7 @@ export default function RegulatorInvoiceDetailsPage({ params }: { params: Promis
           </CardContent>
         </Card>
 
-        {/* Card 4: Review History */}
+        {}
         <Card className="border-2 border-border shadow-sm rounded-xl">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-lg font-bold">

@@ -30,7 +30,7 @@ export function FinancialOverview({ total, verified, flagged, fraudulent }: Fina
                 className="border-l-4 border-l-emerald-500"
             />
             <StatsCard
-                title="Total Invoice Value" // Kept as per screenshot/request, though likely represents verified/growth
+                title="Total Invoice Value" 
                 value={`$${verified.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 icon={TrendingUp}
                 iconClassName="text-emerald-500"

@@ -1,11 +1,11 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/layout/card'
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from '@/components/ui/data-display/badge'
 import { AlertTriangle, Clock, XCircle, ArrowRight, Eye } from "lucide-react"
 import Link from "next/link"
-import type { Invoice } from "@/lib/types"
+import type { Invoice } from '@/types'
 
 interface AlertCardListProps {
     title: string
@@ -16,7 +16,7 @@ interface AlertCardListProps {
 
 export function AlertCardList({ title, description, invoices, type }: AlertCardListProps) {
 
-    // Helper for visual styles based on type
+    
     const getStyles = () => {
         switch (type) {
             case "fraudulent":

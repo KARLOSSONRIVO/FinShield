@@ -24,7 +24,7 @@ export function usePasswordVisibility(initialVisible = false): UsePasswordVisibi
     }
 }
 
-// For managing multiple password fields (e.g., password + confirm password)
+
 interface UseMultiPasswordVisibilityReturn {
     visibility: Record<string, boolean>
     toggle: (field: string) => void

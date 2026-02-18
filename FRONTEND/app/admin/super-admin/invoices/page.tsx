@@ -3,7 +3,7 @@
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 import { useSuperAdminInvoices } from "@/hooks/invoices/use-super-admin-invoices"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { Pagination } from '@/components/ui/data-display/pagination-custom'
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 
 export default function AllInvoicesPage() {
@@ -18,7 +18,7 @@ export default function AllInvoicesPage() {
     setCurrentPage,
     sortConfig,
     requestSort,
-    isLoading // Destructure isLoading
+    isLoading 
   } = useSuperAdminInvoices()
 
   return (

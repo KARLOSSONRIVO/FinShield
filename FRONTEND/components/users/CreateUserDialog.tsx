@@ -1,9 +1,9 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from '@/components/ui/forms/input'
+import { Label } from '@/components/ui/forms/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/forms/select'
 import {
     Dialog,
     DialogContent,
@@ -13,9 +13,9 @@ import {
     DialogTitle,
     DialogTrigger,
     DialogClose,
-} from "@/components/ui/dialog"
+} from '@/components/ui/layout/dialog'
 import { Plus, X } from "lucide-react"
-import type { Organization } from "@/lib/types"
+import type { Organization } from '@/types'
 
 interface CreateUserDialogProps {
     open: boolean
@@ -42,7 +42,7 @@ export function CreateUserDialog({
                 <DialogHeader className="flex flex-row items-center justify-between border-b pb-4">
                     <DialogTitle className="text-xl font-normal">Add New User</DialogTitle>
                     <DialogClose className="opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-                        <X className="h-6 w-6" /> {/* Bigger close icon */}
+                        <X className="h-6 w-6" /> {}
                         <span className="sr-only">Close</span>
                     </DialogClose>
                 </DialogHeader>
@@ -89,7 +89,7 @@ export function CreateUserDialog({
                         <Select
                             value={newUser.role}
                             onValueChange={(v) => {
-                                // If switching to a non-company role, clear the organization
+                                
                                 const shouldClearOrg = v === "AUDITOR" || v === "REGULATOR"
                                 setNewUser({
                                     ...newUser,

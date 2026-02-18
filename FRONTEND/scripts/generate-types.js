@@ -9,7 +9,7 @@ async function generateTypes() {
   console.log('Fetching OpenAPI spec from:', API_DOCS_URL);
   
   try {
-    // We use npx openapi-typescript to fetch and generate directly
+    
     console.log('Generating types...');
     execSync(`npx openapi-typescript ${API_DOCS_URL} -o ${OUTPUT_FILE}`, { stdio: 'inherit' });
     console.log('Successfully generated types at:', OUTPUT_FILE);

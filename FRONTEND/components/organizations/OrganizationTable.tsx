@@ -5,7 +5,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
+} from '@/components/ui/data-display/table'
 import { Button } from "@/components/ui/button"
 import { Building2, ArrowUpDown } from "lucide-react"
 import { Organization } from "@/services/organization.service"
@@ -49,7 +49,7 @@ export function OrganizationTable({ organizations, sortConfig, onSort, onEdit, o
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {/* DEBUG INFO REMOVED to fix render error */}
+                        {}
                         {organizations.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">

@@ -3,11 +3,11 @@
 import { useState, useCallback } from "react"
 
 interface UseFileUploadOptions {
-    maxSize?: number // in bytes
+    maxSize?: number 
     acceptedTypes?: string[]
     onSuccess?: () => void
     onError?: (error: string) => void
-    resetDelay?: number // ms to wait before resetting after success
+    resetDelay?: number 
 }
 
 interface UseFileUploadReturn {
@@ -26,8 +26,8 @@ interface UseFileUploadReturn {
 
 export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUploadReturn {
     const {
-        maxSize = 10 * 1024 * 1024, // 10MB default
-        acceptedTypes = [".pdf", ".docx"], // Matches Backend restrictions
+        maxSize = 10 * 1024 * 1024, 
+        acceptedTypes = [".pdf", ".docx"], 
         onSuccess,
         onError,
         resetDelay = 3000,
@@ -41,12 +41,12 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
 
     const validateFile = useCallback(
         (selectedFile: File): string | null => {
-            // Check file size
+            
             if (selectedFile.size > maxSize) {
                 return `File size exceeds ${(maxSize / 1024 / 1024).toFixed(1)}MB limit`
             }
 
-            // Check file type
+            
             const fileExtension = "." + selectedFile.name.split(".").pop()?.toLowerCase()
             const fileType = selectedFile.type
 
@@ -123,7 +123,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
         setError(null)
 
         try {
-            // Simulate upload progress
+            
             for (let i = 0; i <= 100; i += 10) {
                 await new Promise((resolve) => setTimeout(resolve, 100))
                 setProgress(i)
@@ -133,7 +133,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
             setUploadSuccess(true)
             onSuccess?.()
 
-            // Reset after delay
+            
             if (resetDelay > 0) {
                 setTimeout(() => {
                     setFile(null)

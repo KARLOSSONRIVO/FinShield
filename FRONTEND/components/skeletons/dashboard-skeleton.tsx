@@ -1,9 +1,9 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from '@/components/ui/feedback/skeleton'
 
 export function DashboardSkeleton() {
     return (
         <div className="flex h-screen bg-[#F8F9FA]">
-            {/* Sidebar Skeleton */}
+            {}
             <div className="hidden lg:flex w-64 flex-col border-r bg-white p-4 space-y-4">
                 <div className="flex items-center gap-2 mb-6">
                     <Skeleton className="h-8 w-8 rounded-full" />
@@ -25,9 +25,9 @@ export function DashboardSkeleton() {
                 </div>
             </div>
 
-            {/* Main Content Skeleton */}
+            {}
             <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Header Skeleton */}
+                {}
                 <div className="h-16 border-b bg-white flex items-center justify-between px-8">
                     <Skeleton className="h-8 w-48" />
                     <div className="flex items-center gap-4">
@@ -36,7 +36,7 @@ export function DashboardSkeleton() {
                     </div>
                 </div>
 
-                {/* Page Content Skeleton */}
+                {}
                 <div className="flex-1 overflow-auto p-8 space-y-8">
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         {Array.from({ length: 4 }).map((_, i) => (

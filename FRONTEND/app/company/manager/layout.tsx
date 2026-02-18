@@ -35,7 +35,7 @@ export default function CompanyManagerLayout({
 
     const { user } = useAuth()
 
-    // Determine title based on path
+    
     const getPageTitle = (path: string) => {
         if (path === "/company/manager") return "Dashboard"
         if (path.includes("/upload")) return "Uploading Invoice"
@@ -50,7 +50,7 @@ export default function CompanyManagerLayout({
 
     return (
         <div className="flex min-h-screen bg-muted/20 relative">
-            {/* Sidebar with fixed positioning */}
+            {}
             <AppSidebar
                 links={managerLinks}
                 collapsed={collapsed}
@@ -58,19 +58,19 @@ export default function CompanyManagerLayout({
                 title="FinShield"
             />
 
-            {/* Main content wrapper */}
+            {}
             <div
                 className={cn(
                     "flex-1 flex flex-col min-w-0 transition-all duration-300",
                     collapsed ? "ml-20" : "ml-72"
                 )}
             >
-                {/* Top Navigation Bar - Sticky */}
+                {}
                 <div className="sticky top-0 z-40">
                     <TopBar
                         title={title}
                         userName={user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "Company Manager"}
-                        organizationName="Company Manager" // Or fetch org name
+                        organizationName="Company Manager" 
                         profileLink="/company/manager/settings"
                         notifications={[
                             { title: "Invoice Flagged", time: "10m ago", message: "INV-004 has been flagged as Fraudulent." },
@@ -79,7 +79,7 @@ export default function CompanyManagerLayout({
                     />
                 </div>
 
-                {/* Main Content */}
+                {}
                 <main className="flex-1 p-4 md:p-6 space-y-4">
                     {children}
                 </main>

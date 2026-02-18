@@ -19,7 +19,7 @@ export default function SuperAdminDashboard() {
     flaggedCount,
     recentLogs,
     recentInvoices,
-    loading // Destructure loading
+    loading 
   } = useSuperAdminDashboard()
 
   return (
@@ -28,7 +28,7 @@ export default function SuperAdminDashboard() {
         <DashboardContentSkeleton />
       ) : (
         <>
-          {/* Welcome Message */}
+          {}
           <div>
             <h2 className="text-2xl font-bold tracking-tight">
               Welcome back, <span className="text-primary">{user?.firstName || "Superadmin"}</span>
@@ -36,7 +36,7 @@ export default function SuperAdminDashboard() {
             <p className="text-muted-foreground">Full Platform Overview and Status</p>
           </div>
 
-          {/* Stats Grid */}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatsCard
               title="Total Companies"
@@ -65,14 +65,14 @@ export default function SuperAdminDashboard() {
             />
           </div>
 
-          {/* Main Content Split: Recent Invoices (Left) & Recent Activity (Right) */}
+          {}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-[400px]">
-            {/* Recent Invoices - Takes up 2 columns */}
+            {}
             <div className="lg:col-span-2">
               <RecentInvoices invoices={recentInvoices} />
             </div>
 
-            {/* Recent Activity - Takes up 1 column */}
+            {}
             <div className="lg:col-span-1">
               <RecentActivity logs={recentLogs} />
             </div>

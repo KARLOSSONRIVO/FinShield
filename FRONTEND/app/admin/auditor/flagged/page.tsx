@@ -42,7 +42,7 @@ export default function AuditorFlaggedPage() {
         baseUrl="/admin/auditor/invoices"
       />
 
-      {/* Pagination Controls */}
+      {}
       <div className="mt-8 flex items-center justify-center gap-2">
         <button
           onClick={() => setCurrentPage(p => Math.max(1, p - 1))}

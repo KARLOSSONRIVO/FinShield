@@ -1,27 +1,27 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
+import { Badge } from '@/components/ui/data-display/badge'
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/layout/card'
+import { Textarea } from '@/components/ui/forms/textarea'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/forms/radio-group'
+import { Label } from '@/components/ui/forms/label'
 import { FileText, Blocks, History, ShieldAlert, CheckCircle2, MoreHorizontal, ShieldCheck } from "lucide-react"
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/data-display/dropdown-menu'
 
 export function InvoiceDetails({ invoice }: { invoice: any }) {
-    // Normalize mock data
+    
     const verdict = invoice.ai_verdict.toLowerCase();
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            {/* Card 1: Invoice Details */}
+            {}
             <Card className="border-2 border-border shadow-sm rounded-xl h-full">
                 <CardHeader className="pb-2">
                     <CardTitle className="flex items-center gap-2 text-lg font-bold">
@@ -59,7 +59,7 @@ export function InvoiceDetails({ invoice }: { invoice: any }) {
                 </CardContent>
             </Card>
 
-            {/* Card 2: AI Fraud Analysis */}
+            {}
             <Card className="border-2 border-border shadow-sm rounded-xl h-full">
                 <CardHeader className="pb-2">
                     <CardTitle className="flex items-center gap-2 text-lg font-bold">
@@ -88,7 +88,7 @@ export function InvoiceDetails({ invoice }: { invoice: any }) {
                 </CardContent>
             </Card>
 
-            {/* Card 3: Blockchain Verification */}
+            {}
             <Card className="border-2 border-border shadow-sm rounded-xl h-full">
                 <CardHeader className="pb-2">
                     <CardTitle className="flex items-center gap-2 text-lg font-bold">
@@ -133,7 +133,7 @@ export function InvoiceDetails({ invoice }: { invoice: any }) {
                 </CardContent>
             </Card>
 
-            {/* Card 4: Submit Review (FORM) */}
+            {}
             <Card className="border-2 border-border shadow-sm rounded-xl h-full">
                 <CardHeader className="pb-2">
                     <CardTitle className="flex items-center gap-2 text-lg font-bold">
@@ -172,7 +172,7 @@ export function InvoiceDetails({ invoice }: { invoice: any }) {
                 </CardContent>
             </Card>
 
-            {/* Card 5: Previous Reviews (Full Width) */}
+            {}
             <div className="col-span-1 md:col-span-2">
                 <Card className="border-2 border-border shadow-sm rounded-xl">
                     <CardHeader className="pb-2">

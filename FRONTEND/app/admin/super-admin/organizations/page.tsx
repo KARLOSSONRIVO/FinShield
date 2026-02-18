@@ -1,12 +1,12 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
+import { Input } from '@/components/ui/forms/input'
 import { Building2, Search, Plus, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { OrganizationTable } from "@/components/organizations/OrganizationTable"
 import { useOrganizations } from "@/hooks/organizations/use-organizations"
 import { CreateOrganizationDialog } from "@/components/organizations/CreateOrganizationDialog"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { Pagination } from '@/components/ui/data-display/pagination-custom'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/data-display/dropdown-menu'
 
 import { OrganizationTableSkeleton } from "@/components/skeletons/organization-table-skeleton"
 
@@ -41,8 +41,8 @@ export default function OrganizationsPage() {
     requestSort,
     handleEditOrg,
     handleDeleteOrg,
-    error, // Extract error
-    isLoading // Destructure isLoading
+    error, 
+    isLoading 
   } = useOrganizations()
 
   return (
@@ -103,7 +103,7 @@ export default function OrganizationsPage() {
               <span className={sortConfig?.key === 'name' && sortConfig.direction === 'asc' ? "font-bold text-primary" : ""}>Name (A-Z)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'name' || sortConfig?.direction === 'asc') requestSort('name') }}>
-              {/* Note: This logic for Desc matches: If not name, becomes Name Asc (Close enough). If Name Asc, becomes Name Desc. */}
+              {}
               <span className={sortConfig?.key === 'name' && sortConfig.direction === 'desc' ? "font-bold text-primary" : ""}>Name (Z-A)</span>
             </DropdownMenuItem>
 

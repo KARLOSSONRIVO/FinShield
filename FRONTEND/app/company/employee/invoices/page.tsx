@@ -2,19 +2,19 @@
 
 import Link from "next/link"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/layout/card'
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Input } from '@/components/ui/forms/input'
 import { mockInvoices } from "@/lib/mock-data"
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 import { InvoiceStatusFilter, SortConfig } from "@/hooks/invoices/use-auditor-invoices"
-import { Invoice } from "@/lib/types"
+import { Invoice } from '@/types'
 import { useState } from "react"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { Pagination } from '@/components/ui/data-display/pagination-custom'
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
 
 export default function EmployeeInvoicesPage() {
-  // Filter invoices for this specific employee
+  
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<InvoiceStatusFilter>("all")
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "invoiceDate", direction: "desc" })
@@ -23,7 +23,7 @@ export default function EmployeeInvoicesPage() {
   const rawInvoices = mockInvoices
     .filter((i) => i.uploadedByUserId === "user-employee-1")
 
-  // Filter logic
+  
   const filteredInvoices = rawInvoices.filter((invoice) => {
     const matchesSearch =
       (invoice.invoiceNo || "").toLowerCase().includes(search.toLowerCase()) ||
@@ -42,7 +42,7 @@ export default function EmployeeInvoicesPage() {
   const totalPages = Math.ceil(filteredInvoices.length / 10)
   const paginatedInvoices = filteredInvoices.slice((currentPage - 1) * 10, currentPage * 10)
 
-  // Sort handler
+  
   const requestSort = (key: keyof Invoice) => {
     let direction: "asc" | "desc" = "asc"
     if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {

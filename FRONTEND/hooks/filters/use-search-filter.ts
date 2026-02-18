@@ -31,7 +31,7 @@ export function useSearchFilter<T extends Record<string, any>>({
 
     const filteredItems = useMemo(() => {
         return items.filter((item) => {
-            // Search filter - check all specified search fields
+            
             const matchesSearch =
                 search === "" ||
                 searchFields.some((field) => {
@@ -45,7 +45,7 @@ export function useSearchFilter<T extends Record<string, any>>({
                     return false
                 })
 
-            // Status filter
+            
             const matchesStatus =
                 !statusField ||
                 statusFilter === "all" ||
@@ -75,7 +75,7 @@ export function useSearchFilter<T extends Record<string, any>>({
     }
 }
 
-// Convenience hook for invoice filtering (commonly used pattern)
+
 export function useInvoiceFilter<
     T extends { invoiceNo: string; status: string }
 >(invoices: T[]) {
@@ -86,7 +86,7 @@ export function useInvoiceFilter<
     })
 }
 
-// Convenience hook for user filtering
+
 export function useUserFilter<
     T extends { username: string; email: string; role?: string }
 >(users: T[]) {

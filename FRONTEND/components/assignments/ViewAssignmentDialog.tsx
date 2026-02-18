@@ -5,10 +5,10 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
+} from '@/components/ui/layout/dialog'
+import { Badge } from '@/components/ui/data-display/badge'
 
-// Flexible interface to match various mock objects
+
 interface ViewAssignmentDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void

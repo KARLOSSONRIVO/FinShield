@@ -7,8 +7,8 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
-import { Invoice } from "@/lib/types"
+} from '@/components/ui/data-display/table'
+import { Invoice } from '@/types'
 
 interface BlockchainTableProps {
     invoices: Invoice[]

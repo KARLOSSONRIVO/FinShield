@@ -2,7 +2,7 @@
 
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
 import { useFlaggedQueue } from "@/hooks/super-admin/flagged/use-flagged-queue"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { Pagination } from '@/components/ui/data-display/pagination-custom'
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 
 export default function FlaggedQueuePage() {

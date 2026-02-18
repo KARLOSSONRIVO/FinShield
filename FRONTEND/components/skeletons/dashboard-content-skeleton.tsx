@@ -1,15 +1,15 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from '@/components/ui/feedback/skeleton'
 
 export function DashboardContentSkeleton() {
     return (
         <div className="space-y-6">
-            {/* Header Text */}
+            {}
             <div className="space-y-2">
                 <Skeleton className="h-8 w-64" />
                 <Skeleton className="h-4 w-48" />
             </div>
 
-            {/* Summary Cards */}
+            {}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 space-y-4">
@@ -26,7 +26,7 @@ export function DashboardContentSkeleton() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                {/* Main Content Area (e.g., Recent Invoices) - Spans 4 columns */}
+                {}
                 <div className="col-span-4 rounded-xl border bg-card text-card-foreground shadow-sm">
                     <div className="p-6 flex flex-col space-y-1.5">
                         <Skeleton className="h-6 w-32" />
@@ -39,7 +39,7 @@ export function DashboardContentSkeleton() {
                     </div>
                 </div>
 
-                {/* Side Content Area (e.g., Recent Activity) - Spans 3 columns */}
+                {}
                 <div className="col-span-3 rounded-xl border bg-card text-card-foreground shadow-sm">
                     <div className="p-6 flex flex-col space-y-1.5">
                         <Skeleton className="h-6 w-32" />

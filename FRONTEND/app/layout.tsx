@@ -6,7 +6,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/providers/ThemeProvider"
 import { QueryProvider } from "@/components/providers/QueryProvider"
 import { AuthProvider } from "@/components/providers/auth-provider"
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from '@/components/ui/feedback/sonner'
 
 
 const _geist = Geist({ subsets: ["latin"] })

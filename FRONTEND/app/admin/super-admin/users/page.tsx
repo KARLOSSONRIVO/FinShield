@@ -1,12 +1,12 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
+import { Input } from '@/components/ui/forms/input'
 import { Plus, Search, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { UserTable } from "@/components/users/UserTable"
 import { useUsers } from "@/hooks/users/use-users"
 import { CreateUserDialog } from "@/components/users/CreateUserDialog"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { Pagination } from '@/components/ui/data-display/pagination-custom'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/data-display/dropdown-menu'
 
 import { UserTableSkeleton } from "@/components/skeletons/user-table-skeleton"
 import { CompanyEmployeesTable } from "@/components/users/CompanyEmployeesTable"
@@ -38,7 +38,7 @@ export default function PlatformUsersPage() {
     handleUpdateStatus,
     userTypeFilter,
     setUserTypeFilter,
-    isLoading // Destructure isLoading
+    isLoading 
   } = useUsers()
 
   return (

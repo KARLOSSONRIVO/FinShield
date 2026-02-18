@@ -2,7 +2,7 @@
 
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
 import { useRegulatorInvoices } from "@/hooks/invoices/use-regulator-invoices"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { Pagination } from '@/components/ui/data-display/pagination-custom'
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 
 export default function RegulatorInvoicesPage() {

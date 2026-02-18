@@ -6,16 +6,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from '@/components/ui/layout/dialog'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+} from '@/components/ui/forms/select'
+import { Label } from '@/components/ui/forms/label'
+import { Textarea } from '@/components/ui/forms/textarea'
 import { useState, useEffect } from "react"
 import { RealAssignment } from "@/hooks/assignments/use-assignments"
 

@@ -1,8 +1,8 @@
 import Link from "next/link"
 import { BackButton } from "@/components/common/BackButton"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/layout/card'
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+import { Separator } from '@/components/ui/layout/separator'
 import { mockInvoices, mockReviews } from "@/lib/mock-data"
 import { FileText, Shield, ArrowLeft, AlertTriangle } from "lucide-react"
 import { AIVerdictBadge, DecisionBadge } from "@/components/common/StatusBadge"
@@ -27,7 +27,7 @@ export default async function EmployeeInvoiceDetailPage({ params }: { params: Pr
   const isFraudulent = invoice.status === "fraudulent"
   const isFlagged = invoice.status === "flagged" || invoice.ai_verdict === "flagged"
 
-  // Determine theme colors based on status
+  
   const themeColor = isFraudulent ? "text-red-600" : isFlagged ? "text-amber-600" : "text-emerald-600"
   const barColor = isFraudulent ? "bg-red-600" : isFlagged ? "bg-amber-600" : "bg-emerald-600"
   const borderColor = isFraudulent ? "border-red-200" : isFlagged ? "border-amber-200" : "border-border"
@@ -36,7 +36,7 @@ export default async function EmployeeInvoiceDetailPage({ params }: { params: Pr
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="p-2 bg-white border border-border rounded-lg shadow-sm">
@@ -53,7 +53,7 @@ export default async function EmployeeInvoiceDetailPage({ params }: { params: Pr
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Invoice Details Card */}
+        {}
         <Card className={cn("bg-white shadow-sm", borderColor)}>
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg font-bold">
@@ -77,7 +77,7 @@ export default async function EmployeeInvoiceDetailPage({ params }: { params: Pr
               </div>
               <div>
                 <p className="text-xs font-bold text-black uppercase mb-1">Uploaded By</p>
-                <p className="text-sm font-medium text-muted-foreground">John Doe</p> {/* Mock data doesn't have name, using placeholder */}
+                <p className="text-sm font-medium text-muted-foreground">John Doe</p> {}
               </div>
               <div>
                 <p className="text-xs font-bold text-black uppercase mb-1">Created At</p>
@@ -91,7 +91,7 @@ export default async function EmployeeInvoiceDetailPage({ params }: { params: Pr
           </CardContent>
         </Card>
 
-        {/* AI Fraud Analysis Card */}
+        {}
         <Card className={cn("bg-white shadow-sm", borderColor)}>
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg font-bold">
@@ -121,7 +121,7 @@ export default async function EmployeeInvoiceDetailPage({ params }: { params: Pr
           </CardContent>
         </Card>
 
-        {/* Review History Card - Full Width */}
+        {}
         <div className="lg:col-span-2">
           <Card className="bg-white shadow-sm">
             <CardHeader className="pb-4">

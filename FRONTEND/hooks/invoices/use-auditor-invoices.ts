@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
-import type { Invoice } from "@/lib/types"
+import type { Invoice } from '@/types'
 import { InvoiceService } from "@/services/invoice.service"
 
 export type InvoiceStatusFilter = "all" | "pending" | "verified" | "flagged" | "fraudulent"
@@ -33,7 +33,7 @@ export function useAuditorInvoices(initialData?: Invoice[]) {
     const filteredAndSortedInvoices = useMemo(() => {
         let result = [...invoices]
 
-        // 1. Search (All fields search)
+        
         if (search) {
             const lowerSearch = search.toLowerCase()
             result = result.filter(invoice =>
@@ -43,7 +43,7 @@ export function useAuditorInvoices(initialData?: Invoice[]) {
             )
         }
 
-        // 2. Status Filter
+        
         if (statusFilter !== "all") {
             result = result.filter(invoice => {
                 const status = invoice.status.toLowerCase()
@@ -57,12 +57,12 @@ export function useAuditorInvoices(initialData?: Invoice[]) {
             })
         }
 
-        // 3. Sorting
+        
         result.sort((a, b) => {
             const aValue = a[sortConfig.key]
             const bValue = b[sortConfig.key]
 
-            // Handle undefined values
+            
             if ((aValue === undefined || aValue === null) && (bValue === undefined || bValue === null)) return 0
             if (aValue === undefined || aValue === null) return 1
             if (bValue === undefined || bValue === null) return -1

@@ -1,8 +1,8 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Input } from '@/components/ui/forms/input'
+import { Label } from '@/components/ui/forms/label'
 import {
     Dialog,
     DialogContent,
@@ -11,14 +11,14 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog"
+} from '@/components/ui/layout/dialog'
 import { Plus } from "lucide-react"
 
 interface AddEmployeeDialogProps {
     isOpen: boolean
     onOpenChange: (open: boolean) => void
     onSubmit: () => void
-    newUser: any // Using specific type would be better but keeping it simple for now matching mock/usage
+    newUser: any 
     setNewUser: (user: any) => void
 }
 

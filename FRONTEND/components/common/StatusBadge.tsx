@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui/badge"
-import type { InvoiceStatus, AIVerdict, UserStatus, ReviewDecision } from "@/lib/types"
+import { Badge } from '@/components/ui/data-display/badge'
+import type { InvoiceStatus, AIVerdict, UserStatus, ReviewDecision } from '@/types'
 
 export function InvoiceStatusBadge({ status }: { status: InvoiceStatus }) {
   const variants: Record<

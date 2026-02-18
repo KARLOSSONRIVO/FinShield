@@ -16,7 +16,7 @@ export default function AuditorDashboard() {
     stats,
     pendingReviews,
     flaggedInvoices,
-    isLoading // Destructure isLoading
+    isLoading 
   } = useAuditorDashboard()
 
   return (
@@ -34,7 +34,7 @@ export default function AuditorDashboard() {
       </div>
 
       <div>
-        {/* Header always visible or skeleton it? Better to skeleton content */}
+        {}
         <div className="mb-6">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             Dashboard

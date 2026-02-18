@@ -1,7 +1,7 @@
 "use client"
 
 import { UserTable } from "./UserTable"
-import { User } from "@/lib/types"
+import { User } from '@/types'
 
 interface ManagerEmployeeTableProps {
     users: User[]

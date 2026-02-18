@@ -58,7 +58,7 @@ export function useFormState<T extends Record<string, any>>({
         setValuesState((prev) => ({ ...prev, [key]: value }))
         setTouched((prev) => new Set(prev).add(key))
 
-        // Clear error when value changes
+        
         setErrors((prev) => {
             if (prev[key]) {
                 const newErrors = { ...prev }
@@ -172,7 +172,7 @@ export function useFormState<T extends Record<string, any>>({
     }
 }
 
-// Common validation helpers
+
 export const validators = {
     required: (message = "This field is required") => (value: any) => {
         if (value === undefined || value === null || value === "") {

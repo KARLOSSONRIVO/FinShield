@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { mockInvoices } from "@/lib/mock-data"
-import { Invoice } from "@/lib/types"
+import { Invoice } from '@/types'
 
 export type SortConfig = {
     key: keyof Invoice
@@ -18,12 +18,12 @@ export function useRegulatorBlockchain() {
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 5
 
-    // Computed
+    
     const filteredAndSortedInvoices = useMemo(() => {
-        // Only show verified invoices in the blockchain ledger
+        
         let result = mockInvoices.filter(inv => inv.status === 'verified' && inv.blockchain_txHash)
 
-        // 1. Search (Hash or Invoice No)
+        
         if (search) {
             const lowerSearch = search.toLowerCase()
             result = result.filter(inv =>
@@ -32,7 +32,7 @@ export function useRegulatorBlockchain() {
             )
         }
 
-        // 2. Sorting
+        
         result.sort((a, b) => {
             const aValue = a[sortConfig.key]
             const bValue = b[sortConfig.key]
@@ -53,7 +53,7 @@ export function useRegulatorBlockchain() {
         return result
     }, [search, sortConfig])
 
-    // Pagination
+    
     const totalPages = Math.ceil(filteredAndSortedInvoices.length / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
     const currentInvoices = filteredAndSortedInvoices.slice(startIndex, startIndex + itemsPerPage)

@@ -3,9 +3,9 @@
 import { useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from '@/components/ui/forms/input'
+import { Label } from '@/components/ui/forms/label'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/layout/dialog'
 import { Lock, Smartphone, CheckCircle, AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
 import { AuthService } from "@/services/auth.service"
@@ -14,13 +14,13 @@ export function MFASettings() {
     const { user, enableMfa, disableMfa } = useAuth()
     const [isLoading, setIsLoading] = useState(false)
 
-    // Setup State
+    
     const [setupOpen, setSetupOpen] = useState(false)
     const [qrCode, setQrCode] = useState<string | null>(null)
     const [secret, setSecret] = useState<string | null>(null)
     const [otp, setOtp] = useState("")
 
-    // Disable State
+    
     const [disableOpen, setDisableOpen] = useState(false)
     const [password, setPassword] = useState("")
 
@@ -123,7 +123,7 @@ export function MFASettings() {
                 )}
             </div>
 
-            {/* Setup Modal */}
+            {}
             <Dialog open={setupOpen} onOpenChange={setSetupOpen}>
                 <DialogContent>
                     <DialogHeader>
@@ -171,7 +171,7 @@ export function MFASettings() {
                 </DialogContent>
             </Dialog>
 
-            {/* Disable Modal */}
+            {}
             <Dialog open={disableOpen} onOpenChange={setDisableOpen}>
                 <DialogContent>
                     <DialogHeader>

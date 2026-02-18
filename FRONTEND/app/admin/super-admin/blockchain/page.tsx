@@ -1,18 +1,18 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Input } from '@/components/ui/forms/input'
 import { Search, Wallet, Filter, Link2 } from "lucide-react"
 
 import { BlockchainTable } from "@/components/blockchain/BlockchainTable"
 import { useSuperAdminBlockchain } from "@/hooks/blockchain/use-super-admin-blockchain"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { Pagination } from '@/components/ui/data-display/pagination-custom'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/data-display/dropdown-menu'
 
 export default function BlockchainPage() {
   const {
@@ -22,8 +22,8 @@ export default function BlockchainPage() {
     currentPage,
     totalPages,
     setCurrentPage,
-    sortConfig, // eslint-disable-line @typescript-eslint/no-unused-vars
-    requestSort // eslint-disable-line @typescript-eslint/no-unused-vars
+    sortConfig, 
+    requestSort 
   } = useSuperAdminBlockchain()
 
   return (
@@ -37,7 +37,7 @@ export default function BlockchainPage() {
       </div>
 
       <div className="flex gap-4">
-        {/* Search */}
+        {}
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -48,7 +48,7 @@ export default function BlockchainPage() {
           />
         </div>
 
-        {/* Filter Dropdown */}
+        {}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="gap-2 shrink-0 bg-white hover:bg-gray-50 text-foreground font-medium px-6 border-2 border-black/10 text-base">

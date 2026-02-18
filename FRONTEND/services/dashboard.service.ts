@@ -16,12 +16,9 @@ export interface DashboardStats {
 }
 
 export const DashboardService = {
-    /**
-     * Get aggregated stats for Super Admin
-     * Simulates GET /dashboard/stats
-     */
+    
     getSuperAdminStats: async (): Promise<DashboardStats> => {
-        // Fetch real data where possible, partial mocks for missing endpoints
+        
         try {
             const [usersResponse, orgsResponse] = await Promise.all([
                 import("./user.service").then(m => m.UserService.listUsers()),
@@ -30,7 +27,7 @@ export const DashboardService = {
 
             const users = usersResponse.data || []
             const orgs = orgsResponse.data || []
-            const invoices = mockInvoices // Still mocked
+            const invoices = mockInvoices 
 
             return {
                 totalRevenue: invoices.reduce((acc, curr) => acc + (curr.totals_total || 0), 0),
@@ -42,7 +39,7 @@ export const DashboardService = {
             }
         } catch (error) {
             console.error("Failed to fetch dashboard stats", error)
-            // Fallback to strict mocks if API fails
+            
             return {
                 totalRevenue: 0,
                 activeInvoices: mockInvoices.length,
@@ -54,9 +51,7 @@ export const DashboardService = {
         }
     },
 
-    /**
-     * Get recent audit logs
-     */
+    
     getRecentLogs: async () => {
         await new Promise(resolve => setTimeout(resolve, 400))
         return mockAuditLogs.slice(0, 5)
@@ -79,8 +74,8 @@ export const DashboardService = {
         return {
             totalRevenue: 0,
             activeInvoices: invoices.length,
-            flaggedInvoices: 0, // Not used directly
-            verifiedInvoices: 0, // Not used directly
+            flaggedInvoices: 0, 
+            verifiedInvoices: 0, 
             companiesCount: mockOrganizations.filter(o => o.type === "company").length,
             verifiedOnChain: invoices.filter(i => i.blockchain_txHash).length,
             totalValue: invoices.reduce((sum, inv) => sum + (inv.totals_total ?? 0), 0),

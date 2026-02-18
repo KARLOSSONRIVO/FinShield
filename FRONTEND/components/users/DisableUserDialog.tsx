@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import { useState } from "react"
-import { Textarea } from "@/components/ui/textarea"
+import { Textarea } from '@/components/ui/forms/textarea'
 
 interface DisableUserDialogProps {
     open: boolean
@@ -37,7 +37,7 @@ export function DisableUserDialog({
 
     const handleConfirm = () => {
         onConfirm(reason)
-        setReason("") // Reset after confirm
+        setReason("") 
     }
 
     return (

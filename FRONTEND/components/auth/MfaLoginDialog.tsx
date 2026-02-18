@@ -12,10 +12,10 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog"
+} from '@/components/ui/layout/dialog'
 import { Button } from "@/components/ui/button"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-import { DialogFooter } from "@/components/ui/dialog"
+import { DialogFooter } from '@/components/ui/layout/dialog'
 
 interface MfaLoginDialogProps {
     open: boolean
@@ -35,7 +35,7 @@ export function MfaLoginDialog({ open, tempToken, onSuccess, onCancel }: MfaLogi
         },
         onError: (error: any) => {
             toast.error(error.response?.data?.message || "Invalid code")
-            setToken("") // Clear on error
+            setToken("") 
         },
     })
 
@@ -63,7 +63,7 @@ export function MfaLoginDialog({ open, tempToken, onSuccess, onCancel }: MfaLogi
                             onChange={(val) => {
                                 setToken(val)
                                 if (val.length === 6) {
-                                    // optional: auto-submit
+                                    
                                 }
                             }}
                             render={({ slots }) => (

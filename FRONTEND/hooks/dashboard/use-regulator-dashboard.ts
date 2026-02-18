@@ -20,7 +20,7 @@ export function useRegulatorDashboard() {
     })
 
     const recentInvoices = invoices.slice(-5).reverse()
-    const recentLogs = logs // Already sliced by service
+    const recentLogs = logs 
 
     return {
         companiesCount: stats?.companiesCount || 0,
@@ -30,6 +30,6 @@ export function useRegulatorDashboard() {
         recentLogs,
         recentInvoices,
         totalInvoices: stats?.activeInvoices || 0,
-        isLoading: !stats || !logs || !invoices // Simplified
+        isLoading: !stats || !logs || !invoices 
     }
 }

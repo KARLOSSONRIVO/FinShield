@@ -5,7 +5,7 @@ import { mockInvoices } from "@/lib/mock-data"
 import { useState } from "react"
 
 export function useEmployeeDashboard() {
-    // Filter invoices for this specific employee (John Doe - user-employee-1)
+    
     const myInvoices = mockInvoices.filter((i) => i.uploadedByUserId === "user-employee-1")
     const flaggedInvoices = myInvoices.filter((i) => i.status === "flagged" || i.ai_verdict === "flagged")
     const pendingInvoices = myInvoices.filter((i) => i.status === "pending")
@@ -15,7 +15,7 @@ export function useEmployeeDashboard() {
 
     const [isLoading, setIsLoading] = useState(true)
 
-    // Simulate loading
+    
     const [mounted, setMounted] = useState(false)
     if (!mounted) {
         setTimeout(() => {

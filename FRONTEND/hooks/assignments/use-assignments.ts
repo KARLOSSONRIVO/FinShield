@@ -2,11 +2,11 @@ import { useState, useMemo, useEffect } from "react"
 import { AssignmentService } from "@/services/assignment.service"
 import { OrganizationService, Organization } from "@/services/organization.service"
 import { UserService } from "@/services/user.service"
-import { components } from "@/lib/api-types"
+import { components } from '@/types/api'
 
 type User = components["schemas"]["User"]
 
-// Define the Actual backend response type since api-types is incomplete/inaccurate
+
 export interface RealAssignment {
     id: string;
     companyOrgId: string;
@@ -16,7 +16,7 @@ export interface RealAssignment {
     assignedAt?: string;
     assignedByUserId?: string;
 
-    // Populated fields from backend
+    
     company?: {
         id: string;
         name: string;
@@ -45,25 +45,25 @@ export function useAssignments() {
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const [newAssignment, setNewAssignment] = useState({ companyOrgId: "", auditorUserId: "", status: "active" })
 
-    // Data State
+    
     const [assignments, setAssignments] = useState<RealAssignment[]>([])
     const [auditors, setAuditors] = useState<User[]>([])
     const [companies, setCompanies] = useState<Organization[]>([])
     const [isLoading, setIsLoading] = useState(true)
 
-    // Pagination & Sort
+    
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(10)
     const [sortConfig, setSortConfig] = useState<SortConfig>(null)
 
-    // Helpers for Lookups
+    
     const getCompanyName = (orgId: string) => companies.find(c => c.id === orgId)?.name || "Unknown Company"
     const getAuditorName = (userId: string) => {
         const user = auditors.find(u => u.id === userId)
         return user ? `${user.firstName} ${user.lastName}` : "Unknown Auditor"
     }
 
-    // Fetch Data
+    
     const fetchData = async () => {
         setIsLoading(true)
         try {
@@ -74,7 +74,7 @@ export function useAssignments() {
             ])
 
             if (assignmentsRes?.ok) {
-                // @ts-ignore - casting to RealAssignment because we manually fixed the mapper but types are old
+                
                 setAssignments(assignmentsRes.data || [])
             }
             if (usersRes?.ok) setAuditors((usersRes.data || []).filter(u => u.role === "AUDITOR"))
@@ -91,7 +91,7 @@ export function useAssignments() {
         fetchData()
     }, [])
 
-    // Sort Handler
+    
     const requestSort = (key: keyof RealAssignment | "companyName" | "auditorName") => {
         let direction: "asc" | "desc" = "asc"
         if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
@@ -103,7 +103,7 @@ export function useAssignments() {
     const filteredAndSortedAssignments = useMemo(() => {
         let processed = [...assignments]
 
-        // Filter
+        
         if (search) {
             const lowerSearch = search.toLowerCase()
             processed = processed.filter(a => {
@@ -116,7 +116,7 @@ export function useAssignments() {
             })
         }
 
-        // Sort
+        
         if (sortConfig) {
             processed.sort((a, b) => {
                 let aValue = ""
@@ -129,9 +129,9 @@ export function useAssignments() {
                     aValue = a.auditor?.username || getAuditorName(a.auditorUserId)
                     bValue = b.auditor?.username || getAuditorName(b.auditorUserId)
                 } else {
-                    // @ts-ignore
+                    
                     aValue = a[sortConfig.key] || "";
-                    // @ts-ignore
+                    
                     bValue = b[sortConfig.key] || "";
                 }
 
@@ -142,9 +142,9 @@ export function useAssignments() {
         }
 
         return processed
-    }, [assignments, search, sortConfig, companies, auditors]) // Added dependencies
+    }, [assignments, search, sortConfig, companies, auditors]) 
 
-    // Pagination
+    
     const totalPages = Math.ceil(filteredAndSortedAssignments.length / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
     const currentAssignments = filteredAndSortedAssignments.slice(startIndex, startIndex + itemsPerPage)
@@ -167,10 +167,10 @@ export function useAssignments() {
 
     const handleUpdateAssignment = async (id: string, data: { status?: "active" | "inactive", notes?: string }) => {
         try {
-            // Service expects uppercase? No, backend expects lowercase.
-            // But api-types defines uppercase.
-            // We pass lowercase because `data.status` is lowercase.
-            // @ts-ignore
+            
+            
+            
+            
             await AssignmentService.updateAssignment(id, data)
             await fetchData()
         } catch (error) {

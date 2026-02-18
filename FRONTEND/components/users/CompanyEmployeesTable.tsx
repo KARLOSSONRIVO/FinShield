@@ -7,8 +7,8 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+} from '@/components/ui/data-display/table'
+import { Badge } from '@/components/ui/data-display/badge'
 import { mockUsers } from "@/lib/mock-data"
 
 interface CompanyEmployeesTableProps {
@@ -17,7 +17,7 @@ interface CompanyEmployeesTableProps {
 }
 
 export function CompanyEmployeesTable({ orgId, managerId }: CompanyEmployeesTableProps) {
-    // Filter mock users for this organization, excluding the manager themselves
+    
     const employees = mockUsers.filter(u => u.orgId === orgId && u._id !== managerId && u.role === 'COMPANY_USER')
 
     if (employees.length === 0) {

@@ -1,12 +1,12 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
+import { Input } from '@/components/ui/forms/input'
 import { Plus, Search, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ManagerEmployeeTable } from "@/components/users/ManagerEmployeeTable"
 import { useManagerEmployees } from "@/hooks/company-manager/employees/use-manager-employees"
 import { AddEmployeeDialog } from "@/components/users/ManagerAddEmployeeDialog"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { Pagination } from '@/components/ui/data-display/pagination-custom'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/data-display/dropdown-menu'
 
 import { EmployeeTableSkeleton } from "@/components/skeletons/employee-table-skeleton"
 
@@ -34,7 +34,7 @@ export default function ManagerEmployeesPage() {
     setNewUser,
     handleCreateUser,
     setDisableUserId,
-    isLoading // Destructure isLoading
+    isLoading 
   } = useManagerEmployees()
 
   return (

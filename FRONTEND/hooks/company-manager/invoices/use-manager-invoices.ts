@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
-import type { Invoice } from "@/lib/types"
+import type { Invoice } from '@/types'
 import { InvoiceService } from "@/services/invoice.service"
-import { useAuth } from "@/hooks/use-auth" // Assuming we filter by user's org if backend doesn't already
+import { useAuth } from "@/hooks/use-auth" 
 
 export type InvoiceStatusFilter = "all" | "pending" | "verified" | "flagged" | "fraudulent"
 
@@ -23,7 +23,7 @@ export function useManagerInvoices() {
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 10
 
-    // Backend should filter by the logged-in user's organization automatically
+    
     const { data: invoices = [], isLoading } = useQuery({
         queryKey: ["invoices", "manager"],
         queryFn: InvoiceService.getAll
@@ -32,7 +32,7 @@ export function useManagerInvoices() {
     const filteredAndSortedInvoices = useMemo(() => {
         let result = [...invoices]
 
-        // 1. Search
+        
         if (search) {
             const lowerSearch = search.toLowerCase()
             result = result.filter(invoice =>
@@ -41,12 +41,12 @@ export function useManagerInvoices() {
             )
         }
 
-        // 2. Status Filter
+        
         if (statusFilter !== "all") {
             result = result.filter(invoice => invoice.status.toLowerCase() === statusFilter)
         }
 
-        // 3. Sorting
+        
         result.sort((a, b) => {
             const aValue = a[sortConfig.key]
             const bValue = b[sortConfig.key]
@@ -63,7 +63,7 @@ export function useManagerInvoices() {
         return result
     }, [invoices, search, statusFilter, sortConfig])
 
-    // Pagination
+    
     const totalPages = Math.ceil(filteredAndSortedInvoices.length / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
     const currentInvoices = filteredAndSortedInvoices.slice(startIndex, startIndex + itemsPerPage)

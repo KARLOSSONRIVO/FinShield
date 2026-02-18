@@ -13,13 +13,13 @@ export function useAuditorDashboard() {
         queryFn: InvoiceService.getAll
     })
 
-    // Filter relevant lists
+    
     const pendingReviews = allInvoices.filter(i => i.status === "pending")
         .sort((a, b) => new Date(a.invoiceDate ?? 0).getTime() - new Date(b.invoiceDate ?? 0).getTime())
 
     const flaggedInvoices = allInvoices.filter(i => i.status === "flagged" || i.status === "fraudulent")
 
-    // Legacy structure expected by dashboard
+    
     const legacyStats = [
         { label: "Pending Reviews", value: stats?.pendingReviews || 0, change: "+5", trend: "up" },
         { label: "Flagged Invoices", value: stats?.flaggedInvoices || 0, change: "-2", trend: "down" },
@@ -31,6 +31,6 @@ export function useAuditorDashboard() {
         stats: legacyStats,
         pendingReviews,
         flaggedInvoices,
-        isLoading: !stats || allInvoices.length === 0 // Basic check or use proper query loading
+        isLoading: !stats || allInvoices.length === 0 
     }
 }

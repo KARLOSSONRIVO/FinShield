@@ -1,13 +1,13 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent } from '@/components/ui/layout/card'
 import { AlertTriangle, TrendingUp, XCircle, Clock } from "lucide-react"
 import { StatsCard } from "@/components/dashboard/StatsCard"
 import { AlertCardList } from "@/components/alerts/AlertCardList"
 import { mockInvoices } from "@/lib/mock-data"
 
 export default function ManagerAlertsPage() {
-  // Mock data filtering
+  
   const companyInvoices = mockInvoices.filter((i) => i.companyOrgId === "org-company-1")
   const flaggedInvoices = companyInvoices.filter((i) => i.ai_verdict === "flagged" || i.status === "flagged")
   const fraudulentInvoices = companyInvoices.filter((i) => i.status === "fraudulent")
@@ -20,7 +20,7 @@ export default function ManagerAlertsPage() {
         <h2 className="text-2xl font-bold tracking-tight">Alerts</h2>
       </div>
 
-      {/* Stats Logic matched to screenshot: Flagged Invoices Section */}
+      {}
       <div className="space-y-2">
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -70,7 +70,7 @@ export default function ManagerAlertsPage() {
         />
       </div>
 
-      {/* Pending Review Full Width */}
+      {}
       <div className="w-full">
         <AlertCardList
           title="Pending Review"

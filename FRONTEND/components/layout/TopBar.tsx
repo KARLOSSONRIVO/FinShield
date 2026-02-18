@@ -9,12 +9,12 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/data-display/dropdown-menu'
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-} from "@/components/ui/popover"
+} from '@/components/ui/data-display/popover'
 import Link from "next/link"
 
 import { useAuth } from "@/hooks/use-auth"
@@ -27,7 +27,7 @@ export interface NotificationItem {
 
 interface TopBarProps {
     title: string;
-    // Props are now optional overrides
+    
     organizationName?: string;
     userName?: string;
     notifications?: NotificationItem[];
@@ -57,19 +57,19 @@ export function TopBar({
     const { user } = useAuth()
 
     const displayUserName = userName || user?.username || "User"
-    // Prefer the formatted role from user if organizationName is not passed, 
-    // BUT organizationName prop currently overrides it. 
-    // We will remove organizationName from parents, so this logic holds.
+    
+    
+    
     const displayRole = organizationName || formatRole(user?.role)
 
     return (
         <header className="h-20 border-b border-border bg-background px-6 flex items-center justify-between">
-            {/* Page Title */}
+            {}
             <h1 className="text-xl font-bold text-foreground">{title}</h1>
 
-            {/* Right Side Actions */}
+            {}
             <div className="flex items-center gap-4">
-                {/* Notifications Popover */}
+                {}
                 <Popover>
                     <PopoverTrigger asChild>
                         <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground" suppressHydrationWarning>
@@ -100,7 +100,7 @@ export function TopBar({
                     </PopoverContent>
                 </Popover>
 
-                {/* Profile Dropdown */}
+                {}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="group pl-2 pr-4 py-2 h-auto flex items-center gap-3 hover:bg-muted/50 rounded-full border border-border data-[state=open]:bg-muted/50" suppressHydrationWarning>

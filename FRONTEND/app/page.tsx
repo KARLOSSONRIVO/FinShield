@@ -1,13 +1,13 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/layout/card'
 import { FinShieldLogo } from "@/components/common/FinShieldLogo"
 import { Shield, Users, FileSearch, Building2, UserCog } from "lucide-react"
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
+      {}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <FinShieldLogo />
@@ -17,7 +17,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Hero */}
+      {}
       <main className="flex-1 container mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold mb-4 text-balance">AI Fraud Detection & Blockchain Invoice Verification</h1>
@@ -27,11 +27,11 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Role Selection */}
+        {}
         <div className="max-w-4xl mx-auto">
           <h2 className="text-xl font-semibold mb-6 text-center">Select Your Portal</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Super Admin */}
+            {}
             <Link href="/admin/super-admin">
               <Card className="h-full hover:border-primary transition-colors cursor-pointer group">
                 <CardHeader>
@@ -50,7 +50,7 @@ export default function HomePage() {
               </Card>
             </Link>
 
-            {/* Auditor */}
+            {}
             <Link href="/admin/auditor">
               <Card className="h-full hover:border-primary transition-colors cursor-pointer group">
                 <CardHeader>
@@ -69,7 +69,7 @@ export default function HomePage() {
               </Card>
             </Link>
 
-            {/* Regulator */}
+            {}
             <Link href="/admin/regulator">
               <Card className="h-full hover:border-primary transition-colors cursor-pointer group">
                 <CardHeader>
@@ -88,7 +88,7 @@ export default function HomePage() {
               </Card>
             </Link>
 
-            {/* Company Manager */}
+            {}
             <Link href="/company/manager">
               <Card className="h-full hover:border-primary transition-colors cursor-pointer group">
                 <CardHeader>
@@ -107,7 +107,7 @@ export default function HomePage() {
               </Card>
             </Link>
 
-            {/* Company Employee */}
+            {}
             <Link href="/company/employee">
               <Card className="h-full hover:border-primary transition-colors cursor-pointer group">
                 <CardHeader>
@@ -129,7 +129,7 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* Footer */}
+      {}
       <footer className="border-t border-border py-6">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>FinShield © 2025 - AI Fraud Detection and Blockchain Invoice Verification System</p>

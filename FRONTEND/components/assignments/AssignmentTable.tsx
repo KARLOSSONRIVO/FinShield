@@ -6,7 +6,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
+} from '@/components/ui/data-display/table'
 import { Button } from "@/components/ui/button"
 import { Building2, Pencil, Trash2 } from "lucide-react"
 import { RealAssignment, SortConfig } from "@/hooks/assignments/use-assignments"
@@ -25,9 +25,9 @@ interface AssignmentTableProps {
 }
 
 export function AssignmentTable({ assignments, sortConfig, onSort, onDelete, onUpdate, companies, auditors }: AssignmentTableProps) {
-    // ... (state hooks are inside content, but wrapper is fine)
-    // Actually wrapper was wrapping content. 
-    // We can just pass props through.
+    
+    
+    
 
     return (
         <AssignmentTableContent
@@ -42,12 +42,12 @@ export function AssignmentTable({ assignments, sortConfig, onSort, onDelete, onU
     )
 }
 
-// Breaking component to allow "using hook data" if needed, 
-// BUT better plan: Update parent to pass data.
-// For now, I'll assume the parent *will* pass them in the next step.
-// Let's modify the Props to accept helper data.
 
-import { components } from "@/lib/api-types"
+
+
+
+
+import { components } from '@/types/api'
 import { Organization } from "@/services/organization.service"
 type User = components["schemas"]["User"]
 
@@ -160,7 +160,7 @@ export function AssignmentTableContent({ assignments, sortConfig, onSort, onDele
                 onOpenChange={(open) => !open && setAssignmentToEdit(null)}
                 assignment={assignmentToEdit}
                 onUpdate={onUpdate}
-                // Pass lookups to Dialog if needed for display, but Dialog is simple edit
+                
                 companyName={assignmentToEdit ? (assignmentToEdit.company?.name || getCompanyName(assignmentToEdit.companyOrgId)) : ""}
                 auditorName={assignmentToEdit ? (assignmentToEdit.auditor?.username || getAuditorName(assignmentToEdit.auditorUserId)) : ""}
             />

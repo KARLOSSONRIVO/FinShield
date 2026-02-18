@@ -1,9 +1,9 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/data-display/popover'
 import { Filter, ChevronUp, ChevronDown } from "lucide-react"
-import { Separator } from "@/components/ui/separator"
+import { Separator } from '@/components/ui/layout/separator'
 import { cn } from "@/lib/utils"
 
 export type AssignmentSortKey = "auditorName" | "companyName" | "status"

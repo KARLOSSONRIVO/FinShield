@@ -1,9 +1,9 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/layout/card'
 import { AlertTriangle } from "lucide-react"
 
-// Define a loose interface for the incoming data to handle potential mock data variations
+
 interface FlaggedItemsProps {
     invoices: any[]
 }

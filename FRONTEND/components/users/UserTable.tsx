@@ -7,9 +7,9 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
+} from '@/components/ui/data-display/table'
 import { Button } from "@/components/ui/button"
-import { User } from "@/lib/types"
+import { User } from '@/types'
 import { SortConfig } from "@/hooks/users/use-users"
 import { ArrowUpDown } from "lucide-react"
 

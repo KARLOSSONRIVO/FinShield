@@ -17,7 +17,7 @@ export default function AuditorInvoiceViewPage({ params }: { params: Promise<{ i
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
@@ -33,7 +33,7 @@ export default function AuditorInvoiceViewPage({ params }: { params: Promise<{ i
         </Link>
       </div>
 
-      {/* Content */}
+      {}
       <InvoiceDetails invoice={invoice} />
     </div>
   )

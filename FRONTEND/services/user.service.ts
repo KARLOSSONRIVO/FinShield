@@ -1,13 +1,13 @@
 import { apiClient } from "@/lib/api-client"
-import { components } from "@/lib/api-types"
+import { components } from '@/types/api'
 
 type User = components["schemas"]["User"]
-type CreateUserPayload = components["schemas"]["User"] // Actually request body is different
+type CreateUserPayload = components["schemas"]["User"] 
 type UpdateUserPayload = { status: "ACTIVE" | "INACTIVE" | "SUSPENDED" }
 
-// Define specific payload based on API types if complex, 
-// but for now relying on inference or explicit typing from api-types
-// Looking at api-types, createUser body is inline.
+
+
+
 
 interface CreateUserRequest {
     email: string;

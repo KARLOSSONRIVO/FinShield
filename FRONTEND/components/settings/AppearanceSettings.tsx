@@ -2,9 +2,9 @@
 
 import { useTheme } from "next-themes"
 import { Moon, Sun } from "lucide-react"
-import { Switch } from "@/components/ui/switch"
+import { Switch } from '@/components/ui/forms/switch'
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/layout/card'
 
 export function AppearanceSettings() {
     const { theme, setTheme } = useTheme()

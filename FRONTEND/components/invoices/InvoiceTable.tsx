@@ -8,10 +8,10 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
+} from '@/components/ui/data-display/table'
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Invoice } from "@/lib/types"
+import { Invoice } from '@/types'
 import { Eye } from "lucide-react"
 import { InvoiceStatusBadge, AIVerdictBadge } from "@/components/common/StatusBadge"
 
@@ -20,7 +20,7 @@ export type TableViewMode = "super-admin" | "auditor" | "regulator" | "manager" 
 interface InvoiceTableProps {
     invoices: Invoice[]
     mode: TableViewMode
-    baseUrl: string // e.g. "/admin/super-admin/invoices"
+    baseUrl: string 
 }
 
 export function InvoiceTable({ invoices, mode, baseUrl }: InvoiceTableProps) {

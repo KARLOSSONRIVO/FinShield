@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/layout/card'
 
 interface RiskAnalysisProps {
     averageRiskScore: number
@@ -23,7 +23,7 @@ export function RiskAnalysis({
         <Card className="h-full border-2 border-black/5 shadow-sm">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base font-bold">
-                    {/* Placeholder for Brain Icon or similar */}
+                    {}
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"

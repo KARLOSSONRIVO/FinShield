@@ -1,13 +1,13 @@
 
-// Mock Data for SuperAdmin Dashboard
+
 export const SUPER_ADMIN_DASHBOARD_DATA = {
     companiesCount: 154,
     totalUsers: 2450,
     totalInvoices: 1890,
     totalValue: 5600000,
-    flaggedCount: 12, // Needs attention
+    flaggedCount: 12, 
 
-    // Recent logs for SuperAdmin
+    
     recentLogs: [
         { id: 1, action: "User Created", message: "New auditor account created", time: "2m ago" },
         { id: 2, action: "Company Verified", message: "TechCorp verified", time: "15m ago" },
@@ -15,10 +15,10 @@ export const SUPER_ADMIN_DASHBOARD_DATA = {
     ]
 }
 
-// Mock Data for Auditor Dashboard
+
 export const AUDITOR_DASHBOARD_DATA = {
     assignedCompanies: 676,
-    assignedIncrease: 67, // from last month
+    assignedIncrease: 67, 
     verifiedReviews: 420,
     verifiedPercentage: 21,
     pendingReviews: 28008,
@@ -27,9 +27,9 @@ export const AUDITOR_DASHBOARD_DATA = {
     flaggedStatus: "Needs attention",
 }
 
-// Mock Invoices for Auditor
-// Status: "Verified", "Pending", "Flagged", "Fraud"
-// AI Verdict: "Clean", "Flagged", "Fraudulent"
+
+
+
 export const MOCK_AUDITOR_INVOICES = [
     {
         _id: "inv-2024-001",
@@ -81,7 +81,7 @@ export const MOCK_AUDITOR_INVOICES = [
         ai_riskScore: 12,
         status: "Verified",
     },
-    // Extra data for pagination testing
+    
     {
         _id: "inv-006",
         invoiceNo: "INV-006",

@@ -6,17 +6,17 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog"
+} from '@/components/ui/layout/dialog'
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Input } from '@/components/ui/forms/input'
+import { Label } from '@/components/ui/forms/label'
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
+} from '@/components/ui/forms/select'
 import { Organization, OrganizationStatus } from "@/services/organization.service"
 import { useState, useEffect } from "react"
 
@@ -36,7 +36,7 @@ export function EditOrganizationDialog({
     const [name, setName] = useState("")
     const [status, setStatus] = useState<"ACTIVE" | "INACTIVE" | "SUSPENDED" | undefined>("ACTIVE")
 
-    // Reset form when organization changes
+    
     useEffect(() => {
         if (organization) {
             setName(organization.name || "")

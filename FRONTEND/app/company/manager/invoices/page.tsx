@@ -2,7 +2,7 @@
 
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
 import { useManagerInvoices } from "@/hooks/company-manager/invoices/use-manager-invoices"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { Pagination } from '@/components/ui/data-display/pagination-custom'
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 
@@ -18,13 +18,13 @@ export default function ManagerInvoicesPage() {
     setCurrentPage,
     sortConfig,
     requestSort,
-    isLoading // Destructure isLoading
+    isLoading 
   } = useManagerInvoices()
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        {/* Matches Super Admin Header Style */}
+        {}
         <h2 className="text-2xl font-normal tracking-tight">Invoice Management</h2>
       </div>
 

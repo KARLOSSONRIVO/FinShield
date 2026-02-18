@@ -1,9 +1,9 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from '@/components/ui/forms/input'
+import { Label } from '@/components/ui/forms/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/forms/select'
 import {
   Dialog,
   DialogContent,
@@ -11,10 +11,10 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog"
+} from '@/components/ui/layout/dialog'
 import { X } from "lucide-react"
 import { Organization } from "@/services/organization.service"
-import { components } from "@/lib/api-types"
+import { components } from '@/types/api'
 
 type User = components["schemas"]["User"]
 

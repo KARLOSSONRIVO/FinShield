@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { mockAuditLogs } from "@/lib/mock-data"
-import { AuditLog } from "@/lib/types"
+import { AuditLog } from '@/types'
 
 export type EntityFilter = "all" | AuditLog['entity_type']
 
@@ -28,7 +28,7 @@ export function useRegulatorAuditLogs() {
             result = result.filter(log => log.entity_type === entityFilter)
         }
 
-        // Sort by newest first
+        
         result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
         return result

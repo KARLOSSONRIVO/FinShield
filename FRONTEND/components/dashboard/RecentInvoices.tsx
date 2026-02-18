@@ -1,9 +1,9 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/layout/card'
 import { InvoiceStatusBadge } from "@/components/common/StatusBadge"
 import { FileText } from "lucide-react"
-import type { Invoice } from "@/lib/types"
+import type { Invoice } from '@/types'
 
 
 interface RecentInvoicesProps {
@@ -25,7 +25,7 @@ export function RecentInvoices({ invoices }: RecentInvoicesProps) {
                     {invoices.map((invoice) => (
                         <div key={invoice._id} className="flex items-center justify-between p-4 border border-border rounded-xl hover:bg-muted/50 transition-colors bg-card">
                             <div className="flex items-center gap-4">
-                                {/* Green File Icon Box */}
+                                {}
                                 <div className="h-10 w-10 bg-emerald-600 rounded-lg flex items-center justify-center shrink-0">
                                     <FileText className="h-5 w-5 text-white" />
                                 </div>

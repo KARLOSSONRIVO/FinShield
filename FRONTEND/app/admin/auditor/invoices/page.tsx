@@ -7,9 +7,9 @@ import { InvoiceTable } from "@/components/invoices/InvoiceTable"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 import { MOCK_AUDITOR_INVOICES } from "@/hooks/mock-data"
 import { useAuditorInvoices } from "@/hooks/invoices/use-auditor-invoices"
-import type { Invoice } from "@/lib/types"
+import type { Invoice } from '@/types'
 
-// Map mock data to Invoice type
+
 const mappedInvoices = MOCK_AUDITOR_INVOICES.map((inv: any) => ({
   ...inv,
   companyOrgId: "mock-org",
@@ -32,7 +32,7 @@ export default function AuditorInvoicesPage() {
     setCurrentPage,
     sortConfig,
     requestSort,
-    isLoading // Destructure isLoading
+    isLoading 
   } = useAuditorInvoices(mappedInvoices)
 
   return (
@@ -59,7 +59,7 @@ export default function AuditorInvoicesPage() {
         />
       )}
 
-      {/* Pagination Controls */}
+      {}
       <div className="mt-8 flex items-center justify-center gap-2">
         <button
           onClick={() => setCurrentPage(p => Math.max(1, p - 1))}

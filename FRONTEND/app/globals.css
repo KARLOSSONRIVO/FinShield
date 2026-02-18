@@ -3,8 +3,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Dark theme for FinShield financial system */
-/* Light Theme Default */
+
+
 :root {
   --background: hsl(0 0% 100%);
   --foreground: hsl(240 10% 3.9%);
@@ -13,7 +13,7 @@
   --popover: hsl(0 0% 100%);
   --popover-foreground: hsl(240 10% 3.9%);
   --primary: hsl(153 60% 75%);
-  /* Mint Green Main */
+  
   --primary-foreground: hsl(240 5.9% 10%);
   --secondary: hsl(240 4.8% 95.9%);
   --secondary-foreground: hsl(240 5.9% 10%);
@@ -28,19 +28,19 @@
   --ring: hsl(153 60% 75%);
   --radius: 0.5rem;
 
-  /* Sidebar Variables - Light */
+  
   --sidebar: hsl(0 0% 100%);
   --sidebar-foreground: hsl(240 5.3% 26.1%);
   --sidebar-primary: hsl(240 5.9% 10%);
   --sidebar-primary-foreground: hsl(0 0% 98%);
   --sidebar-accent: hsl(153 60% 75%);
-  /* Mint Green Active */
+  
   --sidebar-accent-foreground: hsl(240 5.9% 10%);
   --sidebar-border: hsl(220 13% 91%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
 
-/* Dark Theme Override */
+
 .dark {
   --background: hsl(240 10% 3.9%);
   --foreground: hsl(0 0% 98%);
@@ -62,7 +62,7 @@
   --input: hsl(240 3.7% 15.9%);
   --ring: hsl(153 60% 75%);
 
-  /* Sidebar Variables - Dark */
+  
   --sidebar: hsl(240 5.9% 10%);
   --sidebar-foreground: hsl(240 4.8% 95.9%);
   --sidebar-primary: hsl(224.3 76.3% 48%);
@@ -118,19 +118,19 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* Force Toaster above all Radix Dialogs */
+
 .toaster,
 [data-sonner-toaster] {
   z-index: 9999 !important;
 }
 
-/* Custom Toaster Layout: Content | Border | X */
-/* Custom Toaster Layout: Pill Shape */
+
+
 [data-sonner-toast] {
   border-radius: 9999px !important;
   padding: 12px 16px !important;
   padding-right: 48px !important;
-  /* Space for absolute close button */
+  
   display: flex !important;
   align-items: center !important;
 }
@@ -139,7 +139,7 @@
   margin-right: 8px;
 }
 
-/* Error Toast Styling - Bright Red & White */
+
 [data-sonner-toast][data-type="error"] {
   background-color: #dc2626 !important;
   color: #ffffff !important;
@@ -155,11 +155,11 @@
   color: #ffffff !important;
 }
 
-/* Close Button Styling - Circular & Absolute */
+
 [data-sonner-toast] [data-close-button] {
   position: absolute !important;
   right: 8px !important;
-  /* Interior padding */
+  
   top: 50% !important;
   transform: translateY(-50%) !important;
   width: 24px !important;
@@ -175,9 +175,9 @@
   transition: all 0.2s ease;
   margin: 0 !important;
   left: auto !important;
-  /* Reset standard styles */
+  
   background: rgba(0, 0, 0, 0.05);
-  /* Default subtle bg */
+  
 }
 
 [data-sonner-toast] [data-close-button]:hover {
@@ -185,12 +185,12 @@
   background-color: rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Fix for dark mode or colored toasts */
+
 [data-sonner-toast][data-type="error"] [data-close-button]:hover {
   background-color: rgba(255, 255, 255, 0.3) !important;
 }
 
-/* Ensure icons align nicely with text */
+
 [data-sonner-toast] [data-icon] {
   margin-top: 0 !important;
   display: flex;

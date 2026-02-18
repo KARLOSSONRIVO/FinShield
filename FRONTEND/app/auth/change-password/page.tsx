@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation"
 import { useMutation } from "@tanstack/react-query"
 import { AuthService } from "@/services/auth.service"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
+import { Input } from '@/components/ui/forms/input'
+import { Label } from '@/components/ui/forms/label'
+import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from '@/components/ui/layout/card'
 import { Eye, EyeOff } from "lucide-react"
 import { toast } from "sonner"
 
@@ -25,7 +25,7 @@ export default function ChangePasswordPage() {
             console.log("Password changed successfully", data)
             toast.success("Password changed successfully! Redirecting to login...")
 
-            // Logout and redirect after a short delay to let the toast be seen
+            
             setTimeout(() => {
                 AuthService.logout()
                 localStorage.removeItem("token")
@@ -81,7 +81,7 @@ export default function ChangePasswordPage() {
                                 required
                                 placeholder="Enter current password"
                                 className="border border-black rounded-lg h-11"
-                                minLength={1} // Just to ensure it's not empty, effectively handled by required
+                                minLength={1} 
                             />
                         </div>
 

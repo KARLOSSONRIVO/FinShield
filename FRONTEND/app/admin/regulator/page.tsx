@@ -20,7 +20,7 @@ export default function RegulatorDashboard() {
     recentLogs,
     recentInvoices,
     totalInvoices,
-    isLoading // Destructure isLoading
+    isLoading 
   } = useRegulatorDashboard()
 
   return (

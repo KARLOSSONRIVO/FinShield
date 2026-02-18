@@ -3,9 +3,9 @@
 import { useState, useMemo } from "react"
 import { MOCK_AUDITOR_INVOICES } from "@/hooks/mock-data"
 import { SortConfig, InvoiceStatusFilter } from "@/hooks/invoices/use-auditor-invoices"
-import { Invoice } from "@/lib/types"
+import { Invoice } from '@/types'
 
-// Map mock data to Invoice type
+
 const mappedInvoices: Invoice[] = MOCK_AUDITOR_INVOICES.map(inv => ({
     _id: inv._id,
     invoiceNo: inv.invoiceNo,
@@ -14,7 +14,7 @@ const mappedInvoices: Invoice[] = MOCK_AUDITOR_INVOICES.map(inv => ({
     totals_total: inv.totals_total,
     ai_verdict: (['clean', 'flagged'].includes(inv.ai_verdict) ? inv.ai_verdict : 'flagged') as "clean" | "flagged",
     status: (inv.status.toLowerCase() as any) || "pending",
-    // Defaults for missing fields
+    
     companyOrgId: "mock-org-id",
     uploadedByUserId: "mock-user-id",
     createdAt: new Date(),
@@ -32,7 +32,7 @@ export function useAuditorFlaggedQueue() {
     const [search, setSearch] = useState("")
     const [statusFilter, setStatusFilter] = useState<InvoiceStatusFilter>("all")
 
-    // Pagination & Sort
+    
     const [currentPage, setCurrentPage] = useState(1)
     const [itemsPerPage] = useState(5)
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "invoiceDate", direction: "desc" })
@@ -45,20 +45,20 @@ export function useAuditorFlaggedQueue() {
         setSortConfig({ key, direction })
     }
 
-    // Base Set: Invoices that are AI Flagged or have High Risk or Status Flagged
+    
     const flaggedInvoices = useMemo(() => {
         return mappedInvoices.filter(i =>
             i.ai_verdict === 'flagged' ||
             i.status === 'flagged' ||
             i.status === 'fraudulent' ||
-            (i.ai_riskScore || 0) >= 60 // Mock data uses 0-100 score? Let's check. Yes, 65, 85.
+            (i.ai_riskScore || 0) >= 60 
         )
     }, [])
 
     const filteredAndSortedInvoices = useMemo(() => {
         let processed = [...flaggedInvoices]
 
-        // Filter by Search
+        
         if (search) {
             const lowerSearch = search.toLowerCase()
             processed = processed.filter(inv =>
@@ -67,12 +67,12 @@ export function useAuditorFlaggedQueue() {
             )
         }
 
-        // Filter by Status (Dropdown)
+        
         if (statusFilter !== "all") {
             processed = processed.filter(inv => inv.status.toLowerCase() === statusFilter.toLowerCase())
         }
 
-        // Sort
+        
         if (sortConfig) {
             processed.sort((a, b) => {
                 const aValue = a[sortConfig.key]
@@ -99,7 +99,7 @@ export function useAuditorFlaggedQueue() {
         return processed
     }, [flaggedInvoices, search, statusFilter, sortConfig])
 
-    // Pagination
+    
     const totalPages = Math.ceil(filteredAndSortedInvoices.length / itemsPerPage)
     const startIndex = (currentPage - 1) * itemsPerPage
     const currentInvoices = filteredAndSortedInvoices.slice(startIndex, startIndex + itemsPerPage)

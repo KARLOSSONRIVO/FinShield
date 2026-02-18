@@ -8,10 +8,10 @@ export const apiClient = axios.create({
         "Content-Type": "application/json",
         "ngrok-skip-browser-warning": "true",
     },
-    withCredentials: true, // For cookies
+    withCredentials: true, 
 })
 
-// Request Interceptor: Attach Token
+
 apiClient.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem("token")
@@ -23,7 +23,7 @@ apiClient.interceptors.request.use(
     (error) => Promise.reject(error)
 )
 
-// Response Interceptor: Handle Errors
+
 interface QueueItem {
     resolve: (value?: unknown) => void
     reject: (error: unknown) => void
@@ -44,7 +44,7 @@ const processQueue = (error: unknown, token: string | null = null) => {
     failedQueue = []
 }
 
-// Response Interceptor: Handle Errors & Token Refresh
+
 apiClient.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -84,7 +84,7 @@ apiClient.interceptors.response.use(
                     localStorage.setItem("refreshToken", newRefreshToken)
                 }
 
-                // Update the header for the original request
+                
                 apiClient.defaults.headers.common["Authorization"] = `Bearer ${newAccessToken}`
                 originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`
 

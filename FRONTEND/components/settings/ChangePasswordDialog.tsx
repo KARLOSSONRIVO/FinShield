@@ -4,8 +4,8 @@ import { useState } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { AuthService } from "@/services/auth.service"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Input } from '@/components/ui/forms/input'
+import { Label } from '@/components/ui/forms/label'
 import {
     Dialog,
     DialogContent,
@@ -13,7 +13,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog"
+} from '@/components/ui/layout/dialog'
 import { Eye, EyeOff } from "lucide-react"
 
 interface ChangePasswordDialogProps {
