@@ -127,7 +127,6 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
         aiVerdict: null,
 
         anchorStatus: "pending",
-        status: "pending",
     });
 
     /* ============================

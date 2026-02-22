@@ -164,6 +164,167 @@ components:
         uploadedBy:
           type: string
           example: "507f1f77bcf86cd799439011"
+        reviewDecision:
+          type: string
+          enum: [pending, approved, rejected]
+          default: pending
+          description: >
+            Invoice review status. Defaults to "pending" on upload.
+            Set to "approved" or "rejected" by auditor review.
+            Used as ML training labels (approved = legitimate, rejected = fraud).
+          example: pending
+
+    InvoiceListItem:
+      type: object
+      description: Invoice summary returned by GET /invoice/list
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        invoiceNumber:
+          type: string
+          example: "INV-2024-001"
+        date:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-12-01T00:00:00.000Z"
+        amount:
+          type: number
+          nullable: true
+          example: 15000
+        aiVerdict:
+          type: object
+          properties:
+            verdict:
+              type: string
+              enum: [clean, flagged]
+              nullable: true
+              example: "clean"
+            riskScore:
+              type: number
+              nullable: true
+              example: 12
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+          example: "approved"
+        blockchain:
+          type: string
+          nullable: true
+          description: Ethereum anchor transaction hash
+          example: "0xabc123def456..."
+
+    MyInvoiceItem:
+      type: object
+      description: Simplified invoice item returned by GET /invoice/my-invoices for COMPANY_USER
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        invoiceNumber:
+          type: string
+          example: "INV-2024-001"
+        date:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-12-01T00:00:00.000Z"
+        amount:
+          type: number
+          nullable: true
+          example: 15000
+        fileName:
+          type: string
+          nullable: true
+          example: "invoice-2024-001.pdf"
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+          example: "pending"
+        anchorStatus:
+          type: string
+          enum: [pending, anchored, failed]
+          example: "anchored"
+        uploadedAt:
+          type: string
+          format: date-time
+          example: "2024-12-01T08:00:00.000Z"
+
+    InvoiceDetail:
+      type: object
+      description: Full invoice detail returned by GET /invoice/:id
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        invoiceNumber:
+          type: string
+          example: "INV-2024-001"
+        company:
+          type: string
+          example: "Acme Corporation"
+        invoiceDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-12-01T00:00:00.000Z"
+        totalAmount:
+          type: number
+          nullable: true
+          example: 15000
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+          example: "approved"
+        aiAnalysis:
+          type: object
+          properties:
+            verdict:
+              type: string
+              enum: [clean, flagged]
+              nullable: true
+              example: "clean"
+            riskScore:
+              type: number
+              nullable: true
+              example: 12
+            summary:
+              type: string
+              nullable: true
+              example: "No anomalies detected in billing structure."
+        blockchain:
+          type: object
+          properties:
+            txHash:
+              type: string
+              nullable: true
+              example: "0x1234567890abcdef1234567890abcdef12345678"
+            anchoredAt:
+              type: string
+              format: date-time
+              nullable: true
+              example: "2024-12-01T10:30:00.000Z"
+        review:
+          type: object
+          properties:
+            reviewer:
+              type: string
+              nullable: true
+              example: "Auditor 1"
+            decision:
+              type: string
+              enum: [pending, approved, rejected]
+              example: "approved"
+            notes:
+              type: string
+              nullable: true
+              example: "All documentation verified. Invoice matches purchase order."
+            reviewedAt:
+              type: string
+              format: date-time
+              nullable: true
+              example: "2024-12-02T08:00:00.000Z"
 
     Session:
       type: object

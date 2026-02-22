@@ -53,3 +53,18 @@ export const validateLedgerQuery = validate(
         sortBy: z.enum(["anchoredAt", "invoiceNumber", "createdAt"]).default("anchoredAt"),
     })
 );
+
+// Invoice list
+export const validateInvoiceListQuery = validate(
+    basePaginationSchema({
+        sortBy: z.enum(["createdAt", "invoiceNumber", "invoiceDate", "totalAmount", "reviewDecision"]).default("createdAt"),
+        orgId:  z.string().trim().optional(),
+    })
+);
+
+// My invoices (employee)
+export const validateMyInvoiceListQuery = validate(
+    basePaginationSchema({
+        sortBy: z.enum(["createdAt", "invoiceNumber", "invoiceDate", "totalAmount", "reviewDecision"]).default("createdAt"),
+    })
+);

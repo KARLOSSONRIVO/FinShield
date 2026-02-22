@@ -1,4 +1,148 @@
 paths:
+  /invoice/list:
+    get:
+      summary: List invoices (paginated)
+      description: >
+        Retrieve a paginated list of invoices with role-based scoping.
+        SUPER_ADMIN and REGULATOR see all invoices (optional orgId filter).
+        AUDITOR sees invoices from assigned companies only.
+        COMPANY_MANAGER sees all invoices in their organization.
+      tags:
+        - Invoices
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SearchParam"
+        - $ref: "#/components/parameters/OrderParam"
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            enum: [createdAt, invoiceNumber, invoiceDate, totalAmount, reviewDecision]
+            default: createdAt
+          description: Sort field
+        - in: query
+          name: orgId
+          schema:
+            type: string
+          description: Filter by organization ID (SUPER_ADMIN/REGULATOR only)
+      responses:
+        "200":
+          description: Paginated invoice list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/InvoiceListItem"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /invoice/my-invoices:
+    get:
+      summary: List my invoices (employee)
+      description: >
+        Retrieve a paginated list of invoices uploaded by the authenticated COMPANY_USER.
+        Returns a simplified payload without AI analysis details.
+      tags:
+        - Invoices
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SearchParam"
+        - $ref: "#/components/parameters/OrderParam"
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            enum: [createdAt, invoiceNumber, invoiceDate, totalAmount, reviewDecision]
+            default: createdAt
+          description: Sort field
+      responses:
+        "200":
+          description: Paginated list of user's own invoices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/MyInvoiceItem"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden - COMPANY_USER only
+
+  /invoice/{id}:
+    get:
+      summary: Get invoice detail
+      description: >
+        Retrieve full detail for a single invoice with role-based access control.
+        SUPER_ADMIN/REGULATOR can view any invoice.
+        AUDITOR can view invoices from assigned companies.
+        COMPANY_MANAGER can view invoices in their organization.
+        COMPANY_USER can view only their own uploaded invoices.
+      tags:
+        - Invoices
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            pattern: "^[0-9a-fA-F]{24}$"
+          description: Invoice MongoDB ObjectId
+      responses:
+        "200":
+          description: Invoice detail
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/InvoiceDetail"
+        "400":
+          description: Invalid invoice ID format
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+        "404":
+          description: Invoice not found or not authorized
+
   /invoice/upload:
     post:
       summary: Upload and anchor an invoice

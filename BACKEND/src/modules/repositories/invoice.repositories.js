@@ -12,6 +12,13 @@ export async function findById(id) {
     return Invoice.findById(id)
 }
 
+export async function findByIdWithDetails(id) {
+    return Invoice.findById(id)
+        .populate("orgId", "name")
+        .populate("reviewedByUserId", "username")
+        .lean();
+}
+
 export async function findByOrgId(orgId) {
     return Invoice.find({ orgId }).sort({ createdAt: -1 })
 }
@@ -57,6 +64,32 @@ export async function findAnchoredLedger({ page = 1, limit = 20, search, sortBy 
       .limit(limit)
       .lean(),
     Invoice.countDocuments(filter),
+  ]);
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function findAllInvoicesPaginated({ filter = {}, page = 1, limit = 20, search, sortBy = "createdAt", order = "desc" }) {
+  const query = { ...filter };
+
+  if (search) {
+    query.$or = [
+      { invoiceNumber: { $regex: search, $options: "i" } },
+      { issuedTo: { $regex: search, $options: "i" } },
+    ];
+  }
+
+  const skip = (page - 1) * limit;
+  const sort = { [sortBy]: order === "asc" ? 1 : -1 };
+
+  const [items, total] = await Promise.all([
+    Invoice.find(query)
+      .populate("orgId", "name")
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Invoice.countDocuments(query),
   ]);
 
   return { items, total, page, limit, totalPages: Math.ceil(total / limit) };

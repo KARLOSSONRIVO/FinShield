@@ -616,7 +616,181 @@ DELETE /assignment/deleteAssignment/:id
 
 ## 6. Invoices
 
-### 6.1 Upload Invoice
+### 6.1 List Invoices (Paginated)
+
+Retrieve a paginated list of invoices with role-based scoping.
+
+```
+GET /invoice/list
+```
+
+**Roles:** `SUPER_ADMIN`, `REGULATOR`, `AUDITOR`, `COMPANY_MANAGER`
+
+| Param    | Type    | Default     | Description                                                    |
+|----------|---------|-------------|----------------------------------------------------------------|
+| `page`   | integer | `1`         | Page number                                                    |
+| `limit`  | integer | `20`        | Items per page (1–100)                                         |
+| `search` | string  | —           | Search by invoice number or issued-to name                     |
+| `sortBy` | string  | `createdAt` | `createdAt`, `invoiceNumber`, `invoiceDate`, `totalAmount`, `reviewDecision` |
+| `order`  | string  | `desc`      | `asc` or `desc`                                                |
+| `orgId`  | string  | —           | Filter by organization ID (SUPER_ADMIN/REGULATOR only)         |
+
+**Scoping rules:**
+
+| Role              | Sees                                    |
+|-------------------|-----------------------------------------|
+| `SUPER_ADMIN`     | All invoices (optional `orgId` filter)  |
+| `REGULATOR`       | All invoices (optional `orgId` filter)  |
+| `AUDITOR`         | Invoices from assigned companies only   |
+| `COMPANY_MANAGER` | All invoices in their organization      |
+
+**Example:**
+
+```
+GET /invoice/list?page=1&limit=10&search=INV&sortBy=invoiceDate&order=desc
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": {
+    "items": [
+      {
+        "id": "507f1f77bcf86cd799439011",
+        "invoiceNumber": "INV-2024-001",
+        "date": "2024-12-01T00:00:00.000Z",
+        "amount": 15000,
+        "aiVerdict": {
+          "verdict": "clean",
+          "riskScore": 12
+        },
+        "status": "approved",
+        "blockchain": "0xabc123def456..."
+      }
+    ],
+    "pagination": {
+      "total": 1,
+      "page": 1,
+      "limit": 10,
+      "totalPages": 1
+    }
+  }
+}
+```
+
+### 6.2 My Invoices (Employee, Paginated)
+
+Retrieve a paginated list of invoices uploaded by the authenticated employee.
+
+```
+GET /invoice/my-invoices
+```
+
+**Roles:** `COMPANY_USER`
+
+| Param    | Type    | Default     | Description                                                    |
+|----------|---------|-------------|----------------------------------------------------------------|
+| `page`   | integer | `1`         | Page number                                                    |
+| `limit`  | integer | `20`        | Items per page (1–100)                                         |
+| `search` | string  | —           | Search by invoice number or issued-to name                     |
+| `sortBy` | string  | `createdAt` | `createdAt`, `invoiceNumber`, `invoiceDate`, `totalAmount`, `reviewDecision` |
+| `order`  | string  | `desc`      | `asc` or `desc`                                                |
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": {
+    "items": [
+      {
+        "id": "507f1f77bcf86cd799439011",
+        "invoiceNumber": "INV-2024-001",
+        "date": "2024-12-01T00:00:00.000Z",
+        "amount": 15000,
+        "fileName": "invoice-2024-001.pdf",
+        "status": "pending",
+        "anchorStatus": "anchored",
+        "uploadedAt": "2024-12-01T08:00:00.000Z"
+      }
+    ],
+    "pagination": {
+      "total": 1,
+      "page": 1,
+      "limit": 20,
+      "totalPages": 1
+    }
+  }
+}
+```
+
+### 6.3 Get Invoice Detail
+
+Retrieve the full detail of a single invoice. Access is role-scoped — unauthorized users receive `404`.
+
+```
+GET /invoice/:id
+```
+
+**Roles:** `SUPER_ADMIN`, `REGULATOR`, `AUDITOR`, `COMPANY_MANAGER`, `COMPANY_USER`
+
+**Scoping rules:**
+
+| Role              | Access                                       |
+|-------------------|----------------------------------------------|
+| `SUPER_ADMIN`     | Any invoice                                  |
+| `REGULATOR`       | Any invoice                                  |
+| `AUDITOR`         | Invoices from assigned companies only        |
+| `COMPANY_MANAGER` | Invoices in their organization only          |
+| `COMPANY_USER`    | Only invoices they uploaded                  |
+
+**Example:**
+
+```
+GET /invoice/507f1f77bcf86cd799439011
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "invoiceNumber": "INV-2024-001",
+    "company": "Acme Corporation",
+    "invoiceDate": "2024-12-01T00:00:00.000Z",
+    "totalAmount": 15000,
+    "status": "approved",
+    "aiAnalysis": {
+      "verdict": "clean",
+      "riskScore": 12,
+      "summary": "No anomalies detected in billing structure."
+    },
+    "blockchain": {
+      "txHash": "0x1234567890abcdef1234567890abcdef12345678",
+      "anchoredAt": "2024-12-01T10:30:00.000Z"
+    },
+    "review": {
+      "reviewer": "Auditor 1",
+      "decision": "approved",
+      "notes": "All documentation verified. Invoice matches purchase order.",
+      "reviewedAt": "2024-12-02T08:00:00.000Z"
+    }
+  }
+}
+```
+
+**Error Responses:**
+
+| Status | Description                              |
+|--------|------------------------------------------|
+| `400`  | Invalid invoice ID format                |
+| `404`  | Invoice not found or not authorized      |
+
+### 6.4 Upload Invoice
 
 Upload an invoice file for blockchain anchoring. The file is stored on IPFS and its hash is anchored on Ethereum.
 
@@ -833,6 +1007,8 @@ All paginated endpoints return:
 | `GET /user/listUsers`                 | `createdAt`, `username`, `email`, `role`, `lastLoginAt` |
 | `GET /user/listEmployees`             | `createdAt`, `username`, `email`                     |
 | `GET /assignment/listAssignments`     | `createdAt`, `assignedAt`, `status`                  |
+| `GET /invoice/list`                   | `createdAt`, `invoiceNumber`, `invoiceDate`, `totalAmount`, `reviewDecision` |
+| `GET /invoice/my-invoices`            | `createdAt`, `invoiceNumber`, `invoiceDate`, `totalAmount`, `reviewDecision` |
 | `GET /blockchain/ledger`              | `anchoredAt`, `invoiceNumber`                        |
 
 ### Pagination Tips
@@ -916,6 +1092,9 @@ When request validation fails, the response includes field-level details:
 | `PUT  /assignment/updateAssignment/:id` | ✅        | —       | —         | —               | —            |
 | `DELETE /assignment/deleteAssignment/:id` | ✅      | —       | —         | —               | —            |
 | `POST /invoice/upload`                | —           | —       | —         | ✅              | ✅           |
+| `GET  /invoice/list`                  | ✅          | ✅⁴     | ✅        | ✅⁵             | —            |
+| `GET  /invoice/my-invoices`           | —           | —       | —         | —               | ✅           |
+| `GET  /invoice/:id`                   | ✅          | ✅⁴     | ✅        | ✅⁵             | ✅⁶          |
 | `GET  /blockchain/ledger`             | ✅          | —       | ✅        | —               | —            |
 | `GET  /session`                       | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `GET  /session/count`                 | ✅          | ✅      | ✅        | ✅              | ✅           |
@@ -926,3 +1105,6 @@ When request validation fails, the response includes field-level details:
 > ¹ Own organization only
 > ² COMPANY_USER accounts in own org only
 > ³ Own organization's users only
+> ⁴ Assigned companies only
+> ⁵ Own organization's invoices only
+> ⁶ Own uploaded invoices only
