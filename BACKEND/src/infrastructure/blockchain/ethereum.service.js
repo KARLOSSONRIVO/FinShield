@@ -106,3 +106,39 @@ export async function anchorInvoice({ invoiceMongoId, ipfsCid, sha256Hex }) {
   });
 }
 
+/**
+ * Fetches the IPFS CID string directly from an Ethereum Transaction log
+ * @param {string} txHash - The 0x-prefixed transaction hash
+ * @returns {Promise<{cid: string, uploader: string, timestamp: number}>}
+ */
+export async function fetchInvoiceCidFromTx(txHash) {
+  try {
+    const receipt = await web3.eth.getTransactionReceipt(txHash);
+
+    if (!receipt || !receipt.logs || receipt.logs.length === 0) {
+      throw new AppError("Transaction not found or has no logs", 404, "TX_NOT_FOUND");
+    }
+
+    // The InvoiceAnchored event is usually the first and only log we emit
+    const log = receipt.logs[0];
+
+    // Web3 ABI Decoder for the non-indexed parameters of our InvoiceAnchored event
+    // The indexed parameters (invoiceId, fileHash) go into topics, 
+    // the rest (cid, uploader, timestamp) go into the data field.
+    const decoded = web3.eth.abi.decodeParameters([
+      { type: 'string', name: 'cid' },
+      { type: 'address', name: 'uploader' },
+      { type: 'uint256', name: 'timestamp' }
+    ], log.data);
+
+    return {
+      cid: decoded.cid,
+      uploader: decoded.uploader,
+      timestamp: Number(decoded.timestamp)
+    };
+  } catch (err) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(`Failed to fetch CID from blockchain: ${err.message}`, 500, "BLOCKCHAIN_FETCH_ERROR");
+  }
+}
+
