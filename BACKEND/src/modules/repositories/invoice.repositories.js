@@ -35,3 +35,29 @@ export async function findByInvoiceNumberAndOrg(invoiceNumber, orgId) {
     anchorStatus: { $in: ["anchored", "pending"] } // Only check non-failed invoices
   });
 }
+
+export async function findAnchoredLedger({ page = 1, limit = 20, search, sortBy = "anchoredAt", order = "desc" }) {
+  const filter = { anchorStatus: "anchored", anchorTxHash: { $ne: null } };
+
+  if (search) {
+    filter.$or = [
+      { invoiceNumber: { $regex: search, $options: "i" } },
+      { anchorTxHash: { $regex: search, $options: "i" } },
+    ];
+  }
+
+  const skip = (page - 1) * limit;
+  const sort = { [sortBy]: order === "asc" ? 1 : -1 };
+
+  const [items, total] = await Promise.all([
+    Invoice.find(filter)
+      .populate("orgId", "name")
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    Invoice.countDocuments(filter),
+  ]);
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}

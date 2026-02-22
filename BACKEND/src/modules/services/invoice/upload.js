@@ -112,7 +112,6 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
         orgId: actor.orgId,
         uploadedByUserId: actor.sub,
 
-        ipfsCid: ipfsCid,
         fileHashSha256: fileSha,
 
         originalFileName: file.originalname || null,

@@ -27,7 +27,6 @@ const InvoiceSchema = new mongoose.Schema({
     taxAmount: { type: Number, default: null },
     lineItems: { type: Array, default: [] },
     issuedTo: { type: String, default: null },
-    ipfsCid: { type: String, required: true, index: true },
     fileHashSha256: { type: String, required: true, index: true },
     originalFileName: { type: String, default: null },
     mimeType: { type: String, default: null },
@@ -67,7 +66,6 @@ const InvoiceSchema = new mongoose.Schema({
 }, { timestamps: true })
 
 InvoiceSchema.index({ orgId: 1, createdAt: -1 })
-InvoiceSchema.index({ ipfsCid: 1, anchorStatus: 1 })
 InvoiceSchema.index({ fileHashSha256: 1, anchorStatus: 1 })
 InvoiceSchema.index({ anchorTxHash: 1, anchorStatus: 1 })
 // Audit & compliance queries

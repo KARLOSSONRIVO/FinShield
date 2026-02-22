@@ -53,8 +53,6 @@ export const anchorWorker = new Worker(ANCHOR_QUEUE_NAME, async (job) => {
         if (job.attemptsMade >= job.opts.attempts - 1) {
             try {
                 await unpinByCid(ipfsCid);
-                // ✅ Set ipfsCid and fileHashSha256 to null after successful unpin
-                await InvoiceRepositories.updateInvoice(invoiceId, { ipfsCid: null, fileHashSha256: null });
                 console.log(`🗑️ Removed IPFS pin for failed invoice ${invoiceId}`);
             } catch (ipfsError) {
                 console.error(`⚠️ Failed to remove IPFS file ${ipfsCid}:`, ipfsError.message);

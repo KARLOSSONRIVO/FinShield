@@ -80,26 +80,43 @@ paths:
   /organization/listOrganizations:
     get:
       summary: List all organizations
-      description: Get a list of all organizations (SUPER_ADMIN only)
+      description: Get a paginated list of all organizations (SUPER_ADMIN only). Supports search, sorting, and pagination.
       tags:
         - Organizations
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SearchParam"
+        - $ref: "#/components/parameters/OrderParam"
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            enum: [createdAt, name, type]
+            default: createdAt
+          description: Field to sort by
       responses:
         "200":
-          description: List of organizations
+          description: Paginated list of organizations
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success:
+                  ok:
                     type: boolean
                     example: true
                   data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Organization"
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Organization"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
         "401":
           description: Unauthorized
         "403":

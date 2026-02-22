@@ -7,13 +7,13 @@ export const createUser = asyncHandler(async(req,res)=>{
 })
 
 export const list = asyncHandler(async(req,res)=>{
-    const orgId = req.query.Id
-    const data = await UserServices.listUsers({actor: req.auth, orgId})
+    const orgId = req.query.orgId
+    const data = await UserServices.listUsers({actor: req.auth, orgId, query: req.query})
     res.json({ok: true, data})
 })
 
 export const listEmployees = asyncHandler(async(req,res)=>{
-    const data = await UserServices.listEmployees({actor: req.auth})
+    const data = await UserServices.listEmployees({actor: req.auth, query: req.query})
     res.json({ok: true, data})
 })
 

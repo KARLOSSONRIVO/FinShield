@@ -28,6 +28,23 @@ export async function findMany(filter = {}) {
     return User.find(filter).sort({ createdAt: -1 }).exec()
 }
 
+export async function findManyPaginated({ filter = {}, page = 1, limit = 20, search, sortBy = "createdAt", order = "desc" }) {
+    const query = { ...filter };
+    if (search) {
+        query.$or = [
+            { username: { $regex: search, $options: "i" } },
+            { email: { $regex: search, $options: "i" } },
+        ];
+    }
+    const skip = (page - 1) * limit;
+    const sort = { [sortBy]: order === "asc" ? 1 : -1 };
+    const [items, total] = await Promise.all([
+        User.find(query).sort(sort).skip(skip).limit(limit).lean(),
+        User.countDocuments(query),
+    ]);
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
 export async function updateById(id, update) {
     return User.findByIdAndUpdate(id, update, { new: true }).exec()
 }

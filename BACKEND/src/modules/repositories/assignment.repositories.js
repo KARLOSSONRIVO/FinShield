@@ -16,6 +16,24 @@ export async function findMany(filter = {}) {
     return Assignment.find(filter).populate("companyOrgId").populate("auditorUserId").populate("assignedByUserId").sort({ createdAt: -1 }).exec()
 }
 
+export async function findManyPaginated({ filter = {}, page = 1, limit = 20, search, sortBy = "createdAt", order = "desc" }) {
+    const query = { ...filter };
+    const skip = (page - 1) * limit;
+    const sort = { [sortBy]: order === "asc" ? 1 : -1 };
+    const [items, total] = await Promise.all([
+        Assignment.find(query)
+            .populate("companyOrgId")
+            .populate("auditorUserId")
+            .populate("assignedByUserId")
+            .sort(sort)
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+        Assignment.countDocuments(query),
+    ]);
+    return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
 export async function updateById(id, update) {
     return Assignment.findByIdAndUpdate(id, update, { new: true })
         .populate("companyOrgId")

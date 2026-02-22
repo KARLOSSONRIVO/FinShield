@@ -1,0 +1,63 @@
+paths:
+  /blockchain/ledger:
+    get:
+      summary: Get blockchain ledger
+      description: |
+        Retrieve a paginated list of all blockchain-anchored invoices.
+        Only invoices with `anchorStatus: "anchored"` and a non-null `anchorTxHash` are included.
+        Supports search by invoice number or transaction hash, sorting, and pagination.
+      tags:
+        - Blockchain
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SearchParam"
+        - $ref: "#/components/parameters/OrderParam"
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            enum: [anchoredAt, invoiceNumber]
+            default: anchoredAt
+          description: Field to sort by
+      responses:
+        "200":
+          description: Paginated list of blockchain ledger entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/LedgerEntry"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+              example:
+                ok: true
+                data:
+                  items:
+                    - id: "507f1f77bcf86cd799439011"
+                      invoiceNumber: "INV-2024-001"
+                      company: "Acme Corporation"
+                      transactionHash: "0xabc123def456..."
+                      anchoredAt: "2026-02-15T10:30:00.000Z"
+                      status: "anchored"
+                  pagination:
+                    total: 1
+                    page: 1
+                    limit: 20
+                    totalPages: 1
+        "401":
+          description: Unauthorized - Missing or invalid JWT
+        "403":
+          description: Forbidden - Requires SUPER_ADMIN or REGULATOR role

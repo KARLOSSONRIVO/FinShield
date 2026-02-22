@@ -5,7 +5,6 @@ export function toInvoicePublic(invoiceDoc) {
         orgId: invoiceDoc.orgId ? String(invoiceDoc.orgId) : null,
         uploadedByUserId: invoiceDoc.uploadedByUserId ? String(invoiceDoc.uploadedByUserId) : null,
         invoiceNumber: invoiceDoc.invoiceNumber || null,
-        ipfsCid: invoiceDoc.ipfsCid,
         fileHashSha256: invoiceDoc.fileHashSha256,
         anchorTxHash: invoiceDoc.anchorTxHash || null,
         anchorBlockNumber: invoiceDoc.anchorBlockNumber || null,
@@ -15,5 +14,16 @@ export function toInvoicePublic(invoiceDoc) {
         createdAt: invoiceDoc.createdAt,
         updatedAt: invoiceDoc.updatedAt,
     }
+}
+
+export function toLedgerEntry(doc) {
+    return {
+        id: String(doc._id),
+        invoiceNumber: doc.invoiceNumber || "N/A",
+        company: doc.orgId?.name || "Unknown",
+        transactionHash: doc.anchorTxHash,
+        anchoredAt: doc.anchoredAt,
+        status: doc.anchorStatus,
+    };
 }
 

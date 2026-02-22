@@ -95,8 +95,13 @@ export async function anchorInvoice({ invoiceMongoId, ipfsCid, sha256Hex }) {
       type: "0x2", // EIP-1559 type
     });
 
+    // Normalize txHash: Web3 v4 may drop leading zeros on bytes32 values,
+    // producing a 65-char hash. Always pad to 0x + 64 hex chars.
+    const rawHash = String(receipt.transactionHash);
+    const txHash = '0x' + rawHash.replace(/^0x/i, '').padStart(64, '0');
+
     return {
-      txHash: receipt.transactionHash,
+      txHash,
       blockNumber:
         typeof receipt.blockNumber === "bigint"
           ? Number(receipt.blockNumber)

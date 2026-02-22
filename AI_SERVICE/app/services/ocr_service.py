@@ -19,13 +19,51 @@ from datetime import datetime
 from bson import ObjectId
 from typing import Dict, Any, Optional
 
-from app.core.config import IPFS_GATEWAY_BASE
+from app.core.config import IPFS_GATEWAY_BASE, CHAIN_RPC_URL
 from app.core.redis_client import cache_get, cache_set, is_redis_available
 from app.db.mongo import invoices, organizations
 from app.engines.tesseract.extractor import extract_text_simple, extract_text_with_layout
 from app.utils.parser import parse_invoice_fields
 from app.pipelines.verification.runner import VerificationPipeline
 
+
+
+def _fetch_cid_from_tx(tx_hash: str) -> Optional[str]:
+    """
+    Fetches the raw IPFS CID string from an Ethereum transaction log
+    by calling the Alchemy RPC via HTTP.
+    The CID is stored as a non-indexed `string` in the InvoiceAnchored event Data field.
+    ABI encoding: [0-64] = offset pointer, [64-128] = string length, [128+] = UTF-8 bytes
+    """
+    payload = {
+        "jsonrpc": "2.0",
+        "method": "eth_getTransactionReceipt",
+        "params": [tx_hash],
+        "id": 1
+    }
+    resp = requests.post(CHAIN_RPC_URL, json=payload, timeout=30)
+    resp.raise_for_status()
+    result = resp.json().get("result")
+    if not result or not result.get("logs"):
+        return None
+
+    log_data = result["logs"][0].get("data", "")
+    raw = log_data[2:] if log_data.startswith("0x") else log_data
+
+    # ABI-decode: InvoiceAnchored non-indexed params are (string cid, address uploader, uint256 timestamp)
+    # The first 32-byte word is a pointer (offset in bytes) to where the `string` data begins.
+    # We must follow the pointer rather than hardcode positions.
+    try:
+        # Read the offset (in bytes) to the string data from the first word
+        ptr_bytes = int(raw[0:64], 16)          # pointer value (e.g. 96 = 0x60)
+        ptr_hex   = ptr_bytes * 2               # convert byte offset to hex-string index
+
+        # At the pointer location: first word = string byte length, followed by the UTF-8 bytes
+        str_len = int(raw[ptr_hex: ptr_hex + 64], 16)
+        str_hex = raw[ptr_hex + 64: ptr_hex + 64 + str_len * 2]
+        return bytes.fromhex(str_hex).decode("utf-8")
+    except Exception:
+        return None
 
 
 def _pick_filename(inv: dict) -> str:
@@ -110,7 +148,11 @@ async def run_ocr_for_invoice(invoice_id: str) -> Dict[str, Any]:
     if inv.get("anchorStatus") != "anchored":
         raise ValueError("INVOICE_NOT_ANCHORED")
 
-    cid = inv.get("ipfsCid")
+    tx_hash = inv.get("anchorTxHash")
+    if not tx_hash:
+        raise ValueError("MISSING_ANCHOR_TX_HASH")
+
+    cid = _fetch_cid_from_tx(tx_hash)
     if not cid:
         raise ValueError("MISSING_IPFS_CID")
 

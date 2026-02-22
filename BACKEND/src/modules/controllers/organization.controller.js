@@ -15,8 +15,8 @@ export const createOrganization = asyncHandler(async (req, res) => {
 })
 
 export const listOrganizations = asyncHandler(async (req, res) => {
-    const orgs = await OrganizationServices.listOrganizations({ actor: req.auth })
-    res.json({ ok: true, data: orgs })
+    const data = await OrganizationServices.listOrganizations({ actor: req.auth, query: req.query })
+    res.json({ ok: true, data })
 })
 
 export const getOneOrganization = asyncHandler(async (req, res) => {

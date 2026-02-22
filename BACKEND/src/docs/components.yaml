@@ -71,26 +71,6 @@ components:
           format: date-time
           nullable: true
           example: "2026-02-16T03:16:24.605Z"
-        employees:
-          type: array
-          description: List of employees (only present for COMPANY_MANAGER role)
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-                example: "698db123..."
-              username:
-                type: string
-                example: "employee1"
-              email:
-                type: string
-                format: email
-                example: "employee1@company.com"
-              status:
-                type: string
-                enum: [active, disabled]
-                example: "active"
         createdAt:
           type: string
           format: date-time
@@ -204,6 +184,87 @@ components:
           type: string
           format: date-time
 
+    Pagination:
+      type: object
+      description: Pagination metadata returned with all paginated list endpoints
+      properties:
+        total:
+          type: integer
+          example: 42
+          description: Total number of matching records
+        page:
+          type: integer
+          example: 1
+          description: Current page number
+        limit:
+          type: integer
+          example: 20
+          description: Number of items per page
+        totalPages:
+          type: integer
+          example: 3
+          description: Total number of pages
+
+    LedgerEntry:
+      type: object
+      description: A blockchain-anchored invoice ledger entry
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        invoiceNumber:
+          type: string
+          example: "INV-2024-001"
+        company:
+          type: string
+          example: "Acme Corporation"
+          description: Organization name (from populated orgId)
+        transactionHash:
+          type: string
+          example: "0xabc123def456..."
+          description: Ethereum transaction hash
+        anchoredAt:
+          type: string
+          format: date-time
+          example: "2026-02-15T10:30:00.000Z"
+        status:
+          type: string
+          example: "anchored"
+
+  parameters:
+    PageParam:
+      in: query
+      name: page
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: Page number (1-based)
+    LimitParam:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+      description: Number of items per page (1-100)
+    SearchParam:
+      in: query
+      name: search
+      schema:
+        type: string
+        maxLength: 100
+      description: Search term to filter results
+    OrderParam:
+      in: query
+      name: order
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+      description: Sort order
+
 tags:
   - name: Health
     description: Health check endpoints
@@ -219,3 +280,5 @@ tags:
     description: Invoice upload and blockchain anchoring endpoints
   - name: Sessions
     description: User session management endpoints
+  - name: Blockchain
+    description: Blockchain ledger and anchoring endpoints
