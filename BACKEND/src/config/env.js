@@ -29,6 +29,7 @@ export const AWS_ACCESS_KEY_ID = must("AWS_ACCESS_KEY_ID")
 export const AWS_SECRET_ACCESS_KEY = must("AWS_SECRET_ACCESS_KEY")
 export const AWS_REGION = must("AWS_REGION")
 export const AWS_S3_BUCKET_NAME = must("AWS_S3_BUCKET_NAME")
+export const REDIS_URI = must("REDIS_URI")
 
 // Rate Limiting
 export const RATE_LIMIT_WINDOW_MS = Number(process.env.RATE_LIMIT_WINDOW_MS)

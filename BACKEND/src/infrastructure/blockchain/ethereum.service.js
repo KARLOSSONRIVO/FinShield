@@ -5,29 +5,29 @@ import { CHAIN_RPC_URL, ANCHOR_PRIVATE_KEY, ANCHOR_CONTRACT_ADDRESS } from "../.
 
 
 const ABI = [
-    {
-        anonymous: false,
-        inputs: [
-            { indexed: true, internalType: "bytes32", name: "invoiceId", type: "bytes32" },
-            { indexed: true, internalType: "bytes32", name: "cidHash", type: "bytes32" },
-            { indexed: true, internalType: "bytes32", name: "fileHash", type: "bytes32" },
-            { indexed: false, internalType: "address", name: "uploader", type: "address" },
-            { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
-        ],
-        name: "InvoiceAnchored",
-        type: "event"
-    },
-    {
-        inputs: [
-            { internalType: "bytes32", name: "invoiceId", type: "bytes32" },
-            { internalType: "bytes32", name: "cidHash", type: "bytes32" },
-            { internalType: "bytes32", name: "fileHash", type: "bytes32" }
-        ],
-        name: "anchor",
-        outputs: [],
-        stateMutability: "nonpayable",
-        type: "function"
-    }
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: "bytes32", name: "invoiceId", type: "bytes32" },
+      { indexed: false, internalType: "string", name: "cid", type: "string" },
+      { indexed: true, internalType: "bytes32", name: "fileHash", type: "bytes32" },
+      { indexed: false, internalType: "address", name: "uploader", type: "address" },
+      { indexed: false, internalType: "uint256", name: "timestamp", type: "uint256" }
+    ],
+    name: "InvoiceAnchored",
+    type: "event"
+  },
+  {
+    inputs: [
+      { internalType: "bytes32", name: "invoiceId", type: "bytes32" },
+      { internalType: "string", name: "cid", type: "string" },
+      { internalType: "bytes32", name: "fileHash", type: "bytes32" }
+    ],
+    name: "anchor",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  }
 ];
 
 const web3 = new Web3(CHAIN_RPC_URL);
@@ -36,7 +36,7 @@ const web3 = new Web3(CHAIN_RPC_URL);
 const _rawPk = String(ANCHOR_PRIVATE_KEY ?? "").trim().replace(/\s+/g, "").replace(/^['"]|['"]$/g, "")
 const _pkNo0x = _rawPk.replace(/^0x/i, "")
 if (!/^[0-9a-fA-F]{64}$/.test(_pkNo0x)) {
-    throw new AppError("ANCHOR_PRIVATE_KEY must be a 64-hex-char string (optionally prefixed with 0x)", 500, "INVALID_PRIVATE_KEY_FORMAT")
+  throw new AppError("ANCHOR_PRIVATE_KEY must be a 64-hex-char string (optionally prefixed with 0x)", 500, "INVALID_PRIVATE_KEY_FORMAT")
 }
 const _normalizedPk = `0x${_pkNo0x}`
 
@@ -47,24 +47,24 @@ web3.eth.defaultAccount = account.address
 const contract = new web3.eth.Contract(ABI, ANCHOR_CONTRACT_ADDRESS)
 
 export function toBytes32FromString(tag, value) {
-    return web3.utils.soliditySha3({ type: "string", value: `${tag}:${String(value)}` })
+  return web3.utils.soliditySha3({ type: "string", value: `${tag}:${String(value)}` })
 }
 
 export function sha256HexToBytes32(hex) {
-    const h = String(hex).toLowerCase().replace(/^0x/, "");
-    if (!/^[0-9a-f]{64}$/.test(h)) throw new AppError("Invalid sha256 hex", 400, "BAD_HASH")
-    return "0x" + h;
+  const h = String(hex).toLowerCase().replace(/^0x/, "");
+  if (!/^[0-9a-f]{64}$/.test(h)) throw new AppError("Invalid sha256 hex", 400, "BAD_HASH")
+  return "0x" + h;
 }
 
 export async function anchorInvoice({ invoiceMongoId, ipfsCid, sha256Hex }) {
   return nonceQueue.enqueue(account.address, async (nonce) => {
     const invoiceId32 = toBytes32FromString("invoice", invoiceMongoId);
-    const cidHash32 = toBytes32FromString("cid", ipfsCid);
+    const rawCidString = ipfsCid;
     const fileHash32 = sha256HexToBytes32(sha256Hex);
 
     const method = contract.methods.anchor(
       invoiceId32,
-      cidHash32,
+      rawCidString,
       fileHash32
     );
 

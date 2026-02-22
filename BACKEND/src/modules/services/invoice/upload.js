@@ -6,7 +6,7 @@ import * as InvoiceRepositories from "../../repositories/invoice.repositories.js
 import * as AssignmentRepositories from "../../repositories/assignment.repositories.js";
 import { isDocument } from "../../../common/utils/fileTypHelpers.js";
 import { toInvoicePublic } from "../../mappers/invoice.mapper.js";
-import { anchorInvoiceInBackground } from "./anchor_background.js";
+import { addAnchorJob } from "../../../infrastructure/queue/anchor.queue.js";
 import { extractInvoiceNumber } from "../../../common/utils/invoiceParser.js";
 
 /* ============================
@@ -50,10 +50,10 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
 
     if (invoiceNumber) {
         const existingByNumber = await InvoiceRepositories.findByInvoiceNumberAndOrg(
-            invoiceNumber, 
+            invoiceNumber,
             actor.orgId
         );
-        
+
         if (existingByNumber) {
             throw new AppError(
                 `Duplicate invoice detected: Invoice #${invoiceNumber} already exists for this organization`,
@@ -134,13 +134,11 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
     /* ============================
      * STEP 6: BACKGROUND ANCHOR
      * ============================ */
-    anchorInvoiceInBackground(
-        invoice._id,
-        ipfsCid,
-        fileSha,
-        documentFile // ← only process OCR for docs
-    ).catch(err => {
-        console.error(`Error starting background anchor for ${invoice._id}`, err);
+    await addAnchorJob({
+        invoiceId: invoice._id.toString(),
+        ipfsCid: ipfsCid,
+        fileSha: fileSha,
+        allowAutoOcr: documentFile
     });
 
     return {
