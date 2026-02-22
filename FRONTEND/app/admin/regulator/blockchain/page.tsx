@@ -1,20 +1,19 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
-import { Search, Filter } from "lucide-react"
+import { Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { BlockchainTable } from "@/components/blockchain/BlockchainTable"
-import { useRegulatorBlockchain } from "@/hooks/blockchain/use-regulator-blockchain"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { useBlockchain as useRegulatorBlockchain } from "@/hooks/blockchain/use-blockchain"
+import { DataPagination } from "@/components/common/DataPagination"
+import { SearchInput } from "@/components/common/SearchInput"
 
 export default function RegulatorBlockchainPage() {
   const {
     search,
     setSearch,
     invoices,
-    currentPage,
-    totalPages,
-    setCurrentPage
+    pagination,
+    setPage
   } = useRegulatorBlockchain()
 
   return (
@@ -24,15 +23,11 @@ export default function RegulatorBlockchainPage() {
       </div>
 
       <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search Blockchains..."
-            className="pl-9 bg-white border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base w-full"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+        <SearchInput
+          value={search || ""}
+          onChange={setSearch}
+          placeholder="Search Blockchains..."
+        />
         {/* Sort Button */}
         <Button
           variant="outline"
@@ -59,10 +54,9 @@ export default function RegulatorBlockchainPage() {
       <BlockchainTable invoices={invoices} />
 
       <div className="mt-4 flex justify-center">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
+        <DataPagination
+          pagination={pagination}
+          onPageChange={setPage}
         />
       </div>
     </div>

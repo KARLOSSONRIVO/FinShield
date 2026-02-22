@@ -35,8 +35,10 @@ export function RecentInvoices({ invoices }: RecentInvoicesProps) {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <p className="font-medium">${invoice.totals_total?.toLocaleString() ?? '0.00'}</p>
-                                <InvoiceStatusBadge status={invoice.status} />
+                                <p className="text-xs font-medium text-muted-foreground">
+                                    {invoice.anchoredAt ? new Date(invoice.anchoredAt).toLocaleDateString() : '—'}
+                                </p>
+                                <InvoiceStatusBadge status={invoice.status as any} />
                             </div>
                         </div>
                     ))}

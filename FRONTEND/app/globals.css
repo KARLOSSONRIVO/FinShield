@@ -42,9 +42,9 @@
 
 /* Dark Theme Override */
 .dark {
-  --background: hsl(240 10% 3.9%);
+  --background: hsl(240 5.9% 10%);
   --foreground: hsl(0 0% 98%);
-  --card: hsl(240 10% 3.9%);
+  --card: hsl(240 5.9% 10%);
   --card-foreground: hsl(0 0% 98%);
   --popover: hsl(240 10% 3.9%);
   --popover-foreground: hsl(0 0% 98%);
@@ -204,5 +204,20 @@
 
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
 }

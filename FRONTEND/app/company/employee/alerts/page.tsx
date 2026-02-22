@@ -1,5 +1,5 @@
 import { AlertTriangle, Clock, Info, XCircle } from "lucide-react"
-import { mockInvoices } from "@/lib/mock-data"
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -7,11 +7,11 @@ import { AIVerdictBadge } from "@/components/common/StatusBadge"
 import { cn } from "@/lib/utils"
 
 export default function EmployeeFlaggedQueuePage() {
-    const myInvoices = mockInvoices.filter((i) => i.uploadedByUserId === "user-employee-1")
+    const myInvoices: any[] = []
 
     // Split invoices by category
-    const fraudulentInvoices = myInvoices.filter((i) => i.status === "fraudulent")
-    const flaggedInvoices = myInvoices.filter((i) => i.status === "flagged" || i.ai_verdict === "flagged")
+    const fraudulentInvoices: any[] = []
+    const flaggedInvoices: any[] = []
 
     // Mock review history
     const reviewHistory = [
@@ -117,8 +117,8 @@ export default function EmployeeFlaggedQueuePage() {
                         {reviewHistory.map((item, index) => (
                             <div key={item.id} className={cn("p-6", index !== reviewHistory.length - 1 && "border-b")}>
                                 <div className="flex flex-col gap-2">
-                                    <h3 className="font-bold text-sm text-black">{item.auditor}</h3>
-                                    <p className="text-sm font-medium leading-relaxed text-black/90">
+                                    <h3 className="font-bold text-sm text-foreground">{item.auditor}</h3>
+                                    <p className="text-sm font-medium leading-relaxed text-foreground/90">
                                         {item.note}
                                     </p>
                                     <p className="text-xs text-muted-foreground font-medium pt-1">

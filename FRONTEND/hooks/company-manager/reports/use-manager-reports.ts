@@ -1,9 +1,7 @@
 "use client"
 
-import { mockInvoices } from "@/lib/mock-data"
-
 export function useManagerReports() {
-    const companyInvoices = mockInvoices.filter((i) => i.companyOrgId === "org-company-1")
+    const companyInvoices: any[] = []
 
     const totalValue = companyInvoices.reduce((sum, inv) => sum + (inv.totals_total ?? 0), 0)
 

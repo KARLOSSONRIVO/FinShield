@@ -47,7 +47,7 @@ export function MfaLoginDialog({ open, tempToken, onSuccess, onCancel }: MfaLogi
 
     return (
         <Dialog open={open} onOpenChange={(val) => !val && onCancel()}>
-            <DialogContent className="sm:max-w-md" onInteractOutside={(e) => e.preventDefault()}>
+            <DialogContent className="sm:max-w-[400px]" onInteractOutside={(e) => e.preventDefault()}>
                 <DialogHeader>
                     <DialogTitle>MFA Verification</DialogTitle>
                     <DialogDescription>
@@ -80,8 +80,12 @@ export function MfaLoginDialog({ open, tempToken, onSuccess, onCancel }: MfaLogi
                         <Button type="button" variant="outline" onClick={onCancel}>
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={token.length !== 6 || verifyMutation.isPending}>
-                            {verifyMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <Button
+                            type="submit"
+                            disabled={token.length !== 6 || verifyMutation.isPending}
+                            isLoading={verifyMutation.isPending}
+                            loadingText="Verifying..."
+                        >
                             Verify
                         </Button>
                     </DialogFooter>

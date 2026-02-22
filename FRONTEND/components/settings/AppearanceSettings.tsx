@@ -5,6 +5,7 @@ import { Moon, Sun } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function AppearanceSettings() {
     const { theme, setTheme } = useTheme()
@@ -15,7 +16,20 @@ export function AppearanceSettings() {
     }, [])
 
     if (!mounted) {
-        return null
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Appearance</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center gap-4">
+                        <Skeleton className="h-5 w-5 rounded-full" />
+                        <Skeleton className="h-6 w-11 rounded-full" />
+                        <Skeleton className="h-5 w-5 rounded-full" />
+                    </div>
+                </CardContent>
+            </Card>
+        )
     }
 
     const isDark = theme === "dark"

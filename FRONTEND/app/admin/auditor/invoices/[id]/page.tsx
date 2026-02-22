@@ -5,11 +5,12 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { InvoiceDetails } from "@/components/invoices/AuditorInvoiceDetails"
-import { MOCK_AUDITOR_INVOICES } from "@/hooks/mock-data"
+import { Invoice } from "@/lib/types"
 
 export default function AuditorInvoiceViewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const invoice = MOCK_AUDITOR_INVOICES.find(i => i._id === id)
+  // Mock data removed. Requires API integration.
+  const invoice = undefined as Invoice | undefined
 
   if (!invoice) {
     return <div className="p-6">Invoice not found for ID: {id}</div>

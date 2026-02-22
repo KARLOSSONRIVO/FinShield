@@ -1,14 +1,14 @@
 import { apiClient } from "@/lib/api-client"
-import { components } from "@/lib/api-types"
+import { PaginatedResponse, PaginationQuery, Organization as CommonOrganization } from "@/lib/types"
 
-export type Organization = components["schemas"]["Organization"]
+export type Organization = CommonOrganization
 
 export type OrganizationStatus = NonNullable<Organization["status"]>
 
 export interface CreateOrganizationRequest {
     name: string;
     type: "company" | "platform";
-    invoiceTemplate?: File;
+    invoiceTemplate?: File | string;
 }
 
 export const OrganizationService = {
@@ -39,8 +39,8 @@ export const OrganizationService = {
     /**
      * List all organizations
      */
-    listOrganizations: async () => {
-        const { data } = await apiClient.get<{ ok: boolean; data: Organization[] }>("/organization/listOrganizations")
+    listOrganizations: async (params?: PaginationQuery) => {
+        const { data } = await apiClient.get<PaginatedResponse<Organization>>("/organization/listOrganizations", { params })
         return data
     },
 
@@ -48,7 +48,7 @@ export const OrganizationService = {
      * Get organization by ID
      */
     getOrganization: async (id: string) => {
-        const { data } = await apiClient.get<{ ok: boolean; data: Organization }>(`/organization/getOrganization/${id}`)
+        const { data } = await apiClient.get<{ success: boolean; data: Organization }>(`/organization/getOrganization/${id}`)
         return data
     }
 }

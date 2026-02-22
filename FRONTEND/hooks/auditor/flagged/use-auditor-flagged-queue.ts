@@ -1,32 +1,8 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { MOCK_AUDITOR_INVOICES } from "@/hooks/mock-data"
 import { SortConfig, InvoiceStatusFilter } from "@/hooks/invoices/use-auditor-invoices"
 import { Invoice } from "@/lib/types"
-
-// Map mock data to Invoice type
-const mappedInvoices: Invoice[] = MOCK_AUDITOR_INVOICES.map(inv => ({
-    _id: inv._id,
-    invoiceNo: inv.invoiceNo,
-    companyName: inv.companyName || "Unknown Company",
-    invoiceDate: new Date(inv.date || new Date().toISOString()),
-    totals_total: inv.totals_total,
-    ai_verdict: (['clean', 'flagged'].includes(inv.ai_verdict) ? inv.ai_verdict : 'flagged') as "clean" | "flagged",
-    status: (inv.status.toLowerCase() as any) || "pending",
-    // Defaults for missing fields
-    companyOrgId: "mock-org-id",
-    uploadedByUserId: "mock-user-id",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    items: [],
-    ai_riskScore: inv.ai_riskScore || 0,
-    ai_analysis: "",
-    blockchain_txHash: "",
-    blockchain_anchoredAt: undefined,
-    fileHashSha256: "mock-hash",
-    ipfsCid: "mock-cid"
-}))
 
 export function useAuditorFlaggedQueue() {
     const [search, setSearch] = useState("")
@@ -47,12 +23,8 @@ export function useAuditorFlaggedQueue() {
 
     // Base Set: Invoices that are AI Flagged or have High Risk or Status Flagged
     const flaggedInvoices = useMemo(() => {
-        return mappedInvoices.filter(i =>
-            i.ai_verdict === 'flagged' ||
-            i.status === 'flagged' ||
-            i.status === 'fraudulent' ||
-            (i.ai_riskScore || 0) >= 60 // Mock data uses 0-100 score? Let's check. Yes, 65, 85.
-        )
+        // Mock data removed. Requires API integration.
+        return [] as Invoice[];
     }, [])
 
     const filteredAndSortedInvoices = useMemo(() => {

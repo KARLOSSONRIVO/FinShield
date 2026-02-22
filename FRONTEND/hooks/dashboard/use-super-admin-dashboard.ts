@@ -18,7 +18,10 @@ export function useSuperAdminDashboard() {
     // 3. Fetch Recent Invoices (using existing service)
     const { data: allInvoices = [], isLoading: invoicesLoading } = useQuery({
         queryKey: ["invoices"],
-        queryFn: InvoiceService.getAll
+        queryFn: async () => {
+            const response = await InvoiceService.getAll()
+            return response.data.items
+        }
     })
 
     const loading = statsLoading || logsLoading || invoicesLoading

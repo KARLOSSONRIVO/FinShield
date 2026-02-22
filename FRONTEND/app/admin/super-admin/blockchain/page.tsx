@@ -1,12 +1,12 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Search, Wallet, Filter, Link2 } from "lucide-react"
+import { Wallet, Filter, Link2 } from "lucide-react"
 
 import { BlockchainTable } from "@/components/blockchain/BlockchainTable"
-import { useSuperAdminBlockchain } from "@/hooks/blockchain/use-super-admin-blockchain"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { useBlockchain } from "@/hooks/blockchain/use-blockchain"
+import { DataPagination } from "@/components/common/DataPagination"
+import { SearchInput } from "@/components/common/SearchInput"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,12 +19,11 @@ export default function BlockchainPage() {
     search,
     setSearch,
     invoices,
-    currentPage,
-    totalPages,
-    setCurrentPage,
+    pagination,
+    setPage,
     sortConfig, // eslint-disable-line @typescript-eslint/no-unused-vars
     requestSort // eslint-disable-line @typescript-eslint/no-unused-vars
-  } = useSuperAdminBlockchain()
+  } = useBlockchain()
 
   return (
     <div className="space-y-6">
@@ -38,15 +37,11 @@ export default function BlockchainPage() {
 
       <div className="flex gap-4">
         {/* Search */}
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search Transaction Hash or Invoice ID..."
-            className="pl-9 bg-white border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base w-full"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+        <SearchInput
+          value={search || ""}
+          onChange={setSearch}
+          placeholder="Search Transaction Hash or Invoice ID..."
+        />
 
         {/* Filter Dropdown */}
         <DropdownMenu>
@@ -58,19 +53,21 @@ export default function BlockchainPage() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem>Verified Only</DropdownMenuItem>
-            <DropdownMenuItem>Date: Newest First</DropdownMenuItem>
-            <DropdownMenuItem>Date: Oldest First</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <BlockchainTable invoices={invoices} />
+      <BlockchainTable
+        invoices={invoices}
+        sortBy={sortConfig?.key}
+        order={sortConfig?.direction as "asc" | "desc" | undefined}
+        onSort={(field) => requestSort(field)}
+      />
 
       <div className="mt-4 flex justify-center">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
+        <DataPagination
+          pagination={pagination}
+          onPageChange={setPage}
         />
       </div>
     </div>

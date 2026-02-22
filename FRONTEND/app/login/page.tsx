@@ -14,6 +14,8 @@ import { usePasswordVisibility } from "@/hooks"
 import { useAuth } from "@/hooks/use-auth"
 import { toast } from "sonner"
 import { sanitizeInput } from "@/lib/utils"
+import { useTheme } from "next-themes"
+import { useEffect } from "react"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -24,6 +26,12 @@ export default function LoginPage() {
   const [tempToken, setTempToken] = useState("")
   const [otp, setOtp] = useState("")
   const { login, verifyMfaLogin, isLoading } = useAuth()
+  const { setTheme } = useTheme()
+
+  // Force light mode on login page
+  useEffect(() => {
+    setTheme('light')
+  }, [setTheme])
 
   // Local state for error handling since the hook throws
   const [isPending, setIsPending] = useState(false)
@@ -66,9 +74,9 @@ export default function LoginPage() {
 
   if (mfaRequired) {
     return (
-      <div className="min-h-screen flex">
-        <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-8 md:px-16 lg:px-24 xl:px-32 py-12 bg-[#f5f5f0]">
-          <div className="w-full max-w-md">
+      <div className="h-screen w-full flex overflow-hidden">
+        <div className="w-full lg:w-1/2 h-full overflow-y-auto flex flex-col justify-center items-center px-8 md:px-16 lg:px-24 xl:px-32 py-8 bg-[#f5f5f0]">
+          <div className="w-full max-w-md my-auto">
             <div className="mb-8 flex justify-center">
               <Link href="/">
                 <Image
@@ -76,12 +84,12 @@ export default function LoginPage() {
                   alt="FinShield Logo"
                   width={160}
                   height={160}
-                  className="h-32 w-auto"
+                  className="h-28 w-auto md:h-32"
                 />
               </Link>
             </div>
 
-            <div className="mb-10 text-center">
+            <div className="mb-8 text-center">
               <h1 className="text-3xl md:text-4xl text-gray-800 mb-3">
                 Two-Factor <span className="font-bold">Authentication</span>
               </h1>
@@ -111,9 +119,11 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={isPending || isLoading || otp.length !== 6}
+                isLoading={isPending || isLoading}
+                loadingText="Verifying..."
                 className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all duration-200 text-base tracking-wide shadow-lg shadow-emerald-500/25 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {isPending || isLoading ? "Verifying..." : "Verify"}
+                Verify
               </Button>
 
               <div className="text-center mt-4">
@@ -132,9 +142,9 @@ export default function LoginPage() {
             </form>
           </div>
         </div>
-        <div className="hidden lg:flex lg:w-1/2 relative bg-[#0a0a0a] flex-col justify-center p-10 xl:p-16">
+        <div className="hidden lg:flex lg:w-1/2 relative bg-[#0a0a0a] flex-col justify-center p-10 xl:p-16 h-full overflow-hidden">
           <div className="flex-1 flex flex-col justify-center items-center text-center">
-            <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6">
+            <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6 shrink-0">
               <svg className="w-12 h-12 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
@@ -148,19 +158,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="h-screen w-full flex overflow-hidden">
       {/* Left Side - Login Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center px-8 md:px-16 lg:px-24 xl:px-32 py-12 bg-[#f5f5f0]">
-        <div className="w-full max-w-md">
+      <div className="w-full lg:w-1/2 h-full overflow-y-auto flex flex-col justify-center items-center px-8 md:px-16 lg:px-24 xl:px-32 py-8 bg-[#f5f5f0]">
+        <div className="w-full max-w-md my-auto flex flex-col justify-center min-h-max">
           {/* Logo */}
-          <div className="mb-8 flex justify-center">
+          <div className="mb-8 flex justify-center shrink-0">
             <Link href="/">
               <Image
                 src="/assets/image/FinShield.svg"
                 alt="FinShield Logo"
                 width={160}
                 height={160}
-                className="h-32 w-auto"
+                className="h-28 w-auto md:h-32"
               />
             </Link>
           </div>
@@ -239,9 +249,11 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={isPending || isLoading}
+              isLoading={isPending || isLoading}
+              loadingText="Logging in..."
               className="w-full h-14 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-all duration-200 text-base tracking-wide shadow-lg shadow-emerald-500/25 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {isPending || isLoading ? "Logging in..." : "Login"}
+              Login
             </Button>
           </form>
         </div>

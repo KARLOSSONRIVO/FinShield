@@ -38,17 +38,17 @@ export function CreateUserDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[825px] border border-black shadow-none rounded-xl flex flex-col" showCloseButton={false}>
+            <DialogContent className="sm:max-w-[400px] border border-black shadow-none rounded-xl flex flex-col" showCloseButton={false}>
                 <DialogHeader className="flex flex-row items-center justify-between border-b pb-4">
                     <DialogTitle className="text-xl font-normal">Add New User</DialogTitle>
-                    <DialogClose className="opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                    <DialogClose className="opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
                         <X className="h-6 w-6" /> {/* Bigger close icon */}
                         <span className="sr-only">Close</span>
                     </DialogClose>
                 </DialogHeader>
 
                 <form
-                    className="grid gap-4 py-4"
+                    className="flex flex-col pt-4 gap-4"
                     onSubmit={(e) => {
                         e.preventDefault()
                         onCreateUser()
@@ -147,7 +147,7 @@ export function CreateUserDialog({
                     </div>
 
 
-                    <DialogFooter className="px-6 pb-6">
+                    <DialogFooter>
                         <Button type="submit" className="w-full bg-[#00C28C] hover:bg-[#00C28C]/90 text-white font-bold h-11 rounded-lg text-base">
                             Create User
                         </Button>

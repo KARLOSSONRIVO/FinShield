@@ -1,12 +1,10 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
-import { Plus, Search, Filter } from "lucide-react"
+import { Plus, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { UserTable } from "@/components/users/UserTable"
 import { useUsers } from "@/hooks/users/use-users"
 import { CreateUserDialog } from "@/components/users/CreateUserDialog"
-import { Pagination } from "@/components/ui/pagination-custom"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,15 +16,15 @@ import {
 
 import { UserTableSkeleton } from "@/components/skeletons/user-table-skeleton"
 import { CompanyEmployeesTable } from "@/components/users/CompanyEmployeesTable"
+import { SearchInput } from "@/components/common/SearchInput"
 
 export default function PlatformUsersPage() {
   const {
     search,
     setSearch,
     users,
-    currentPage,
-    totalPages,
-    setCurrentPage,
+    pagination,
+    setPage,
     sortConfig,
     requestSort,
     isCreateOpen,
@@ -38,6 +36,8 @@ export default function PlatformUsersPage() {
     handleUpdateStatus,
     userTypeFilter,
     setUserTypeFilter,
+    roleFilter,
+    setRoleFilter,
     isLoading // Destructure isLoading
   } = useUsers()
 
@@ -66,50 +66,43 @@ export default function PlatformUsersPage() {
       <div className="flex flex-col gap-4">
 
         <div className="flex gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search Users..."
-              className="pl-9 bg-background border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+          <SearchInput
+            value={search || ""}
+            onChange={setSearch}
+            placeholder="Search Users..."
+          />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2 border-2 border-black/10 text-base px-6">
+              <Button variant="outline" className="h-10 gap-2 border-2 border-black/10 text-base px-6">
                 <Filter className="h-4 w-4" />
                 Filter & Sort
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Sort By Name</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-56 h-80 overflow-y-auto">
+              <DropdownMenuLabel>Filter By Role</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => requestSort('username')}>
-                <span className={sortConfig?.key === 'username' && sortConfig.direction === 'asc' ? "font-bold text-primary" : ""}>Ascending (A-Z)</span>
+              <DropdownMenuItem onClick={() => setRoleFilter("")}>
+                <span className={roleFilter === null || roleFilter === "" ? "font-bold text-emerald-600" : ""}>All Roles</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'username' || sortConfig?.direction === 'asc') requestSort('username') }}>
-                <span className={sortConfig?.key === 'username' && sortConfig.direction === 'desc' ? "font-bold text-primary" : ""}>Descending (Z-A)</span>
+              <DropdownMenuItem onClick={() => setRoleFilter('AUDITOR')}>
+                <span className={roleFilter === 'AUDITOR' ? "font-bold text-emerald-600" : ""}>Auditor</span>
               </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Sort By Role</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => requestSort('role')}>
-                <span className={sortConfig?.key === 'role' && sortConfig.direction === 'asc' ? "font-bold text-primary" : ""}>Ascending</span>
+              <DropdownMenuItem onClick={() => setRoleFilter('REGULATOR')}>
+                <span className={roleFilter === 'REGULATOR' ? "font-bold text-emerald-600" : ""}>Regulator</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'role' || sortConfig?.direction === 'asc') requestSort('role') }}>
-                <span className={sortConfig?.key === 'role' && sortConfig.direction === 'desc' ? "font-bold text-primary" : ""}>Descending</span>
+              <DropdownMenuItem onClick={() => setRoleFilter('COMPANY_MANAGER')}>
+                <span className={roleFilter === 'COMPANY_MANAGER' ? "font-bold text-emerald-600" : ""}>Company Manager</span>
               </DropdownMenuItem>
 
               <DropdownMenuSeparator />
-              <DropdownMenuLabel>Sort By Status</DropdownMenuLabel>
+              <DropdownMenuLabel>Sort By Field</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => requestSort('status')}>
-                <span className={sortConfig?.key === 'status' && sortConfig.direction === 'asc' ? "font-bold text-primary" : ""}>Active First</span>
+
+              <DropdownMenuItem onClick={() => requestSort('createdAt', 'desc')}>
+                <span className={sortConfig?.key === 'createdAt' && sortConfig.direction === 'desc' ? "font-bold text-emerald-600" : ""}>Date Created (New-Old)</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'status' || sortConfig?.direction === 'asc') requestSort('status') }}>
-                <span className={sortConfig?.key === 'status' && sortConfig.direction === 'desc' ? "font-bold text-primary" : ""}>Inactive First</span>
+              <DropdownMenuItem onClick={() => requestSort('createdAt', 'asc')}>
+                <span className={sortConfig?.key === 'createdAt' && sortConfig.direction === 'asc' ? "font-bold text-emerald-600" : ""}>Date Created (Old-New)</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -121,9 +114,12 @@ export default function PlatformUsersPage() {
       ) : (
         <UserTable
           users={users}
-          sortConfig={sortConfig}
-          onSort={requestSort}
           onUpdateStatus={handleUpdateStatus}
+          pagination={pagination}
+          onPageChange={setPage}
+          sortBy={sortConfig?.key}
+          order={sortConfig?.direction as "asc" | "desc" | undefined}
+          onSort={(field) => requestSort(field)}
           renderSubComponent={(user) => {
             if (user.role === 'COMPANY_MANAGER' && user.orgId) {
               return <CompanyEmployeesTable orgId={user.orgId} managerId={user._id} />
@@ -132,15 +128,6 @@ export default function PlatformUsersPage() {
           }}
         />
       )}
-
-
-      <div className="mt-4 flex justify-center">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      </div>
     </div>
   )
 }

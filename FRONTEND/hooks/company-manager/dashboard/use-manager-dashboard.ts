@@ -1,31 +1,58 @@
 "use client"
 
-import { useState } from "react"
-import { mockInvoices, mockUsers } from "@/lib/mock-data"
+import { useQuery } from "@tanstack/react-query"
+import { DashboardService } from "@/services/dashboard.service"
+import { InvoiceService } from "@/services/invoice.service"
+import { UserService } from "@/services/user.service"
+import { useAuth } from "@/hooks/use-auth"
 
 export function useManagerDashboard() {
-    const companyInvoices = mockInvoices.filter((i) => i.companyOrgId === "org-company-1")
-    const companyEmployees = mockUsers.filter((u) => u.orgId === "org-company-1" && u.role === "COMPANY_USER")
-    const flaggedInvoices = companyInvoices.filter((i) => i.status === "flagged" || i.ai_verdict === "flagged")
-    const totalValue = companyInvoices.reduce((sum, inv) => sum + (inv.totals_total || 0), 0)
-    const recentInvoices = companyInvoices.slice(-5).reverse()
+    const { user } = useAuth()
+    const orgId = user?.organizationId || ""
 
-    const [isLoading, setIsLoading] = useState(true)
+    // 1. Fetch Stats (Company Manager specific)
+    const { data: stats, isLoading: statsLoading } = useQuery({
+        queryKey: ["manager-stats", orgId],
+        queryFn: async () => {
+            // Ensure we use a company-specific stats endpoint if available.
+            // For now mapping to general insights/stats if custom endpoint isn't fully ready
+            return DashboardService.getCompanyStats ? DashboardService.getCompanyStats() : null;
+        },
+        enabled: !!orgId
+    })
 
-    // Simulate loading
-    const [mounted, setMounted] = useState(false)
-    if (!mounted) {
-        setTimeout(() => {
-            setIsLoading(false)
-            setMounted(true)
-        }, 1000)
-    }
+    // 2. Fetch Recent Invoices for the company
+    const { data: allInvoices = [], isLoading: invoicesLoading } = useQuery({
+        queryKey: ["invoices", { companyOrgId: orgId }],
+        queryFn: async () => {
+            const res = await InvoiceService.getAll({ companyOrgId: orgId, limit: 100 })
+            return res.data?.items || []
+        },
+        enabled: !!orgId
+    })
+
+    // 3. Fetch Company Employees
+    const { data: employees = [], isLoading: employeesLoading } = useQuery({
+        queryKey: ["users", { orgId }],
+        queryFn: async () => {
+            const res = await UserService.listUsers({ limit: 100 })
+            const allUsers = res.data?.items || []
+            return allUsers.filter((u: any) => u.role === "COMPANY_USER")
+        },
+        enabled: !!orgId
+    })
+
+    const flaggedInvoices = allInvoices.filter((i: any) => i.status === "flagged" || i.ai_verdict === "flagged")
+    const totalValue = allInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.totals_total) || 0), 0)
+    const recentInvoices = allInvoices.slice(0, 5)
+
+    const isLoading = statsLoading || invoicesLoading || employeesLoading
 
     return {
-        companyInvoicesCount: companyInvoices.length,
+        companyInvoicesCount: allInvoices.length,
         flaggedInvoicesCount: flaggedInvoices.length,
-        employeeCount: companyEmployees.length,
-        totalValue,
+        employeeCount: employees.length,
+        totalValue: stats?.totalValue || totalValue,
         recentInvoices,
         flaggedInvoices,
         isLoading

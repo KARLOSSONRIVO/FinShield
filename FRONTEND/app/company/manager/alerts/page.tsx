@@ -4,15 +4,15 @@ import { Card, CardContent } from "@/components/ui/card"
 import { AlertTriangle, TrendingUp, XCircle, Clock } from "lucide-react"
 import { StatsCard } from "@/components/dashboard/StatsCard"
 import { AlertCardList } from "@/components/alerts/AlertCardList"
-import { mockInvoices } from "@/lib/mock-data"
+
 
 export default function ManagerAlertsPage() {
   // Mock data filtering
-  const companyInvoices = mockInvoices.filter((i) => i.companyOrgId === "org-company-1")
-  const flaggedInvoices = companyInvoices.filter((i) => i.ai_verdict === "flagged" || i.status === "flagged")
-  const fraudulentInvoices = companyInvoices.filter((i) => i.status === "fraudulent")
-  const pendingInvoices = companyInvoices.filter((i) => i.status === "pending")
-  const highRiskInvoices = companyInvoices.filter((i) => (i.ai_riskScore || 0) > 0.7)
+  const companyInvoices: any[] = []
+  const flaggedInvoices: any[] = []
+  const fraudulentInvoices: any[] = []
+  const pendingInvoices: any[] = []
+  const highRiskInvoices: any[] = []
 
   return (
     <div className="space-y-6">

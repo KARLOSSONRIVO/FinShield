@@ -2,7 +2,7 @@
 
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
 import { useManagerInvoices } from "@/hooks/company-manager/invoices/use-manager-invoices"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { DataPagination } from "@/components/common/DataPagination"
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 
@@ -13,9 +13,8 @@ export default function ManagerInvoicesPage() {
     statusFilter,
     setStatusFilter,
     invoices,
-    currentPage,
-    totalPages,
-    setCurrentPage,
+    pagination,
+    setPage,
     sortConfig,
     requestSort,
     isLoading // Destructure isLoading
@@ -29,7 +28,7 @@ export default function ManagerInvoicesPage() {
       </div>
 
       <InvoiceFilter
-        search={search}
+        search={search || ""}
         onSearchChange={setSearch}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
@@ -44,14 +43,16 @@ export default function ManagerInvoicesPage() {
           invoices={invoices}
           mode="manager"
           baseUrl="/company/manager/invoices"
+          sortBy={sortConfig?.key}
+          order={sortConfig?.direction as "asc" | "desc" | undefined}
+          onSort={(field) => requestSort(field as any)}
         />
       )}
 
       <div className="mt-4 flex justify-center">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
+        <DataPagination
+          pagination={pagination}
+          onPageChange={setPage}
         />
       </div>
     </div>

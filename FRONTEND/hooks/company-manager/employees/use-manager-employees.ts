@@ -1,110 +1,101 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { mockUsers, mockInvoices } from "@/lib/mock-data"
-import { User } from "@/lib/types"
+import { useState } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { UserService } from "@/services/user.service"
 import { toast } from "sonner"
 
 export type SortConfig = {
-    key: keyof ManagerUser
+    key: "username" | "email" | "createdAt"
     direction: "asc" | "desc"
 } | null
 
-export type ManagerUser = User & { invoiceCount: number }
-
 export function useManagerEmployees() {
+    const queryClient = useQueryClient()
     const [search, setSearch] = useState("")
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const [disableUserId, setDisableUserId] = useState<string | null>(null)
     const [disableReason, setDisableReason] = useState("")
-    const [newUser, setNewUser] = useState({ email: "", username: "", role: "COMPANY_USER", orgId: "org-company-1" })
+    const [newUser, setNewUser] = useState({ email: "", username: "", role: "COMPANY_USER", orgId: "" })
     const [createError, setCreateError] = useState<string | null>(null)
-    const [isLoading, setIsLoading] = useState(true)
-
-    // Simulate loading
-    const [mounted, setMounted] = useState(false)
-    if (!mounted) {
-        setTimeout(() => {
-            setIsLoading(false)
-            setMounted(true)
-        }, 1000)
-    }
 
     // Pagination & Sort
     const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage] = useState(7)
-    const [sortConfig, setSortConfig] = useState<SortConfig>(null)
+    const itemsPerPage = 10
+    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "createdAt", direction: "desc" })
 
-    // Sort Handler
-    const requestSort = (key: keyof ManagerUser) => {
-        let direction: "asc" | "desc" = "asc"
-        if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
-            direction = "desc"
-        }
-        setSortConfig({ key, direction })
+    // Build query params
+    const queryParams = {
+        page: currentPage,
+        limit: itemsPerPage,
+        ...(search && { search }),
+        ...(sortConfig && { sortBy: sortConfig.key, order: sortConfig.direction })
     }
 
-    const filteredAndSortedUsers = useMemo(() => {
-        // 1. Filter by Company Organization and Enhance with Invoice Count
-        let processed: ManagerUser[] = mockUsers
-            .filter(u => u.orgId === "org-company-1")
-            .map(u => ({
-                ...u,
-                invoiceCount: mockInvoices.filter(inv => inv.uploadedByUserId === u._id).length
-            }))
+    const { data: response, isLoading } = useQuery({
+        queryKey: ["manager-employees", queryParams],
+        queryFn: () => UserService.listEmployees(queryParams)
+    })
 
-        // 2. Filter by Search
-        if (search) {
-            processed = processed.filter(u =>
-                u.email.toLowerCase().includes(search.toLowerCase()) ||
-                u.username.toLowerCase().includes(search.toLowerCase())
-            )
+    const users = response?.data?.items || []
+    const totalPages = response?.data?.pagination?.totalPages || 1
+
+    const requestSort = (key: any) => {
+        // Translate table header keys if necessary, or just use the mapped keys
+        let validKey: "username" | "email" | "createdAt" = "createdAt"
+        if (key === "username" || key === "email" || key === "createdAt") {
+            validKey = key
+        } else if (key === "status") {
+            // The API doesn't formally support "status" sorting per Swagger, but fallback to createdAt
+            validKey = "createdAt"
         }
 
-        // 3. Sort
-        if (sortConfig) {
-            processed.sort((a, b) => {
-                // @ts-ignore
-                const aValue = a[sortConfig.key]
-                // @ts-ignore
-                const bValue = b[sortConfig.key]
-
-                if (aValue === bValue) return 0
-                if (aValue === undefined || aValue === null) return 1
-                if (bValue === undefined || bValue === null) return -1
-
-                if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1
-                if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1
-                return 0
-            })
+        let direction: "asc" | "desc" = "asc"
+        if (sortConfig && sortConfig.key === validKey && sortConfig.direction === "asc") {
+            direction = "desc"
         }
+        setSortConfig({ key: validKey, direction })
+    }
 
-        return processed
-    }, [search, sortConfig])
-
-    // Pagination
-    const totalPages = Math.ceil(filteredAndSortedUsers.length / itemsPerPage)
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const currentUsers = filteredAndSortedUsers.slice(startIndex, startIndex + itemsPerPage)
+    const createMutation = useMutation({
+        mutationFn: () => UserService.createUser({
+            email: newUser.email,
+            username: newUser.username,
+            role: "COMPANY_USER",
+            password: "Password123!" // Default password
+        }),
+        onSuccess: () => {
+            toast.success(`Created employee: ${newUser.email}`)
+            setIsCreateOpen(false)
+            setNewUser({ email: "", username: "", role: "COMPANY_USER", orgId: "" })
+            queryClient.invalidateQueries({ queryKey: ["manager-employees"] })
+        },
+        onError: (err: any) => {
+            const msg = err.response?.data?.message || err.message || "Failed to create user"
+            setCreateError(msg)
+            toast.error(msg)
+        }
+    })
 
     const handleCreateUser = () => {
         setCreateError(null)
-        // Mock validation/error
-        if (newUser.username === "duplicate") {
-            setCreateError("Username already exists")
-            toast.error("Username already exists")
-            return
-        }
-        // alert(`Creating employee: ${newUser.email}`) // Removed alert
-        toast.success(`Creating employee: ${newUser.email}`)
-        setIsCreateOpen(false)
-        setCreateError(null)
+        createMutation.mutate()
     }
 
+    const disableMutation = useMutation({
+        mutationFn: (userId: string) => UserService.updateUserStatus(userId, "disabled"),
+        onSuccess: () => {
+            toast.success(`Employee disabled successfully`)
+            setDisableUserId(null)
+            queryClient.invalidateQueries({ queryKey: ["manager-employees"] })
+        },
+        onError: (err: any) => {
+            toast.error(err.response?.data?.message || "Failed to disable employee")
+        }
+    })
+
     const handleDisableUser = (userId: string) => {
-        // alert(`Disabling employee ${userId}`) // Removed alert
-        toast.info(`Disabling employee ${userId}`)
-        setDisableUserId(null)
+        disableMutation.mutate(userId)
     }
 
     return {
@@ -121,7 +112,7 @@ export function useManagerEmployees() {
         createError,
         setCreateError,
 
-        users: currentUsers,
+        users,
         handleCreateUser,
         handleDisableUser,
 

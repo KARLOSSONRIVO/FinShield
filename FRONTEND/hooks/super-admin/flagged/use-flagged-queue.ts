@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { mockInvoices } from "@/lib/mock-data"
 import { Invoice } from "@/lib/types"
 import { SortConfig, InvoiceStatusFilter } from "@/hooks/invoices/use-auditor-invoices"
 
@@ -23,13 +22,8 @@ export function useFlaggedQueue() {
     }
 
     const flaggedInvoices = useMemo(() => {
-        // Base Set: Invoices that are AI Flagged or have High Risk or Status Flagged
-        return mockInvoices.filter(i =>
-            i.ai_verdict === 'flagged' ||
-            i.status === 'flagged' ||
-            i.status === 'fraudulent' ||
-            (i.ai_riskScore || 0) >= 0.7
-        )
+        // Mock data removed. Requires API integration.
+        return [] as Invoice[];
     }, [])
 
     const filteredAndSortedInvoices = useMemo(() => {

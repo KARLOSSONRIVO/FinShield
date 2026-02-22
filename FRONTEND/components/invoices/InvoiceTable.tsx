@@ -1,6 +1,5 @@
 "use client"
 
-import { cn } from "@/lib/utils"
 import {
     Table,
     TableBody,
@@ -12,70 +11,70 @@ import {
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Invoice } from "@/lib/types"
-import { Eye } from "lucide-react"
-import { InvoiceStatusBadge, AIVerdictBadge } from "@/components/common/StatusBadge"
+import { ArrowUpDown } from "lucide-react"
+import { InvoiceStatusBadge } from "@/components/common/StatusBadge"
+import { PaginationDetails } from "@/lib/types"
+import { DataPagination } from "../common/DataPagination"
 
 export type TableViewMode = "super-admin" | "auditor" | "regulator" | "manager" | "employee"
 
 interface InvoiceTableProps {
     invoices: Invoice[]
     mode: TableViewMode
-    baseUrl: string // e.g. "/admin/super-admin/invoices"
+    baseUrl: string
+    pagination?: PaginationDetails
+    onPageChange?: (page: number) => void
+    sortBy?: string
+    order?: "asc" | "desc"
+    onSort?: (field: string) => void
 }
 
-export function InvoiceTable({ invoices, mode, baseUrl }: InvoiceTableProps) {
-
+export function InvoiceTable({ invoices, mode, baseUrl, pagination, onPageChange, sortBy, order, onSort }: InvoiceTableProps) {
     return (
-        <div className="rounded-xl border border-border bg-card shadow-sm px-3 py-2">
+        <div className="rounded-xl border border-border bg-card shadow-sm px-3 py-2 overflow-x-auto">
             <Table>
                 <TableHeader>
                     <TableRow className="hover:bg-transparent border-b border-border/50">
-                        <TableHead className="w-[150px] px-2 py-2 text-black font-bold text-base">Invoice No.</TableHead>
+                        <TableHead className="w-[150px] px-2 py-2 text-foreground font-bold text-base">Invoice No.</TableHead>
                         {mode !== 'manager' && mode !== 'employee' && (
-                            <TableHead className="px-2 py-2 text-black font-bold text-base">Company</TableHead>
+                            <TableHead className="px-2 py-2 text-foreground font-bold text-base">Company</TableHead>
                         )}
-                        {(mode === 'manager' || mode === 'employee') && (
-                            <TableHead className="px-2 py-2 text-black font-bold text-base">Blockchain</TableHead>
-                        )}
-                        {mode === 'manager' && (
-                            <TableHead className="px-2 py-2 text-black font-bold text-base">Uploaded By</TableHead>
-                        )}
-                        <TableHead className="px-2 py-2 text-black font-bold text-base">Date</TableHead>
-                        <TableHead className="px-2 py-2 text-black font-bold text-base">Amount</TableHead>
-                        <TableHead className="px-2 py-2 text-black font-bold text-base text-center">AI Analysis</TableHead>
-                        <TableHead className="px-2 py-2 text-black font-bold text-base text-center">Status</TableHead>
-                        <TableHead className="px-2 py-2 text-black font-bold text-base text-center">Action</TableHead>
+                        <TableHead className="px-2 py-2 text-foreground font-bold text-base">Transaction Hash</TableHead>
+                        <TableHead className="px-2 py-2">
+                            <div
+                                className="flex items-center justify-start gap-2 cursor-pointer font-bold text-base text-foreground"
+                                onClick={() => onSort?.("anchoredAt")}
+                            >
+                                Anchored At
+                                <ArrowUpDown className={`h-4 w-4 ${sortBy === 'anchoredAt' ? 'text-primary' : 'text-muted-foreground'}`} />
+                            </div>
+                        </TableHead>
+                        <TableHead className="px-2 py-2 text-foreground font-bold text-base text-center">Status</TableHead>
+                        <TableHead className="px-2 py-2 text-foreground font-bold text-base text-center">Action</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {invoices.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={mode === 'manager' ? 8 : 7} className="h-24 text-center text-muted-foreground">
+                            <TableCell colSpan={mode === 'manager' || mode === 'employee' ? 5 : 6} className="h-24 text-center text-muted-foreground">
                                 No invoices found.
                             </TableCell>
                         </TableRow>
                     ) : (
                         invoices.map((row) => (
                             <TableRow key={row._id} className="h-16 hover:bg-muted/30 transition-colors border-b border-border/50">
-                                <TableCell className="px-2 font-bold text-base text-black">{row.invoiceNo}</TableCell>
+                                <TableCell className="px-2 font-bold text-base text-foreground">{row.invoiceNo || '—'}</TableCell>
                                 {mode !== 'manager' && mode !== 'employee' && (
-                                    <TableCell className="px-2 font-bold text-base text-black">{row.companyName}</TableCell>
+                                    <TableCell className="px-2 font-bold text-base text-foreground">{row.companyName || '—'}</TableCell>
                                 )}
-                                {(mode === 'manager' || mode === 'employee') && (
-                                    <TableCell className="px-2 font-medium text-sm text-black font-mono">
-                                        {row.blockchain_txHash ? `${row.blockchain_txHash.substring(0, 10)}...` : '-'}
-                                    </TableCell>
-                                )}
-                                {mode === 'manager' && (
-                                    <TableCell className="px-2 font-bold text-base text-black">{row.uploadedByName || 'Unknown'}</TableCell>
-                                )}
-                                <TableCell className="px-2 font-bold text-base text-black">{row.invoiceDate ? new Date(row.invoiceDate).toLocaleDateString() : 'N/A'}</TableCell>
-                                <TableCell className="px-2 font-bold text-base text-black">${row.totals_total?.toLocaleString() ?? '0.00'}</TableCell>
-                                <TableCell className="px-2 text-center">
-                                    {row.ai_verdict && <AIVerdictBadge verdict={row.ai_verdict} hideScore={true} />}
+                                <TableCell className="px-2 font-mono text-sm text-muted-foreground max-w-[200px] truncate">
+                                    {row.txHash ? `${row.txHash.substring(0, 16)}…` : '—'}
+                                </TableCell>
+                                <TableCell className="px-2 font-bold text-base text-foreground">
+                                    {row.anchoredAt ? new Date(row.anchoredAt).toLocaleString() : '—'}
                                 </TableCell>
                                 <TableCell className="px-2 text-center">
-                                    <InvoiceStatusBadge status={row.status} />
+                                    <InvoiceStatusBadge status={row.status as any} />
                                 </TableCell>
                                 <TableCell className="px-2 text-center">
                                     <Link href={`${baseUrl}/${row._id}`}>
@@ -93,6 +92,11 @@ export function InvoiceTable({ invoices, mode, baseUrl }: InvoiceTableProps) {
                     )}
                 </TableBody>
             </Table>
+            {pagination && onPageChange && (
+                <div className="px-3">
+                    <DataPagination pagination={pagination} onPageChange={onPageChange} />
+                </div>
+            )}
         </div>
     )
 }

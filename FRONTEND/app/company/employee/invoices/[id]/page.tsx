@@ -3,15 +3,15 @@ import { BackButton } from "@/components/common/BackButton"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { mockInvoices, mockReviews } from "@/lib/mock-data"
+
 import { FileText, Shield, ArrowLeft, AlertTriangle } from "lucide-react"
 import { AIVerdictBadge, DecisionBadge } from "@/components/common/StatusBadge"
 import { cn } from "@/lib/utils"
 
 export default async function EmployeeInvoiceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const invoice = mockInvoices.find((i) => i._id === id)
-  const reviews = mockReviews.filter((r) => r.invoiceId === id)
+  const invoice: any = null
+  const reviews: any[] = []
 
   if (!invoice) {
     return (

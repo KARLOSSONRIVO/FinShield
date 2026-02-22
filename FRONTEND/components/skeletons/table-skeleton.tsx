@@ -15,7 +15,7 @@ interface TableSkeletonProps {
 
 export function TableSkeleton({ columnCount = 5, rowCount = 5 }: TableSkeletonProps) {
     return (
-        <div className="rounded-md border bg-white">
+        <div className="rounded-md border bg-white overflow-x-auto">
             <Table>
                 <TableHeader>
                     <TableRow>

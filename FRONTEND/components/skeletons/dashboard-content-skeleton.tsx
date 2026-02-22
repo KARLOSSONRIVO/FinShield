@@ -4,54 +4,55 @@ export function DashboardContentSkeleton() {
     return (
         <div className="space-y-6">
             {/* Header Text */}
-            <div className="space-y-2">
-                <Skeleton className="h-8 w-64" />
-                <Skeleton className="h-4 w-48" />
+            <div className="space-y-2 mb-6">
+                <Skeleton className="h-8 w-64 bg-muted/60" />
+                <Skeleton className="h-4 w-48 bg-muted/60" />
             </div>
 
-            {/* Summary Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="rounded-xl border bg-card text-card-foreground shadow-sm p-6 space-y-4">
-                        <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <Skeleton className="h-4 w-24" />
-                            <Skeleton className="h-4 w-4 rounded-full" />
+                    <div key={i} className="rounded-xl bg-card text-card-foreground border-2 border-black/5 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)] p-6 h-[140px] flex flex-col justify-between">
+                        <div className="flex justify-between items-start w-full mb-2">
+                            <Skeleton className="h-4 w-24 bg-muted/60" />
+                            <Skeleton className="h-8 w-8 rounded-md bg-muted/60" />
                         </div>
-                        <div className="space-y-2">
-                            <Skeleton className="h-8 w-16" />
-                            <Skeleton className="h-4 w-32" />
+                        <div className="mt-auto">
+                            <Skeleton className="h-10 w-16 mb-2 bg-muted/60" />
+                            <Skeleton className="h-4 w-32 bg-muted/60" />
                         </div>
                     </div>
                 ))}
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                {/* Main Content Area (e.g., Recent Invoices) - Spans 4 columns */}
-                <div className="col-span-4 rounded-xl border bg-card text-card-foreground shadow-sm">
+            {/* Main Content Split: Recent Invoices (Left) & Recent Activity (Right) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-[400px]">
+                {/* Recent Invoices - Takes up 2 columns */}
+                <div className="lg:col-span-2 rounded-xl bg-card text-card-foreground border-2 border-black/5 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)]">
                     <div className="p-6 flex flex-col space-y-1.5">
-                        <Skeleton className="h-6 w-32" />
-                        <Skeleton className="h-4 w-48" />
+                        <Skeleton className="h-6 w-32 bg-muted/60" />
+                        <Skeleton className="h-4 w-48 bg-muted/60" />
                     </div>
                     <div className="p-6 pt-0 space-y-4">
                         {Array.from({ length: 5 }).map((_, i) => (
-                            <Skeleton key={i} className="h-16 w-full rounded-md" />
+                            <Skeleton key={i} className="h-[72px] w-full rounded-md bg-muted/60" />
                         ))}
                     </div>
                 </div>
 
-                {/* Side Content Area (e.g., Recent Activity) - Spans 3 columns */}
-                <div className="col-span-3 rounded-xl border bg-card text-card-foreground shadow-sm">
+                {/* Recent Activity - Takes up 1 column */}
+                <div className="lg:col-span-1 rounded-xl bg-card text-card-foreground border-2 border-black/5 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.05)]">
                     <div className="p-6 flex flex-col space-y-1.5">
-                        <Skeleton className="h-6 w-32" />
-                        <Skeleton className="h-4 w-48" />
+                        <Skeleton className="h-6 w-32 bg-muted/60" />
+                        <Skeleton className="h-4 w-48 bg-muted/60" />
                     </div>
-                    <div className="p-6 pt-0 spacing-y-4">
+                    <div className="p-6 pt-0 space-y-6 mt-4">
                         {Array.from({ length: 5 }).map((_, i) => (
-                            <div key={i} className="mb-4 grid grid-cols-[25px_1fr] items-start pb-4 last:mb-0 last:pb-0">
-                                <Skeleton className="flex h-2 w-2 translate-y-1 rounded-full bg-sky-500" />
-                                <div className="space-y-1">
-                                    <Skeleton className="h-4 w-full" />
-                                    <Skeleton className="h-3 w-24" />
+                            <div key={i} className="grid grid-cols-[25px_1fr] items-start">
+                                <Skeleton className="h-3 w-3 translate-y-1 rounded-full bg-muted/60" />
+                                <div className="space-y-2">
+                                    <Skeleton className="h-4 w-full bg-muted/60" />
+                                    <Skeleton className="h-3 w-24 bg-muted/60" />
                                 </div>
                             </div>
                         ))}

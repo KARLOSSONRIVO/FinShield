@@ -5,87 +5,61 @@ import { useQuery } from "@tanstack/react-query"
 import type { Invoice } from "@/lib/types"
 import { InvoiceService } from "@/services/invoice.service"
 import { useAuth } from "@/hooks/use-auth" // Assuming we filter by user's org if backend doesn't already
+import { useUrlPagination } from "@/hooks/common/use-url-pagination"
 
 export type InvoiceStatusFilter = "all" | "pending" | "verified" | "flagged" | "fraudulent"
 
 export type SortConfig = {
-    key: keyof Invoice
+    key: keyof Invoice | string
     direction: 'asc' | 'desc'
 }
 
-export function useManagerInvoices() {
-    const [search, setSearch] = useState("")
-    const [statusFilter, setStatusFilter] = useState<InvoiceStatusFilter>("all")
-    const [sortConfig, setSortConfig] = useState<SortConfig>({
-        key: "invoiceDate",
-        direction: "desc"
-    })
-    const [currentPage, setCurrentPage] = useState(1)
-    const itemsPerPage = 10
+export function useManagerInvoices({ initialLimit = 10 } = {}) {
+    // 1. URL State Hook
+    const {
+        page, limit, search, sortBy, order, queryParams,
+        setPage, setSearch, setSort, setFilter
+    } = useUrlPagination(initialLimit)
 
-    // Backend should filter by the logged-in user's organization automatically
-    const { data: invoices = [], isLoading } = useQuery({
-        queryKey: ["invoices", "manager"],
-        queryFn: InvoiceService.getAll
-    })
+    // Pull status filter from URL or default to "all"
+    const statusFilter = ((queryParams as any).statusFilter as InvoiceStatusFilter) || "all"
 
-    const filteredAndSortedInvoices = useMemo(() => {
-        let result = [...invoices]
+    // 2. Data Fetching
+    const { data, isLoading, isError } = useQuery({
+        // Include statusFilter in queryKey and params so React Query refetches when it changes
+        queryKey: ["invoices", "manager", queryParams, statusFilter],
+        queryFn: async () => {
+            // Let the backend handle pagination and filtering if possible.
+            const apiParams: Record<string, any> = { ...queryParams }
+            if (statusFilter !== "all") {
+                apiParams.status = statusFilter
+            }
+            delete apiParams.statusFilter // clean up frontend-only params before sending
 
-        // 1. Search
-        if (search) {
-            const lowerSearch = search.toLowerCase()
-            result = result.filter(invoice =>
-                (invoice.invoiceNo || "").toLowerCase().includes(lowerSearch) ||
-                (invoice.totals_total || 0).toString().includes(lowerSearch)
-            )
+            const response = await InvoiceService.getAll(apiParams)
+            return {
+                items: response.data.items || [],
+                pagination: response.data.pagination || { total: 0, page: 1, limit: 10, totalPages: 1 }
+            }
         }
-
-        // 2. Status Filter
-        if (statusFilter !== "all") {
-            result = result.filter(invoice => invoice.status.toLowerCase() === statusFilter)
-        }
-
-        // 3. Sorting
-        result.sort((a, b) => {
-            const aValue = a[sortConfig.key]
-            const bValue = b[sortConfig.key]
-
-            if ((aValue === undefined || aValue === null) && (bValue === undefined || bValue === null)) return 0
-            if (aValue === undefined || aValue === null) return 1
-            if (bValue === undefined || bValue === null) return -1
-
-            if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1
-            if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1
-            return 0
-        })
-
-        return result
-    }, [invoices, search, statusFilter, sortConfig])
-
-    // Pagination
-    const totalPages = Math.ceil(filteredAndSortedInvoices.length / itemsPerPage)
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const currentInvoices = filteredAndSortedInvoices.slice(startIndex, startIndex + itemsPerPage)
-
-    const handleSort = (key: keyof Invoice) => {
-        setSortConfig(current => ({
-            key,
-            direction: current.key === key && current.direction === "asc" ? "desc" : "asc"
-        }))
-    }
+    })
 
     return {
+        // Table Data & Pagination
+        invoices: data?.items || [],
+        pagination: data?.pagination,
+        isLoading,
+        isError,
+
+        // URL Pagination Handlers
         search,
         setSearch,
+        setPage,
+        sortConfig: sortBy ? { key: sortBy, direction: order || 'desc' } : null,
+        requestSort: setSort,
+
+        // Filters
         statusFilter,
-        setStatusFilter,
-        sortConfig,
-        requestSort: handleSort,
-        invoices: currentInvoices,
-        currentPage,
-        totalPages,
-        setCurrentPage,
-        isLoading
+        setStatusFilter: (val: string) => setFilter('statusFilter', val),
     }
 }

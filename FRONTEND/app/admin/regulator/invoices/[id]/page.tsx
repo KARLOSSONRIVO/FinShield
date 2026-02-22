@@ -6,14 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, FileText, Blocks, History, ShieldAlert, ShieldCheck } from "lucide-react"
 import Link from "next/link"
 import { use } from "react"
-import { mockInvoices } from "@/lib/mock-data"
+import { Invoice } from "@/lib/types"
 
 export default function RegulatorInvoiceDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
-  const invoice = mockInvoices.find(i => i._id === id)
+  // Mock data removed. Requires API integration.
+  const invoice = undefined as Invoice | undefined
 
   if (!invoice) {
-    return <div className="p-6">Invoice not found</div>
+    return <div className="p-6">Invoice not found for ID: {id}</div>
   }
 
   return (

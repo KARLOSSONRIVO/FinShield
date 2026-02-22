@@ -65,8 +65,8 @@ export default function SuperAdminLayout({
             {/* Main content wrapper */}
             <div
                 className={cn(
-                    "flex-1 flex flex-col min-w-0 transition-all duration-300",
-                    collapsed ? "ml-20" : "ml-72"
+                    "flex-1 flex flex-col min-w-0 w-full transition-all duration-700 ease-in-out",
+                    collapsed ? "md:ml-24" : "md:ml-72"
                 )}
             >
                 {/* Top Navigation Bar - Sticky */}
@@ -78,11 +78,12 @@ export default function SuperAdminLayout({
                             { title: "New Fraud Alert", time: "2m ago", message: "Invoice INV-2024-100 tagged for review." },
                             { title: "New Fraud Alert", time: "5m ago", message: "Invoice INV-2024-101 tagged for review." }
                         ]}
+                        onMenuClick={() => setCollapsed(false)}
                     />
                 </div>
 
                 {/* Main Content */}
-                <main className="flex-1 p-4 md:p-6 space-y-4">
+                <main className="flex-1 w-full max-w-[100vw] overflow-x-hidden p-4 md:p-6 space-y-4">
                     {children}
                 </main>
             </div>

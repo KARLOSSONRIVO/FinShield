@@ -10,7 +10,10 @@ export function useAuditorDashboard() {
 
     const { data: allInvoices = [] } = useQuery({
         queryKey: ["invoices"],
-        queryFn: InvoiceService.getAll
+        queryFn: async () => {
+            const res = await InvoiceService.getAll()
+            return res.data?.items ?? []
+        }
     })
 
     // Filter relevant lists

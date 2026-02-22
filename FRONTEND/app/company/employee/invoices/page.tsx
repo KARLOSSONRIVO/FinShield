@@ -5,7 +5,6 @@ import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { mockInvoices } from "@/lib/mock-data"
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 import { InvoiceStatusFilter, SortConfig } from "@/hooks/invoices/use-auditor-invoices"
 import { Invoice } from "@/lib/types"
@@ -20,11 +19,11 @@ export default function EmployeeInvoicesPage() {
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "invoiceDate", direction: "desc" })
   const [currentPage, setCurrentPage] = useState(1)
 
-  const rawInvoices = mockInvoices
-    .filter((i) => i.uploadedByUserId === "user-employee-1")
+  const rawInvoices: Invoice[] = []
+    .filter((i: Invoice) => i.uploadedByUserId === "user-employee-1")
 
   // Filter logic
-  const filteredInvoices = rawInvoices.filter((invoice) => {
+  const filteredInvoices = rawInvoices.filter((invoice: Invoice) => {
     const matchesSearch =
       (invoice.invoiceNo || "").toLowerCase().includes(search.toLowerCase()) ||
       (invoice.companyName && invoice.companyName.toLowerCase().includes(search.toLowerCase())) ||
@@ -61,9 +60,9 @@ export default function EmployeeInvoicesPage() {
         search={search}
         onSearchChange={setSearch}
         statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
+        onStatusFilterChange={(val) => setStatusFilter(val as InvoiceStatusFilter)}
         sortConfig={sortConfig}
-        onSortChange={requestSort}
+        onSortChange={(key) => requestSort(key as keyof Invoice)}
       />
 
       <div className="rounded-xl border border-border bg-card shadow-sm px-3 py-2">
@@ -71,6 +70,9 @@ export default function EmployeeInvoicesPage() {
           invoices={paginatedInvoices}
           mode="employee"
           baseUrl="/company/employee/invoices"
+          sortBy={sortConfig?.key}
+          order={sortConfig?.direction as "asc" | "desc" | undefined}
+          onSort={(field) => requestSort(field as any)}
         />
       </div>
 

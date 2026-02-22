@@ -50,8 +50,8 @@ export default function RegulatorLayout({
             {/* Main content wrapper */}
             <div
                 className={cn(
-                    "flex-1 flex flex-col min-w-0 transition-all duration-300",
-                    collapsed ? "ml-20" : "ml-72"
+                    "flex-1 flex flex-col min-w-0 w-full transition-all duration-700 ease-in-out",
+                    collapsed ? "md:ml-24" : "md:ml-72"
                 )}
             >
                 {/* Top Navigation Bar - Sticky */}
@@ -64,11 +64,12 @@ export default function RegulatorLayout({
                         notifications={[
                             { title: "Action Required", time: "2h ago", message: "Compliance report for Provider 100 is ready." }
                         ]}
+                        onMenuClick={() => setCollapsed(false)}
                     />
                 </div>
 
                 {/* Main Content */}
-                <main className="flex-1 p-4 md:p-6 space-y-4">
+                <main className="flex-1 w-full max-w-[100vw] overflow-x-hidden p-4 md:p-6 space-y-4">
                     {children}
                 </main>
             </div>

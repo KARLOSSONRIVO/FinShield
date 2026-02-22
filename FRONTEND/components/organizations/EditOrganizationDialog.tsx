@@ -25,6 +25,7 @@ interface EditOrganizationDialogProps {
     onOpenChange: (open: boolean) => void
     organization: Organization | null
     onSave: (org: Organization) => void
+    isLoading?: boolean
 }
 
 export function EditOrganizationDialog({
@@ -32,15 +33,19 @@ export function EditOrganizationDialog({
     onOpenChange,
     organization,
     onSave,
+    isLoading = false,
 }: EditOrganizationDialogProps) {
     const [name, setName] = useState("")
-    const [status, setStatus] = useState<"ACTIVE" | "INACTIVE" | "SUSPENDED" | undefined>("ACTIVE")
+    const [status, setStatus] = useState<OrganizationStatus | string>("ACTIVE")
 
     // Reset form when organization changes
     useEffect(() => {
         if (organization) {
             setName(organization.name || "")
             setStatus(organization.status)
+        } else {
+            // Reset to a default if organization becomes null
+            setStatus("ACTIVE")
         }
     }, [organization])
 
@@ -49,7 +54,7 @@ export function EditOrganizationDialog({
         onSave({
             ...organization,
             name,
-            status
+            status: status as OrganizationStatus
         })
         onOpenChange(false)
     }
@@ -58,7 +63,7 @@ export function EditOrganizationDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="sm:max-w-[400px]">
                 <DialogHeader>
                     <DialogTitle>Edit Organization</DialogTitle>
                 </DialogHeader>
@@ -78,7 +83,7 @@ export function EditOrganizationDialog({
                         <Label htmlFor="status" className="text-right">
                             Status
                         </Label>
-                        <Select value={status} onValueChange={(val) => setStatus(val as any)}>
+                        <Select value={status} onValueChange={(val) => setStatus(val as OrganizationStatus)}>
                             <SelectTrigger className="col-span-3">
                                 <SelectValue placeholder="Select status" />
                             </SelectTrigger>
@@ -91,8 +96,10 @@ export function EditOrganizationDialog({
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                    <Button onClick={handleSave} className="bg-emerald-600 hover:bg-emerald-700">Save Changes</Button>
+                    <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancel</Button>
+                    <Button onClick={handleSave} disabled={isLoading} className="bg-emerald-600 hover:bg-emerald-700">
+                        {isLoading ? "Saving..." : "Save Changes"}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

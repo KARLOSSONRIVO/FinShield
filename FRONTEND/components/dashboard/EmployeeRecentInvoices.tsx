@@ -19,10 +19,10 @@ export function EmployeeRecentInvoices({
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xl font-bold text-black border-none">
+                <CardTitle className="text-xl font-bold text-foreground border-none">
                     {title}
                 </CardTitle>
-                <a href="/company/employee/invoices" className="text-sm font-bold text-black hover:underline cursor-pointer">
+                <a href="/company/employee/invoices" className="text-sm font-bold text-foreground hover:underline cursor-pointer">
                     View All →
                 </a>
             </CardHeader>
@@ -36,12 +36,12 @@ export function EmployeeRecentInvoices({
                                         <FileText className="h-6 w-6 text-white" />
                                     </div>
                                     <div>
-                                        <p className="font-bold text-base text-black">{invoice.invoiceNo}</p>
+                                        <p className="font-bold text-base text-foreground">{invoice.invoiceNo}</p>
                                         <p className="text-xs text-muted-foreground font-medium">Finance Administrator</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="font-bold text-base text-black">${(invoice.totals_total ?? 0).toLocaleString()}</p>
+                                    <p className="font-bold text-base text-foreground">${(invoice.totals_total ?? 0).toLocaleString()}</p>
                                     <div className="bg-emerald-600 text-white px-2 py-0.5 rounded text-[10px] font-bold uppercase w-fit ml-auto mt-1">
                                         VERIFIED
                                     </div>

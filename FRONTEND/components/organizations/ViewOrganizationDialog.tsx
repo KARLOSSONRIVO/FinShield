@@ -24,7 +24,7 @@ export function ViewOrganizationDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="sm:max-w-[400px]">
                 <DialogHeader>
                     <DialogTitle>Organization Details</DialogTitle>
                 </DialogHeader>

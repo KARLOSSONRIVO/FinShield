@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { mockAuditLogs } from "@/lib/mock-data"
 import { AuditLog } from "@/lib/types"
 
 export type EntityFilter = "all" | AuditLog['entity_type']
@@ -13,7 +12,7 @@ export function useRegulatorAuditLogs() {
     const itemsPerPage = 5
 
     const filteredLogs = useMemo(() => {
-        let result = [...mockAuditLogs]
+        let result: AuditLog[] = []
 
         if (search) {
             const lowerSearch = search.toLowerCase()

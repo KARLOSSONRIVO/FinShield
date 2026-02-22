@@ -3,7 +3,7 @@
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 import { useSuperAdminInvoices } from "@/hooks/invoices/use-super-admin-invoices"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { DataPagination } from "@/components/common/DataPagination"
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 
 export default function AllInvoicesPage() {
@@ -13,9 +13,8 @@ export default function AllInvoicesPage() {
     statusFilter,
     setStatusFilter,
     invoices,
-    currentPage,
-    totalPages,
-    setCurrentPage,
+    pagination,
+    setPage,
     sortConfig,
     requestSort,
     isLoading // Destructure isLoading
@@ -28,7 +27,7 @@ export default function AllInvoicesPage() {
       </div>
 
       <InvoiceFilter
-        search={search}
+        search={search || ""}
         onSearchChange={setSearch}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
@@ -43,14 +42,16 @@ export default function AllInvoicesPage() {
           invoices={invoices}
           mode="super-admin"
           baseUrl="/admin/super-admin/invoices"
+          sortBy={sortConfig?.key}
+          order={sortConfig?.direction as "asc" | "desc" | undefined}
+          onSort={(field) => requestSort(field as any)}
         />
       )}
 
       <div className="mt-4 flex justify-center">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
+        <DataPagination
+          pagination={pagination}
+          onPageChange={setPage}
         />
       </div>
     </div>

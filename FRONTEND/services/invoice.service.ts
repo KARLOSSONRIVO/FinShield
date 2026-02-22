@@ -1,8 +1,7 @@
 import axios from "axios"
 import { apiClient } from "@/lib/api-client"
-import { mockInvoices } from "@/lib/mock-data"
-// import { components } from "@/lib/api-types" // API types are missing Invoice schemas in paths?
-import { Invoice } from "@/lib/types" // Using Frontend ID for now since API types differ or are missing
+import { Invoice, PaginatedResponse, PaginationQuery } from "@/lib/types"
+import { blockchainService, BlockchainLedgerItem } from "./blockchain.service"
 
 export const InvoiceService = {
     /**
@@ -19,7 +18,7 @@ export const InvoiceService = {
         try {
             // Use raw axios to avoid apiClient's default 'application/json' header
             // and let the browser set the correct multipart boundary
-            const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/invoice/upload`, formData, {
+            const { data } = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/invoice/upload`, formData, {
                 headers: {
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                     // Do NOT set Content-Type here; let browser handle it
@@ -47,30 +46,45 @@ export const InvoiceService = {
         } catch (error: any) {
             console.error("Upload Error Details:", {
                 status: error.response?.status,
-                data: error.response?.data,
+                data: JSON.stringify(error.response?.data, null, 2), // Make data readable
                 headers: error.response?.headers,
                 message: error.message
             });
+            console.error("Full Backend Error Response:", error.response?.data); // Explicit log
             throw error; // Re-throw for hook to handle
         }
     },
 
     /**
-     * List invoices
-     * Note: Backend endpoint /invoice/list does not exist yet.
-     * Returning mock data to allow frontend development.
+     * List all blockchain-anchored invoices via GET /blockchain/ledger.
+     * Valid sortBy values: anchoredAt, invoiceNumber
      */
-    getAll: async (): Promise<Invoice[]> => {
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 800))
-        return mockInvoices
-    },
+    getAll: async (params?: PaginationQuery): Promise<PaginatedResponse<Invoice>> => {
+        // Sanitise sortBy — ledger only accepts 'anchoredAt' | 'invoiceNumber'
+        const VALID_SORT = ['anchoredAt', 'invoiceNumber']
+        const cleanParams = params ? { ...params } : {}
+        if (cleanParams.sortBy && !VALID_SORT.includes(cleanParams.sortBy)) {
+            delete cleanParams.sortBy
+            delete cleanParams.order
+        }
 
-    /**
-     * Get invoice by ID
-     */
-    getById: async (id: string): Promise<Invoice | undefined> => {
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        return mockInvoices.find(inv => inv._id === id)
+        const response = await blockchainService.getLedger(cleanParams)
+
+        const items: Invoice[] = response.data.items.map((item: BlockchainLedgerItem) => ({
+            _id: item.id,
+            invoiceNo: item.invoiceNumber,
+            companyName: item.company,
+            txHash: item.transactionHash,
+            anchoredAt: item.anchoredAt,
+            status: item.status,
+        }))
+
+        return {
+            ok: response.ok,
+            data: {
+                items,
+                pagination: response.data.pagination
+            }
+        }
     }
 }

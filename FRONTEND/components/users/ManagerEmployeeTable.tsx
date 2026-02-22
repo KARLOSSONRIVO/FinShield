@@ -14,6 +14,7 @@ export function ManagerEmployeeTable(props: ManagerEmployeeTableProps) {
     return (
         <UserTable
             {...props}
+            hideRoleAndOrg={true}
             onUpdateStatus={(userId, status) => {
                 if (status === "SUSPENDED") {
                     props.onDisableUser(userId)

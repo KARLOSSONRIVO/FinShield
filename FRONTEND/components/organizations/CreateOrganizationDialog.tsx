@@ -28,6 +28,7 @@ interface CreateOrganizationDialogProps {
     newOrgStatus: string
     setNewOrgStatus: (status: string) => void
     onCreateOrg: () => void
+    isLoading?: boolean
 }
 
 export function CreateOrganizationDialog({
@@ -42,13 +43,14 @@ export function CreateOrganizationDialog({
     newOrgStatus,
     setNewOrgStatus,
     onCreateOrg,
+    isLoading = false,
 }: CreateOrganizationDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[1025px] border border-black shadow-none rounded-xl flex flex-col" showCloseButton={false}>
+            <DialogContent className="sm:max-w-[400px] border border-black shadow-none rounded-xl flex flex-col" showCloseButton={false}>
                 <DialogHeader className="flex flex-row items-center justify-between border-b pb-4">
                     <DialogTitle className="text-xl font-normal">Create New Organization</DialogTitle>
-                    <DialogClose className="opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                    <DialogClose className="opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
                         <X className="h-6 w-6" /> {/* Bigger close icon */}
                         <span className="sr-only">Close</span>
                     </DialogClose>
@@ -105,8 +107,12 @@ export function CreateOrganizationDialog({
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={onCreateOrg} className="w-full bg-[#00C28C] hover:bg-[#00C28C]/90 text-white font-bold h-11 rounded-lg text-base">
-                        Create Organization
+                    <Button
+                        onClick={onCreateOrg}
+                        disabled={isLoading}
+                        className="w-full bg-[#00C28C] hover:bg-[#00C28C]/90 text-white font-bold h-11 rounded-lg text-base disabled:opacity-50"
+                    >
+                        {isLoading ? "Creating..." : "Create Organization"}
                     </Button>
                 </DialogFooter>
             </DialogContent>

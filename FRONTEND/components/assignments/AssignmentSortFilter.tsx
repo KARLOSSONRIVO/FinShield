@@ -6,7 +6,7 @@ import { Filter, ChevronUp, ChevronDown } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 
-export type AssignmentSortKey = "auditorName" | "companyName" | "status"
+export type AssignmentSortKey = "assignedAt" | "createdAt" | "status"
 export type SortDirection = "asc" | "desc"
 
 export type AssignmentSortConfig = {
@@ -20,8 +20,8 @@ interface AssignmentSortFilterProps {
 }
 
 export function AssignmentSortFilter({ sortConfig, onSortChange }: AssignmentSortFilterProps) {
-    const isSortedByAuditor = sortConfig?.key === "auditorName"
-    const isSortedByCompany = sortConfig?.key === "companyName"
+    const isSortedByAssignedAt = sortConfig?.key === "assignedAt"
+    const isSortedByStatus = sortConfig?.key === "status"
 
     const handleSort = (key: AssignmentSortKey, direction: SortDirection) => {
         onSortChange({ key, direction })
@@ -37,53 +37,27 @@ export function AssignmentSortFilter({ sortConfig, onSortChange }: AssignmentSor
             </PopoverTrigger>
             <PopoverContent className="w-56 p-0" align="end">
                 <div className="py-2">
-                    <div className="px-3 py-2 text-sm font-medium text-black">Sort By Auditor</div>
+                    <div className="px-3 py-2 text-sm font-medium text-foreground">Sort By Date Assigned</div>
                     <div className="px-1">
                         <button
-                            onClick={() => handleSort("auditorName", "asc")}
+                            onClick={() => handleSort("assignedAt", "desc")}
                             className={cn(
                                 "w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors flex items-center justify-between",
-                                isSortedByAuditor && sortConfig.direction === "asc" && "text-emerald-600 font-medium bg-emerald-50"
+                                isSortedByAssignedAt && sortConfig.direction === "desc" && "text-emerald-600 font-medium bg-emerald-50"
                             )}
                         >
-                            Name (A-Z)
-                            {isSortedByAuditor && sortConfig.direction === "asc" && <ChevronUp className="h-4 w-4" />}
+                            Newest First
+                            {isSortedByAssignedAt && sortConfig.direction === "desc" && <ChevronDown className="h-4 w-4" />}
                         </button>
                         <button
-                            onClick={() => handleSort("auditorName", "desc")}
+                            onClick={() => handleSort("assignedAt", "asc")}
                             className={cn(
                                 "w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors flex items-center justify-between",
-                                isSortedByAuditor && sortConfig.direction === "desc" && "text-emerald-600 font-medium bg-emerald-50"
+                                isSortedByAssignedAt && sortConfig.direction === "asc" && "text-emerald-600 font-medium bg-emerald-50"
                             )}
                         >
-                            Name (Z-A)
-                            {isSortedByAuditor && sortConfig.direction === "desc" && <ChevronDown className="h-4 w-4" />}
-                        </button>
-                    </div>
-
-                    <Separator className="my-2" />
-
-                    <div className="px-3 py-2 text-sm font-medium text-black">Sort By Company</div>
-                    <div className="px-1">
-                        <button
-                            onClick={() => handleSort("companyName", "asc")}
-                            className={cn(
-                                "w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors flex items-center justify-between",
-                                isSortedByCompany && sortConfig.direction === "asc" && "text-emerald-600 font-medium bg-emerald-50"
-                            )}
-                        >
-                            Name (A-Z)
-                            {isSortedByCompany && sortConfig.direction === "asc" && <ChevronUp className="h-4 w-4" />}
-                        </button>
-                        <button
-                            onClick={() => handleSort("companyName", "desc")}
-                            className={cn(
-                                "w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors flex items-center justify-between",
-                                isSortedByCompany && sortConfig.direction === "desc" && "text-emerald-600 font-medium bg-emerald-50"
-                            )}
-                        >
-                            Name (Z-A)
-                            {isSortedByCompany && sortConfig.direction === "desc" && <ChevronDown className="h-4 w-4" />}
+                            Oldest First
+                            {isSortedByAssignedAt && sortConfig.direction === "asc" && <ChevronUp className="h-4 w-4" />}
                         </button>
                     </div>
                 </div>

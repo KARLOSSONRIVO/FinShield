@@ -16,7 +16,10 @@ export function useRegulatorDashboard() {
 
     const { data: invoices = [] } = useQuery({
         queryKey: ["invoices"],
-        queryFn: InvoiceService.getAll
+        queryFn: async () => {
+            const response = await InvoiceService.getAll()
+            return response.data.items
+        }
     })
 
     const recentInvoices = invoices.slice(-5).reverse()

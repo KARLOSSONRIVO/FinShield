@@ -10,10 +10,13 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { ChangePasswordDialog } from "./ChangePasswordDialog"
+import { motion } from "framer-motion"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function SettingsPage() {
     const { user } = useAuth()
     const [changePasswordOpen, setChangePasswordOpen] = useState(false)
+    const [activeTab, setActiveTab] = useState("profile")
 
     const formatRole = (role: string) => {
         return role.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')
@@ -28,52 +31,78 @@ export function SettingsPage() {
                 </p>
             </div>
 
-            <Tabs defaultValue="profile" className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="profile" className="gap-2">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 w-full">
+                <TabsList className="relative bg-muted p-1 rounded-lg inline-flex w-full sm:w-auto overflow-x-auto no-scrollbar">
+                    {/* Animated Background Indicator */}
+                    <div className="absolute inset-0 p-1 pointer-events-none">
+                        <motion.div
+                            className="h-full bg-background dark:bg-zinc-800 rounded-[5px] shadow-sm border border-black/5 dark:border-white/10"
+                            layoutId="settingsTabIndicator"
+                            initial={false}
+                            animate={{
+                                x: activeTab === 'profile' ? 0 : '100%',
+                                width: '50%'
+                            }}
+                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                        />
+                    </div>
+
+                    <TabsTrigger value="profile" className="gap-2 relative z-10 px-6 py-1.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none focus-visible:ring-0">
                         <User className="h-4 w-4" />
                         Profile
                     </TabsTrigger>
-                    <TabsTrigger value="appearance" className="gap-2">
+                    <TabsTrigger value="appearance" className="gap-2 relative z-10 px-6 py-1.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none focus-visible:ring-0">
                         <Shield className="h-4 w-4" />
                         Appearance
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="profile" className="space-y-6">
+                <TabsContent value="profile" className="space-y-6 w-full">
                     {/* Profile Information Card */}
-                    <div className="p-6 border rounded-xl bg-card text-card-foreground shadow-sm space-y-6">
+                    <div className="p-4 sm:p-6 border rounded-xl bg-card text-card-foreground shadow-sm space-y-6 w-full overflow-hidden">
                         <div>
                             <h4 className="font-semibold text-lg">Profile Information</h4>
                             <p className="text-sm text-muted-foreground">View your account details</p>
                         </div>
 
-                        <div className="grid gap-4 max-w-xl">
+                        <div className="grid gap-4 w-full sm:max-w-xl">
                             <div className="grid gap-2">
                                 <Label>Username</Label>
-                                <Input
-                                    value={user?.username || ""}
-                                    readOnly
-                                    className="bg-muted cursor-default focus-visible:ring-0 select-none"
-                                />
+                                {user?.username ? (
+                                    <Input
+                                        value={user.username}
+                                        readOnly
+                                        className="bg-muted cursor-default focus-visible:ring-0 select-none"
+                                    />
+                                ) : (
+                                    <Skeleton className="h-10 w-full" />
+                                )}
                             </div>
 
                             <div className="grid gap-2">
                                 <Label>Email</Label>
-                                <Input
-                                    value={user?.email || ""}
-                                    readOnly
-                                    className="bg-muted cursor-default focus-visible:ring-0 select-none"
-                                />
+                                {user?.email ? (
+                                    <Input
+                                        value={user.email}
+                                        readOnly
+                                        className="bg-muted cursor-default focus-visible:ring-0 select-none"
+                                    />
+                                ) : (
+                                    <Skeleton className="h-10 w-full" />
+                                )}
                             </div>
 
                             <div className="grid gap-2">
                                 <Label>Role</Label>
-                                <Input
-                                    value={user?.role ? formatRole(user.role) : ""}
-                                    readOnly
-                                    className="bg-muted cursor-default focus-visible:ring-0 select-none"
-                                />
+                                {user?.role ? (
+                                    <Input
+                                        value={formatRole(user.role)}
+                                        readOnly
+                                        className="bg-muted cursor-default focus-visible:ring-0 select-none"
+                                    />
+                                ) : (
+                                    <Skeleton className="h-10 w-full" />
+                                )}
                             </div>
                         </div>
                     </div>
@@ -82,7 +111,7 @@ export function SettingsPage() {
                     <MFASettings />
 
                     {/* Change Password Card */}
-                    <div className="p-6 border rounded-xl bg-card text-card-foreground shadow-sm space-y-6">
+                    <div className="p-4 sm:p-6 border rounded-xl bg-card text-card-foreground shadow-sm space-y-6 w-full overflow-hidden">
                         <div>
                             <h4 className="font-semibold text-lg flex items-center gap-2">
                                 <KeyRound className="h-5 w-5 text-emerald-500" />
@@ -111,7 +140,7 @@ export function SettingsPage() {
                     </div>
                 </TabsContent>
 
-                <TabsContent value="appearance" className="space-y-4">
+                <TabsContent value="appearance" className="space-y-4 w-full">
                     <AppearanceSettings />
                 </TabsContent>
             </Tabs>

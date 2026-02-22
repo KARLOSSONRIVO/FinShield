@@ -1,42 +1,37 @@
 import { apiClient } from "@/lib/api-client"
-import { components } from "@/lib/api-types"
-
-type User = components["schemas"]["User"]
-type CreateUserPayload = components["schemas"]["User"] // Actually request body is different
-type UpdateUserPayload = { status: "ACTIVE" | "INACTIVE" | "SUSPENDED" }
-
-// Define specific payload based on API types if complex, 
-// but for now relying on inference or explicit typing from api-types
-// Looking at api-types, createUser body is inline.
+import { PaginatedResponse, PaginationQuery, User } from "@/lib/types"
 
 interface CreateUserRequest {
     email: string;
     password: string;
-    firstName?: string;
-    lastName?: string;
+    username: string;
     role: "SUPER_ADMIN" | "AUDITOR" | "REGULATOR" | "COMPANY_MANAGER" | "COMPANY_USER";
     orgId?: string;
 }
 
 export const UserService = {
-    listUsers: async () => {
-        const { data } = await apiClient.get<{ ok: boolean; data: User[] }>("/user/listUsers")
+    listUsers: async (params?: PaginationQuery & { orgId?: string }): Promise<PaginatedResponse<User>> => {
+        const { data } = await apiClient.get<PaginatedResponse<User>>("/user/listUsers", { params })
         return data
     },
 
-    getUser: async (id: string) => {
-        const { data } = await apiClient.get<{ ok: boolean; data: User }>(`/user/${id}`)
+    listEmployees: async (params?: PaginationQuery): Promise<PaginatedResponse<User>> => {
+        const { data } = await apiClient.get<PaginatedResponse<User>>("/user/listEmployees", { params })
         return data
     },
 
-    createUser: async (user: CreateUserRequest) => {
-        console.log("DEBUG: Creating user with payload:", user)
-        const { data } = await apiClient.post<{ ok: boolean; data: User }>("/user/createUser", user)
+    getUser: async (id: string): Promise<{ success: boolean; data: User }> => {
+        const { data } = await apiClient.get<{ success: boolean; data: User }>(`/user/${id}`)
         return data
     },
 
-    updateUserStatus: async (id: string, status: UpdateUserPayload["status"], reason?: string) => {
-        const { data } = await apiClient.put<{ ok: boolean; data: User }>(`/user/updateUser/${id}`, { status, reason })
+    createUser: async (user: CreateUserRequest): Promise<{ success: boolean; data: User }> => {
+        const { data } = await apiClient.post<{ success: boolean; data: User }>("/user/createUser", user)
+        return data
+    },
+
+    updateUserStatus: async (id: string, status: "active" | "disabled", reason?: string): Promise<{ ok: boolean; data: any }> => {
+        const { data } = await apiClient.put<{ ok: boolean; data: any }>(`/user/updateUser/${id}`, { status, reason })
         return data
     },
 }

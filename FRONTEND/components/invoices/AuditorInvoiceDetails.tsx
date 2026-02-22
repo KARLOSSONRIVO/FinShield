@@ -155,7 +155,7 @@ export function InvoiceDetails({ invoice }: { invoice: any }) {
                                 <Label htmlFor="r2" className="text-xs font-medium text-red-700">Fraudulent - Invoice is fraudulent and misleading</Label>
                             </div>
                             <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="clarification" id="r3" className="text-black border-black" />
+                                <RadioGroupItem value="clarification" id="r3" className="text-foreground border-black" />
                                 <Label htmlFor="r3" className="text-xs font-medium">Needs more information, contact company and request meeting</Label>
                             </div>
                         </RadioGroup>
@@ -197,7 +197,7 @@ export function InvoiceDetails({ invoice }: { invoice: any }) {
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                            <p className="text-xs font-medium text-black mb-3">
+                            <p className="text-xs font-medium text-foreground mb-3">
                                 Confirmed to be normal.
                             </p>
                             <div className="flex items-center gap-3">
@@ -218,7 +218,7 @@ function VerdictBadge({ verdict }: { verdict: string }) {
         return <Badge className="bg-emerald-600 hover:bg-emerald-700 border-none text-white px-3">Clean</Badge>
     }
     if (v === "flagged") {
-        return <Badge className="bg-amber-400 hover:bg-amber-500 border-none text-black px-3">Flagged</Badge>
+        return <Badge className="bg-amber-400 hover:bg-amber-500 border-none text-foreground px-3">Flagged</Badge>
     }
     if (v === "fraudulent") {
         return <Badge variant="destructive" className="px-3">Fraudulent</Badge>

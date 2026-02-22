@@ -43,10 +43,10 @@ export function CreateAssignmentDialog({
 }: CreateAssignmentDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[825px] border border-black shadow-none rounded-xl flex flex-col" showCloseButton={false}>
+      <DialogContent className="sm:max-w-[400px] border border-black shadow-none rounded-xl flex flex-col" showCloseButton={false}>
         <DialogHeader className="flex flex-row items-center justify-between border-b pb-4">
           <DialogTitle className="text-xl font-normal">Assign Auditor</DialogTitle>
-          <DialogClose className="opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <DialogClose className="opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
             <X className="h-6 w-6" />
             <span className="sr-only">Close</span>
           </DialogClose>
@@ -66,7 +66,7 @@ export function CreateAssignmentDialog({
               </SelectTrigger>
               <SelectContent className="border border-black rounded-lg">
                 {companies.map((company) => (
-                  <SelectItem key={company.id} value={company.id as string}>
+                  <SelectItem key={company._id} value={company._id}>
                     {company.name}
                   </SelectItem>
                 ))}

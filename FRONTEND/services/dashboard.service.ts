@@ -1,4 +1,3 @@
-import { mockInvoices, mockAuditLogs, mockUsers, mockOrganizations } from "@/lib/mock-data"
 import { InvoiceService } from "./invoice.service"
 
 export interface DashboardStats {
@@ -28,9 +27,9 @@ export const DashboardService = {
                 import("./organization.service").then(m => m.OrganizationService.listOrganizations())
             ])
 
-            const users = usersResponse.data || []
-            const orgs = orgsResponse.data || []
-            const invoices = mockInvoices // Still mocked
+            const users = Array.isArray(usersResponse.data) ? usersResponse.data : ((usersResponse.data as any)?.items || [])
+            const orgs = Array.isArray(orgsResponse.data) ? orgsResponse.data : ((orgsResponse.data as any)?.items || [])
+            const invoices: any[] = [] // Still mocked
 
             return {
                 totalRevenue: invoices.reduce((acc, curr) => acc + (curr.totals_total || 0), 0),
@@ -45,11 +44,11 @@ export const DashboardService = {
             // Fallback to strict mocks if API fails
             return {
                 totalRevenue: 0,
-                activeInvoices: mockInvoices.length,
+                activeInvoices: 0,
                 flaggedInvoices: 0,
                 verifiedInvoices: 0,
-                totalUsers: mockUsers.length,
-                totalCompanies: mockOrganizations.length
+                totalUsers: 0,
+                totalCompanies: 0
             }
         }
     },
@@ -59,29 +58,39 @@ export const DashboardService = {
      */
     getRecentLogs: async () => {
         await new Promise(resolve => setTimeout(resolve, 400))
-        return mockAuditLogs.slice(0, 5)
+        return []
+    },
+
+    getCompanyStats: async (): Promise<DashboardStats> => {
+        await new Promise(resolve => setTimeout(resolve, 500))
+        return {
+            totalRevenue: 0,
+            activeInvoices: 0,
+            flaggedInvoices: 0,
+            verifiedInvoices: 0
+        }
     },
 
     getAuditorStats: async (): Promise<DashboardStats> => {
         await new Promise(resolve => setTimeout(resolve, 500))
         return {
             totalRevenue: 0,
-            activeInvoices: mockInvoices.length,
-            flaggedInvoices: mockInvoices.filter(i => i.status === "flagged" || i.status === "fraudulent").length,
-            verifiedInvoices: mockInvoices.filter(i => i.status === "verified").length,
-            pendingReviews: mockInvoices.filter(i => i.status === "pending").length
+            activeInvoices: 0,
+            flaggedInvoices: 0,
+            verifiedInvoices: 0,
+            pendingReviews: 0
         }
     },
 
     getRegulatorStats: async (): Promise<DashboardStats> => {
         await new Promise(resolve => setTimeout(resolve, 500))
-        const invoices = mockInvoices
+        const invoices: any[] = []
         return {
             totalRevenue: 0,
             activeInvoices: invoices.length,
             flaggedInvoices: 0, // Not used directly
             verifiedInvoices: 0, // Not used directly
-            companiesCount: mockOrganizations.filter(o => o.type === "company").length,
+            companiesCount: 0,
             verifiedOnChain: invoices.filter(i => i.blockchain_txHash).length,
             totalValue: invoices.reduce((sum, inv) => sum + (inv.totals_total ?? 0), 0),
             fraudulentCount: invoices.filter(i => i.status === "fraudulent").length

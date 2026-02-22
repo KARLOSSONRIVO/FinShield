@@ -1,23 +1,21 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
-import { Search, Filter, Plus } from "lucide-react"
+import { Filter, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AssignmentTableContent } from "@/components/assignments/AssignmentTable"
 import { useAssignments } from "@/hooks/assignments/use-assignments"
-import { AssignmentTableSkeleton } from "@/components/skeletons/assignment-table-skeleton"
-import { Pagination } from "@/components/ui/pagination-custom"
 import { CreateAssignmentDialog } from "@/components/assignments/CreateAssignmentDialog"
 import { AssignmentSortFilter } from "@/components/assignments/AssignmentSortFilter"
+import { AssignmentTableSkeleton } from "@/components/skeletons/assignment-table-skeleton"
+import { SearchInput } from "@/components/common/SearchInput"
 
 export default function AssignmentsPage() {
   const {
     search,
     setSearch,
     assignments,
-    currentPage,
-    totalPages,
-    setCurrentPage,
+    pagination,
+    setPage,
     sortConfig,
     requestSort,
     isCreateOpen,
@@ -56,15 +54,11 @@ export default function AssignmentsPage() {
       />
 
       <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search Assignments..."
-            className="pl-9 bg-background border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+        <SearchInput
+          value={search || ""}
+          onChange={setSearch}
+          placeholder="Search Assignments..."
+        />
         <AssignmentSortFilter
           sortConfig={sortConfig as any}
           onSortChange={(config) => {
@@ -78,22 +72,17 @@ export default function AssignmentsPage() {
       ) : (
         <AssignmentTableContent
           assignments={assignments}
-          sortConfig={sortConfig}
-          onSort={requestSort}
           onDelete={handleDeleteAssignment}
           onUpdate={handleUpdateAssignment}
           companies={companies}
           auditors={auditors}
+          pagination={pagination}
+          onPageChange={setPage}
+          sortBy={sortConfig?.key}
+          order={sortConfig?.direction as "asc" | "desc" | undefined}
+          onSort={(field) => requestSort(field)}
         />
       )}
-
-      <div className="mt-4 flex justify-center">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      </div>
     </div>
   )
 }

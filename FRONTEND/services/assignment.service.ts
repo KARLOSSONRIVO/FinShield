@@ -1,16 +1,23 @@
 import { apiClient } from "@/lib/api-client"
-import { components } from "@/lib/api-types"
+import { PaginatedResponse, PaginationQuery } from "@/lib/types"
 
-export type Assignment = components["schemas"]["Assignment"]
+export interface Assignment {
+    id: string;
+    auditorOrgId: string;
+    companyOrgId: string;
+    status: string;
+    createdAt?: string;
+    updatedAt?: string;
+}
 
 export interface CreateAssignmentRequest {
     auditorUserId: string;
     companyOrgId: string;
-    status: string;
+    status?: string;
 }
 
 export interface UpdateAssignmentRequest {
-    status?: "active" | "inactive";
+    status?: "active" | "inactive" | "ACTIVE" | "INACTIVE";
     notes?: string;
 }
 
@@ -19,15 +26,15 @@ export const AssignmentService = {
      * Create a new assignment
      */
     createAssignment: async (payload: CreateAssignmentRequest) => {
-        const { data } = await apiClient.post<{ ok: boolean; data: Assignment }>("/assignment/createAssignment", payload)
+        const { data } = await apiClient.post<{ success: boolean; data: Assignment }>("/assignment/createAssignment", payload)
         return data
     },
 
     /**
      * List all assignments
      */
-    listAssignments: async () => {
-        const { data } = await apiClient.get<{ ok: boolean; data: Assignment[] }>("/assignment/listAssignments")
+    listAssignments: async (params?: PaginationQuery) => {
+        const { data } = await apiClient.get<PaginatedResponse<Assignment>>("/assignment/listAssignments", { params })
         return data
     },
 
@@ -35,7 +42,7 @@ export const AssignmentService = {
      * Get assignment by ID
      */
     getAssignmentById: async (id: string) => {
-        const { data } = await apiClient.get<{ ok: boolean; data: Assignment }>(`/assignment/${id}`)
+        const { data } = await apiClient.get<{ success: boolean; data: Assignment }>(`/assignment/${id}`)
         return data
     },
 
@@ -43,7 +50,7 @@ export const AssignmentService = {
      * Update assignment
      */
     updateAssignment: async (id: string, payload: UpdateAssignmentRequest) => {
-        const { data } = await apiClient.put<{ ok: boolean; data: Assignment }>(`/assignment/updateAssignment/${id}`, payload)
+        const { data } = await apiClient.put<{ success: boolean; data: Assignment }>(`/assignment/updateAssignment/${id}`, payload)
         return data
     },
 
@@ -51,7 +58,7 @@ export const AssignmentService = {
      * Delete assignment
      */
     deleteAssignment: async (id: string) => {
-        const { data } = await apiClient.delete<{ ok: boolean }>(`/assignment/deleteAssignment/${id}`)
+        const { data } = await apiClient.delete<{ success: boolean }>(`/assignment/deleteAssignment/${id}`)
         return data
     }
 }

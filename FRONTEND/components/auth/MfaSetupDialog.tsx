@@ -88,7 +88,7 @@ export function MfaSetupDialog({
             <DialogTrigger asChild>
                 {children || <Button variant="outline">Enable MFA</Button>}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-[400px]">
                 <DialogHeader>
                     <DialogTitle>Two-Factor Authentication</DialogTitle>
                     <DialogDescription>
@@ -101,8 +101,13 @@ export function MfaSetupDialog({
                         <p className="text-sm text-muted-foreground mb-4">
                             You will need an authenticator app like Google Authenticator or Authy to complete this process.
                         </p>
-                        <Button onClick={handleStart} disabled={setupMutation.isPending} className="w-full">
-                            {setupMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <Button
+                            onClick={handleStart}
+                            disabled={setupMutation.isPending}
+                            isLoading={setupMutation.isPending}
+                            loadingText="Starting..."
+                            className="w-full"
+                        >
                             Start Setup
                         </Button>
                     </div>
@@ -147,9 +152,10 @@ export function MfaSetupDialog({
                         <Button
                             onClick={handleVerify}
                             disabled={token.length !== 6 || enableMutation.isPending}
+                            isLoading={enableMutation.isPending}
+                            loadingText="Verifying..."
                             className="w-full"
                         >
-                            {enableMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Verify & Enable
                         </Button>
                     </div>

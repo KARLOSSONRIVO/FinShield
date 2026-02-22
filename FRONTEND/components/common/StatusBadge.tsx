@@ -12,10 +12,12 @@ export function InvoiceStatusBadge({ status }: { status: InvoiceStatus }) {
     fraudulent: { variant: "destructive", label: "Fraudulent", className: "bg-red-600 text-white hover:bg-red-700 border-transparent" },
   }
 
-  const config = variants[status]
+  // Fallback for undefined or unknown status
+  const config = variants[status] || { variant: "outline", label: "Unknown", className: "bg-gray-400 text-white border-transparent" }
+
   return (
     <Badge
-      variant={config.variant}
+      variant={config.variant as any}
       className={config.className}
     >
       {config.label}

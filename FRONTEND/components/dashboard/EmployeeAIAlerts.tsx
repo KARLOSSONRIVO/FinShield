@@ -13,11 +13,11 @@ export function EmployeeAIAlerts({ invoices }: AIAlertsProps) {
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xl font-bold text-black border-none flex items-center gap-2">
+                <CardTitle className="text-xl font-bold text-foreground border-none flex items-center gap-2">
                     <span className="text-red-500"><AlertTriangle className="h-5 w-5" /></span>
                     Recent Alerts
                 </CardTitle>
-                <a href="/company/employee/alerts" className="text-sm font-bold text-black hover:underline cursor-pointer">
+                <a href="/company/employee/alerts" className="text-sm font-bold text-foreground hover:underline cursor-pointer">
                     View All →
                 </a>
             </CardHeader>
@@ -30,7 +30,7 @@ export function EmployeeAIAlerts({ invoices }: AIAlertsProps) {
                                     <FileText className="h-6 w-6 text-white" />
                                 </div>
                                 <div>
-                                    <p className="font-bold text-base text-black">Flagged {invoice.invoiceNo}</p>
+                                    <p className="font-bold text-base text-foreground">Flagged {invoice.invoiceNo}</p>
                                     <p className="text-xs text-muted-foreground font-medium">2 hours ago</p>
                                 </div>
                             </div>

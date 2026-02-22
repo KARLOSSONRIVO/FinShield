@@ -1,12 +1,14 @@
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { AssignmentService } from "@/services/assignment.service"
 import { OrganizationService, Organization } from "@/services/organization.service"
 import { UserService } from "@/services/user.service"
 import { components } from "@/lib/api-types"
+import { useUrlPagination } from "../common/use-url-pagination"
+import { toast } from "sonner"
 
 type User = components["schemas"]["User"]
 
-// Define the Actual backend response type since api-types is incomplete/inaccurate
 export interface RealAssignment {
     id: string;
     companyOrgId: string;
@@ -35,183 +37,152 @@ export interface RealAssignment {
     } | null;
 }
 
-export type SortConfig = {
-    key: keyof RealAssignment | "companyName" | "auditorName"
-    direction: "asc" | "desc"
-} | null
+export function useAssignments({ initialLimit = 10 } = {}) {
+    const queryClient = useQueryClient()
+    const {
+        page, limit, search, sortBy, order, queryParams,
+        setPage, setSearch, setSort
+    } = useUrlPagination(initialLimit)
 
-export function useAssignments() {
-    const [search, setSearch] = useState("")
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const [newAssignment, setNewAssignment] = useState({ companyOrgId: "", auditorUserId: "", status: "active" })
 
-    // Data State
-    const [assignments, setAssignments] = useState<RealAssignment[]>([])
-    const [auditors, setAuditors] = useState<User[]>([])
-    const [companies, setCompanies] = useState<Organization[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+    // Fetch Base Collections for lookups (Roles/Companies)
+    const { data: auditors = [] } = useQuery({
+        queryKey: ["users", "auditors"],
+        queryFn: async () => {
+            // API guide states listUsers supports role filter if search/sort is passed, but maybe not explicitly.
+            // Best to just fetch standard users and filter on frontend for now to avoid breaking changes if backend doesn't support 'role' query param yet
+            const res = await UserService.listUsers({ limit: 100 }) // Assuming max limit for dropdowns
+            return (res.data?.items || []).filter((u: any) => u.role === "AUDITOR") as any[]
+        }
+    })
 
-    // Pagination & Sort
-    const [currentPage, setCurrentPage] = useState(1)
-    const [itemsPerPage] = useState(10)
-    const [sortConfig, setSortConfig] = useState<SortConfig>(null)
+    const { data: companies = [], isLoading: isLoadingCompanies } = useQuery({
+        queryKey: ["organizations", "companies"],
+        queryFn: async () => {
+            const res = await OrganizationService.listOrganizations({ limit: 100 })
+            return (res.data?.items || []) as any[]
+        }
+    })
 
-    // Helpers for Lookups
-    const getCompanyName = (orgId: string) => companies.find(c => c.id === orgId)?.name || "Unknown Company"
+    // Helpers for Lookups (Fallback if backend doesn't populate)
+    const getCompanyName = (orgId: string) => companies.find((c: any) => c.id === orgId || c._id === orgId)?.name || "Unknown Company"
     const getAuditorName = (userId: string) => {
-        const user = auditors.find(u => u.id === userId)
-        return user ? `${user.firstName} ${user.lastName}` : "Unknown Auditor"
+        const user = auditors.find((u: any) => u.id === userId || u._id === userId)
+        return user ? user.username || `${user.firstName} ${user.lastName}` : "Unknown Auditor"
     }
 
-    // Fetch Data
-    const fetchData = async () => {
-        setIsLoading(true)
-        try {
-            const [assignmentsRes, usersRes, orgsRes] = await Promise.all([
-                AssignmentService.listAssignments(),
-                UserService.listUsers(),
-                OrganizationService.listOrganizations()
-            ])
+    // Fetch Assignments Paginated
+    const { data, isLoading: isLoadingAssignments, isError } = useQuery({
+        queryKey: ["assignments", queryParams],
+        queryFn: async () => {
+            const response = await AssignmentService.listAssignments(queryParams)
 
-            if (assignmentsRes?.ok) {
-                // @ts-ignore - casting to RealAssignment because we manually fixed the mapper but types are old
-                setAssignments(assignmentsRes.data || [])
-            }
-            if (usersRes?.ok) setAuditors((usersRes.data || []).filter(u => u.role === "AUDITOR"))
-            if (orgsRes?.ok) setCompanies(orgsRes.data || [])
-
-        } catch (error) {
-            console.error("Failed to fetch assignment data:", error)
-        } finally {
-            setIsLoading(false)
-        }
-    }
-
-    useEffect(() => {
-        fetchData()
-    }, [])
-
-    // Sort Handler
-    const requestSort = (key: keyof RealAssignment | "companyName" | "auditorName") => {
-        let direction: "asc" | "desc" = "asc"
-        if (sortConfig && sortConfig.key === key && sortConfig.direction === "asc") {
-            direction = "desc"
-        }
-        setSortConfig({ key, direction })
-    }
-
-    const filteredAndSortedAssignments = useMemo(() => {
-        let processed = [...assignments]
-
-        // Filter
-        if (search) {
-            const lowerSearch = search.toLowerCase()
-            processed = processed.filter(a => {
-                const companyName = a.company?.name || getCompanyName(a.companyOrgId)
-                const auditorName = a.auditor?.username || getAuditorName(a.auditorUserId)
-
-                return companyName.toLowerCase().includes(lowerSearch) ||
-                    auditorName.toLowerCase().includes(lowerSearch) ||
-                    (a.status || "").toLowerCase().includes(lowerSearch)
-            })
-        }
-
-        // Sort
-        if (sortConfig) {
-            processed.sort((a, b) => {
-                let aValue = ""
-                let bValue = ""
-
-                if (sortConfig.key === "companyName") {
-                    aValue = a.company?.name || getCompanyName(a.companyOrgId)
-                    bValue = b.company?.name || getCompanyName(b.companyOrgId)
-                } else if (sortConfig.key === "auditorName") {
-                    aValue = a.auditor?.username || getAuditorName(a.auditorUserId)
-                    bValue = b.auditor?.username || getAuditorName(b.auditorUserId)
-                } else {
-                    // @ts-ignore
-                    aValue = a[sortConfig.key] || "";
-                    // @ts-ignore
-                    bValue = b[sortConfig.key] || "";
+            // Handle both unified PaginatedResponse or legacy array fallback
+            // @ts-ignore
+            if (response.data && Array.isArray(response.data)) {
+                const rawData = response.data
+                return {
+                    items: rawData as any[],
+                    pagination: { total: rawData.length, page: 1, limit: rawData.length, totalPages: 1 }
                 }
+            }
 
-                if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1
-                if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1
-                return 0
-            })
+            return {
+                items: (response.data?.items || []) as any[],
+                pagination: response.data?.pagination || { total: 0, page: 1, limit: 10, totalPages: 1 }
+            }
         }
+    })
 
-        return processed
-    }, [assignments, search, sortConfig, companies, auditors]) // Added dependencies
-
-    // Pagination
-    const totalPages = Math.ceil(filteredAndSortedAssignments.length / itemsPerPage)
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const currentAssignments = filteredAndSortedAssignments.slice(startIndex, startIndex + itemsPerPage)
-
-    const handleCreateAssignment = async () => {
-        try {
-            await AssignmentService.createAssignment({
+    const createAssignmentMutation = useMutation({
+        mutationFn: async () => {
+            return await AssignmentService.createAssignment({
                 auditorUserId: newAssignment.auditorUserId,
                 companyOrgId: newAssignment.companyOrgId,
                 status: newAssignment.status
             })
-            await fetchData()
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["assignments"] })
             setIsCreateOpen(false)
             setNewAssignment({ companyOrgId: "", auditorUserId: "", status: "active" })
-        } catch (error) {
-            console.error("Failed to create assignment:", error)
-            alert("Failed to create assignment")
+            toast.success("Assignment created")
+        },
+        onError: (error: any) => {
+            toast.error("Failed to create assignment: " + (error.response?.data?.message || error.message))
         }
-    }
+    })
 
-    const handleUpdateAssignment = async (id: string, data: { status?: "active" | "inactive", notes?: string }) => {
-        try {
-            // Service expects uppercase? No, backend expects lowercase.
-            // But api-types defines uppercase.
-            // We pass lowercase because `data.status` is lowercase.
-            // @ts-ignore
-            await AssignmentService.updateAssignment(id, data)
-            await fetchData()
-        } catch (error) {
-            console.error("Failed to update assignment:", error)
-            alert("Failed to update assignment")
+    const updateAssignmentMutation = useMutation({
+        mutationFn: async ({ id, data }: { id: string, data: { status?: "active" | "inactive" | "ACTIVE" | "INACTIVE", notes?: string } }) => {
+            return await AssignmentService.updateAssignment(id, data)
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["assignments"] })
+            toast.success("Assignment updated")
+        },
+        onError: (error: any) => {
+            toast.error("Failed to update assignment: " + (error.response?.data?.message || error.message))
         }
-    }
+    })
 
-    const handleDeleteAssignment = async (id: string) => {
+    const deleteAssignmentMutation = useMutation({
+        mutationFn: async (id: string) => {
+            return await AssignmentService.deleteAssignment(id)
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["assignments"] })
+            toast.success("Assignment deleted")
+        },
+        onError: (error: any) => {
+            toast.error("Failed to delete assignment: " + (error.response?.data?.message || error.message))
+        }
+    })
+
+    const handleDeleteAssignment = (id: string) => {
         if (!confirm("Are you sure you want to delete this assignment?")) return
-        try {
-            await AssignmentService.deleteAssignment(id)
-            await fetchData()
-        } catch (error) {
-            console.error("Failed to delete assignment:", error)
-            alert("Failed to delete assignment")
-        }
+        deleteAssignmentMutation.mutate(id)
+    }
+
+    const handleSort = (key: string) => {
+        setSort(key)
     }
 
     return {
+        // Table Data & Pagination
+        assignments: data?.items || [],
+        pagination: data?.pagination,
+        isLoading: isLoadingAssignments || isLoadingCompanies,
+        isError,
+
+        // Lookup Data for Dialogs/UI
+        auditors,
+        companies,
+        getCompanyName,
+        getAuditorName,
+
+        // URL Pagination Handlers
         search,
         setSearch,
+        setPage,
+        sortConfig: sortBy ? { key: sortBy, direction: order || 'asc' } : null,
+        requestSort: handleSort,
+
+        // Interactions
         isCreateOpen,
         setIsCreateOpen,
         newAssignment,
         setNewAssignment,
-        handleCreateAssignment,
-        handleUpdateAssignment,
+
+        handleCreateAssignment: () => createAssignmentMutation.mutate(),
+        isCreating: createAssignmentMutation.isPending,
+
+        handleUpdateAssignment: (id: string, data: { status?: "active" | "inactive" | "ACTIVE" | "INACTIVE", notes?: string }) =>
+            updateAssignmentMutation.mutate({ id, data }),
+
         handleDeleteAssignment,
-
-        assignments: currentAssignments,
-        currentPage,
-        totalPages,
-        setCurrentPage,
-        sortConfig,
-        requestSort,
-        isLoading,
-
-        auditors,
-        companies,
-        getCompanyName,
-        getAuditorName
+        isDeleting: deleteAssignmentMutation.isPending
     }
 }

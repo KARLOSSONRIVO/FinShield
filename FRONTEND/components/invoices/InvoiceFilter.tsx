@@ -4,18 +4,16 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search, Filter, ChevronUp, ChevronDown } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
-import { InvoiceStatusFilter, SortConfig } from "@/hooks/invoices/use-auditor-invoices"
-import { Invoice } from "@/lib/types"
+import { useState, useEffect } from "react"
 
 interface InvoiceFilterProps {
     search: string
     onSearchChange: (value: string) => void
-    statusFilter: InvoiceStatusFilter
-    onStatusFilterChange: (value: InvoiceStatusFilter) => void
-    sortConfig: SortConfig
-    onSortChange: (key: keyof Invoice) => void
+    statusFilter: string
+    onStatusFilterChange: (value: string) => void
+    sortConfig: { key: string, direction: 'asc' | 'desc' } | null
+    onSortChange: (key: string) => void
 }
 
 export function InvoiceFilter({
@@ -26,10 +24,22 @@ export function InvoiceFilter({
     sortConfig,
     onSortChange
 }: InvoiceFilterProps) {
+    const [localSearch, setLocalSearch] = useState(search)
+
+    // Sync local state when URL search changes externally (e.g. page load)
+    useEffect(() => { setLocalSearch(search) }, [search])
+
+    // Debounce: push URL update 500ms after user stops typing
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (localSearch !== search) onSearchChange(localSearch)
+        }, 500)
+        return () => clearTimeout(timer)
+    }, [localSearch])
 
     // Helper for Sort selection
-    const SortItem = ({ label, sortKey, direction }: { label: string, sortKey: keyof Invoice, direction?: "asc" | "desc" }) => {
-        const isActive = sortConfig?.key === sortKey && (!direction || sortConfig.direction === direction)
+    const SortItem = ({ label, sortKey }: { label: string, sortKey: string }) => {
+        const isActive = sortConfig?.key === sortKey
 
         return (
             <button
@@ -46,7 +56,7 @@ export function InvoiceFilter({
     }
 
     // Helper for Filter selection
-    const FilterItem = ({ label, value }: { label: string, value: InvoiceStatusFilter }) => {
+    const FilterItem = ({ label, value }: { label: string, value: string }) => {
         const isActive = statusFilter === value
         return (
             <button
@@ -70,8 +80,8 @@ export function InvoiceFilter({
                     type="search"
                     placeholder="Search Invoices..."
                     className="pl-9 bg-white border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base w-full"
-                    value={search}
-                    onChange={(e) => onSearchChange(e.target.value)}
+                    value={localSearch}
+                    onChange={(e) => setLocalSearch(e.target.value)}
                 />
             </div>
 
@@ -85,28 +95,13 @@ export function InvoiceFilter({
                 <PopoverContent className="w-64 p-0" align="end">
                     <div className="py-2">
                         {/* Status Sections */}
-                        <div className="px-3 py-2 text-sm font-medium text-black">Filter By Status</div>
+                        <div className="px-3 py-2 text-sm font-medium text-foreground">Filter By Status</div>
                         <div className="px-1">
                             <FilterItem label="All Invoices" value="all" />
                             <FilterItem label="Pending" value="pending" />
                             <FilterItem label="Verified" value="verified" />
                             <FilterItem label="Flagged" value="flagged" />
                             <FilterItem label="Fraudulent" value="fraudulent" />
-                        </div>
-
-                        <Separator className="my-2" />
-
-                        {/* Sort Sections */}
-                        <div className="px-3 py-2 text-sm font-medium text-black">Sort By Date</div>
-                        <div className="px-1">
-                            <SortItem label="Invoice Date" sortKey="invoiceDate" />
-                        </div>
-
-                        <Separator className="my-2" />
-
-                        <div className="px-3 py-2 text-sm font-medium text-black">Sort By Amount</div>
-                        <div className="px-1">
-                            <SortItem label="Total Amount" sortKey="totals_total" />
                         </div>
                     </div>
                 </PopoverContent>

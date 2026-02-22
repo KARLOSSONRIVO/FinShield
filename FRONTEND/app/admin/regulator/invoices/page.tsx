@@ -2,7 +2,7 @@
 
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
 import { useRegulatorInvoices } from "@/hooks/invoices/use-regulator-invoices"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { DataPagination } from "@/components/common/DataPagination"
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 
 export default function RegulatorInvoicesPage() {
@@ -12,9 +12,8 @@ export default function RegulatorInvoicesPage() {
     statusFilter,
     setStatusFilter,
     invoices,
-    currentPage,
-    totalPages,
-    setCurrentPage,
+    pagination,
+    setPage,
     sortConfig,
     requestSort
   } = useRegulatorInvoices()
@@ -26,7 +25,7 @@ export default function RegulatorInvoicesPage() {
       </div>
 
       <InvoiceFilter
-        search={search}
+        search={search || ""}
         onSearchChange={setSearch}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
@@ -38,13 +37,15 @@ export default function RegulatorInvoicesPage() {
         invoices={invoices}
         mode="regulator"
         baseUrl="/admin/regulator/invoices"
+        sortBy={sortConfig?.key}
+        order={sortConfig?.direction as "asc" | "desc" | undefined}
+        onSort={(field) => requestSort(field as any)}
       />
 
       <div className="mt-4 flex justify-center">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
+        <DataPagination
+          pagination={pagination}
+          onPageChange={setPage}
         />
       </div>
     </div>

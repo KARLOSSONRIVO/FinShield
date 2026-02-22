@@ -1,12 +1,11 @@
 "use client"
 
-import { Input } from "@/components/ui/input"
-import { Building2, Search, Plus, Filter } from "lucide-react"
+import { Building2, Plus, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { OrganizationTable } from "@/components/organizations/OrganizationTable"
 import { useOrganizations } from "@/hooks/organizations/use-organizations"
 import { CreateOrganizationDialog } from "@/components/organizations/CreateOrganizationDialog"
-import { Pagination } from "@/components/ui/pagination-custom"
+import { SearchInput } from "@/components/common/SearchInput"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,9 +33,8 @@ export default function OrganizationsPage() {
     newOrgStatus,
     setNewOrgStatus,
     handleCreateOrg,
-    currentPage,
-    totalPages,
-    setCurrentPage,
+    pagination,
+    setPage,
     sortConfig,
     requestSort,
     handleEditOrg,
@@ -79,16 +77,11 @@ export default function OrganizationsPage() {
       />
 
       <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search Organizations..."
-            className="pl-9 bg-background border-2 border-black/10 focus-visible:ring-0 focus-visible:border-black/20 text-base"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            suppressHydrationWarning
-          />
-        </div>
+        <SearchInput
+          value={search || ""}
+          onChange={setSearch}
+          placeholder="Search Organizations..."
+        />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="gap-2 border-2 text-base px-6 h-10 border-black/10" suppressHydrationWarning>
@@ -97,24 +90,13 @@ export default function OrganizationsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Sort By Name</DropdownMenuLabel>
+            <DropdownMenuLabel>Sort By Date Created</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => requestSort('name')}>
-              <span className={sortConfig?.key === 'name' && sortConfig.direction === 'asc' ? "font-bold text-primary" : ""}>Name (A-Z)</span>
+            <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'createdAt' || sortConfig?.direction === 'desc') requestSort('createdAt') }}>
+              <span className={sortConfig?.key === 'createdAt' && sortConfig.direction === 'asc' ? "font-bold text-primary" : ""}>Oldest First</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'name' || sortConfig?.direction === 'asc') requestSort('name') }}>
-              {/* Note: This logic for Desc matches: If not name, becomes Name Asc (Close enough). If Name Asc, becomes Name Desc. */}
-              <span className={sortConfig?.key === 'name' && sortConfig.direction === 'desc' ? "font-bold text-primary" : ""}>Name (Z-A)</span>
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>Sort By Status</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'status' || sortConfig?.direction === 'desc') requestSort('status') }}>
-              <span className={sortConfig?.key === 'status' && sortConfig.direction === 'asc' ? "font-bold text-primary" : ""}>Active First</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'status' || sortConfig?.direction === 'asc') requestSort('status') }}>
-              <span className={sortConfig?.key === 'status' && sortConfig.direction === 'desc' ? "font-bold text-primary" : ""}>Inactive First</span>
+            <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'createdAt' || sortConfig?.direction === 'asc') requestSort('createdAt') }}>
+              <span className={sortConfig?.key === 'createdAt' && sortConfig.direction === 'desc' ? "font-bold text-primary" : ""}>Newest First</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -125,20 +107,15 @@ export default function OrganizationsPage() {
       ) : (
         <OrganizationTable
           organizations={organizations}
-          sortConfig={sortConfig}
-          onSort={requestSort}
           onEdit={handleEditOrg}
           onDelete={handleDeleteOrg}
+          pagination={pagination}
+          onPageChange={setPage}
+          sortBy={sortConfig?.key}
+          order={sortConfig?.direction as "asc" | "desc" | undefined}
+          onSort={(field) => requestSort(field)}
         />
       )}
-
-      <div className="mt-4 flex justify-center">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      </div>
     </div>
   )
 }

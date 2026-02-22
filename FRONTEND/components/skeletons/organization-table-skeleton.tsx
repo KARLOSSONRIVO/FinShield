@@ -10,7 +10,7 @@ import {
 
 export function OrganizationTableSkeleton() {
     return (
-        <div className="w-full rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+        <div className="w-full rounded-xl border border-border bg-card shadow-sm overflow-x-auto">
             <Table>
                 <TableHeader>
                     <TableRow className="hover:bg-transparent border-b border-border/50">

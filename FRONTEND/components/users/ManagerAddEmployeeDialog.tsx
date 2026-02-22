@@ -6,85 +6,91 @@ import { Label } from "@/components/ui/label"
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
+    DialogFooter,
+    DialogClose,
 } from "@/components/ui/dialog"
-import { Plus } from "lucide-react"
+import { X } from "lucide-react"
 
 interface AddEmployeeDialogProps {
     isOpen: boolean
     onOpenChange: (open: boolean) => void
     onSubmit: () => void
-    newUser: any // Using specific type would be better but keeping it simple for now matching mock/usage
+    newUser: any
     setNewUser: (user: any) => void
 }
 
 export function AddEmployeeDialog({ isOpen, onOpenChange, onSubmit, newUser, setNewUser }: AddEmployeeDialogProps) {
+
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogTrigger asChild>
-                <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Employee
-                </Button>
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Add New Employee</DialogTitle>
-                    <DialogDescription>Create a new employee account for your company</DialogDescription>
-
+            <DialogContent className="sm:max-w-[400px] border border-black shadow-none rounded-xl flex flex-col" showCloseButton={false}>
+                <DialogHeader className="flex flex-row items-center justify-between border-b pb-4">
+                    <DialogTitle className="text-xl font-normal">Add New Employee</DialogTitle>
+                    <DialogClose className="opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                        <X className="h-6 w-6" />
+                        <span className="sr-only">Close</span>
+                    </DialogClose>
                 </DialogHeader>
 
-                <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onSubmit(); }}>
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            placeholder="employee@acme.com"
-                            value={newUser.email}
-                            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                            required
-                            maxLength={100}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="username">Username</Label>
+                <form
+                    className="flex flex-col pt-4 gap-4"
+                    onSubmit={(e) => {
+                        e.preventDefault()
+                        onSubmit()
+                    }}
+                >
+                    <div className="grid gap-2">
+                        <Label htmlFor="username" className="font-bold text-base">Username</Label>
                         <Input
                             id="username"
-                            placeholder="john_doe"
+                            placeholder="eg. john_doe"
                             value={newUser.username}
                             onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                            className="border border-black rounded-lg h-11"
                             required
                             pattern="^[a-zA-Z0-9_]+$"
                             minLength={3}
                             maxLength={20}
+                            title="Username can only contain letters, numbers, and underscores (3-20 chars)"
                         />
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="tempPassword">Temporary Password</Label>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="email" className="font-bold text-base">Email Address</Label>
                         <Input
-                            id="tempPassword"
-                            type="password"
-                            placeholder="••••••••"
+                            id="email"
+                            type="email"
+                            placeholder="eg. employee@acme.com"
+                            value={newUser.email}
+                            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                            className="border border-black rounded-lg h-11"
+                            required
+                            maxLength={100}
+                        />
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label className="font-bold text-base">Temporary Password</Label>
+                        <Input
+                            type="text"
                             disabled
                             value="Password123!"
+                            className="border border-black rounded-lg h-11 bg-muted"
                         />
                         <p className="text-xs text-muted-foreground">
                             Employee will be required to change password on first login
                         </p>
                     </div>
+
+                    <DialogFooter>
+                        <Button type="submit" className="w-full bg-[#00C28C] hover:bg-[#00C28C]/90 text-white font-bold h-11 rounded-lg text-base">
+                            Create Employee
+                        </Button>
+                    </DialogFooter>
                 </form>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)} type="button">
-                        Cancel
-                    </Button>
-                    <Button type="submit">Create Employee</Button>
-                </DialogFooter>
             </DialogContent>
-        </Dialog >
+        </Dialog>
     )
 }

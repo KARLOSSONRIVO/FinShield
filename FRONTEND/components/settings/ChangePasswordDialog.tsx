@@ -14,7 +14,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, CheckCircle2, XCircle } from "lucide-react"
+import { toast } from "sonner"
 
 interface ChangePasswordDialogProps {
     open: boolean
@@ -38,7 +39,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
             setNewPassword("")
             setConfirmPassword("")
             setError("")
-            alert("Password changed successfully!")
+            toast.success("Password changed successfully!")
         },
         onError: (err: any) => {
             console.error(err)
@@ -55,8 +56,9 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
             return
         }
 
-        if (newPassword.length < 6) {
-            setError("Password must be at least 6 characters")
+        const strictRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
+        if (!strictRegex.test(newPassword)) {
+            setError("Password must be at least 8 characters, contain 1 uppercase letter, 1 number, and 1 special character")
             return
         }
 
@@ -93,7 +95,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
                                 <button
                                     type="button"
                                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 bg-transparent text-gray-500 hover:text-gray-700 focus:outline-none"
                                 >
                                     {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
@@ -113,11 +115,14 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
                                 <button
                                     type="button"
                                     onClick={() => setShowNewPassword(!showNewPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 bg-transparent text-gray-500 hover:text-gray-700 focus:outline-none"
                                 >
                                     {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
+                            <p className="text-xs text-muted-foreground w-full">
+                                Password must be at least 8 characters, contain 1 uppercase letter, 1 number, and 1 special character.
+                            </p>
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="confirm-password">Confirm Password</Label>
@@ -133,19 +138,33 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
                                 <button
                                     type="button"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 bg-transparent text-gray-500 hover:text-gray-700 focus:outline-none"
                                 >
                                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
+                            {confirmPassword.length > 0 && (
+                                <p className={`text-xs flex items-center gap-1 mt-1 ${newPassword === confirmPassword ? "text-emerald-600" : "text-red-500"}`}>
+                                    {newPassword === confirmPassword ? (
+                                        <><CheckCircle2 size={12} /> Passwords match</>
+                                    ) : (
+                                        <><XCircle size={12} /> Passwords do not match</>
+                                    )}
+                                </p>
+                            )}
                         </div>
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={isPending}>
-                            {isPending ? "Updating..." : "Update Password"}
+                        <Button
+                            type="submit"
+                            disabled={isPending}
+                            isLoading={isPending}
+                            loadingText="Updating..."
+                        >
+                            Update Password
                         </Button>
                     </DialogFooter>
                 </form>

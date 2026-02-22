@@ -4,96 +4,60 @@ import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import type { Invoice } from "@/lib/types"
 import { InvoiceService } from "@/services/invoice.service"
+import { useUrlPagination } from "@/hooks/common/use-url-pagination"
 
 export type InvoiceStatusFilter = "all" | "pending" | "verified" | "flagged" | "fraudulent"
 
 export type SortConfig = {
-    key: keyof Invoice
+    key: keyof Invoice | string
     direction: 'asc' | 'desc'
 }
 
-export function useSuperAdminInvoices() { // Renamed from useInvoices
-    const [search, setSearch] = useState("")
-    const [statusFilter, setStatusFilter] = useState<InvoiceStatusFilter>("all")
-    const [sortConfig, setSortConfig] = useState<SortConfig>({
-        key: "invoiceDate",
-        direction: "desc"
-    })
-    const [currentPage, setCurrentPage] = useState(1)
-    const itemsPerPage = 5
+export function useSuperAdminInvoices({ initialLimit = 10 } = {}) { // Renamed from useInvoices
+    // 1. URL State Hook
+    const {
+        page, limit, search, sortBy, order, queryParams,
+        setPage, setSearch, setSort, setFilter
+    } = useUrlPagination(initialLimit)
 
-    const { data: invoices = [], isLoading } = useQuery({
-        queryKey: ["invoices"],
-        queryFn: InvoiceService.getAll
-    })
+    // Pull status filter from URL or default to "all"
+    const statusFilter = ((queryParams as any).statusFilter as InvoiceStatusFilter) || "all"
 
-    const filteredAndSortedInvoices = useMemo(() => {
-        let result = [...invoices]
-
-        // 1. Search
-        if (search) {
-            const lowerSearch = search.toLowerCase()
-            result = result.filter(invoice =>
-                (invoice.invoiceNo && invoice.invoiceNo.toLowerCase().includes(lowerSearch)) ||
-                (invoice.companyName || "").toLowerCase().includes(lowerSearch) ||
-                (invoice.totals_total && invoice.totals_total.toString().includes(lowerSearch))
-            )
-        }
-
-        // 2. Status Filter
-        if (statusFilter !== "all") {
-            result = result.filter(invoice => {
-                const status = invoice.status.toLowerCase()
-                // const verdict = invoice.ai_verdict.toLowerCase() // Super Admin might check verdict too?
-                // Keeping it simple based on status for now as per original hook likely did
-                return status === statusFilter
-            })
-        }
-
-        // 3. Sorting
-        result.sort((a, b) => {
-            const aValue = a[sortConfig.key]
-            const bValue = b[sortConfig.key]
-
-            // Handle undefined values
-            if ((aValue === undefined || aValue === null) && (bValue === undefined || bValue === null)) return 0
-            if (aValue === undefined || aValue === null) return 1
-            if (bValue === undefined || bValue === null) return -1
-
-            if (aValue < bValue) {
-                return sortConfig.direction === "asc" ? -1 : 1
+    const { data, isLoading, isError } = useQuery({
+        // Include statusFilter in queryKey and params so React Query refetches when it changes
+        queryKey: ["invoices", "super-admin", queryParams, statusFilter],
+        queryFn: async () => {
+            // Let the backend handle pagination and filtering if possible.
+            const apiParams: Record<string, any> = { ...queryParams }
+            if (statusFilter !== "all") {
+                apiParams.status = statusFilter
             }
-            if (aValue > bValue) {
-                return sortConfig.direction === "asc" ? 1 : -1
+            delete apiParams.statusFilter // clean up frontend-only params before sending
+
+            const response = await InvoiceService.getAll(apiParams)
+            return {
+                items: response.data.items || [],
+                pagination: response.data.pagination || { total: 0, page: 1, limit: 10, totalPages: 1 }
             }
-            return 0
-        })
-
-        return result
-    }, [search, statusFilter, sortConfig])
-
-    // Pagination
-    const totalPages = Math.ceil(filteredAndSortedInvoices.length / itemsPerPage)
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const currentInvoices = filteredAndSortedInvoices.slice(startIndex, startIndex + itemsPerPage)
-
-    const handleSort = (key: keyof Invoice) => {
-        setSortConfig(current => ({
-            key,
-            direction: current.key === key && current.direction === "asc" ? "desc" : "asc"
-        }))
-    }
+        }
+    })
 
     return {
+        // Table Data & Pagination
+        invoices: data?.items || [],
+        pagination: data?.pagination,
+        isLoading,
+        isError,
+
+        // URL Pagination Handlers
         search,
         setSearch,
+        setPage,
+        sortConfig: sortBy ? { key: sortBy, direction: order || 'desc' } : null,
+        requestSort: setSort,
+
+        // Filters
         statusFilter,
-        setStatusFilter,
-        sortConfig,
-        requestSort: handleSort, // Aliased to match other hooks
-        invoices: currentInvoices,
-        currentPage,
-        totalPages,
-        setCurrentPage,
+        setStatusFilter: (val: string) => setFilter('statusFilter', val),
     }
 }

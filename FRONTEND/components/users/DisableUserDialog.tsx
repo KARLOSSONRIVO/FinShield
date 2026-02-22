@@ -52,7 +52,7 @@ export function DisableUserDialog({
 
                 {confirmVariant === "destructive" && (
                     <div className="py-2">
-                        <label className="text-sm font-medium mb-2 block text-black">Reason for disabling:</label>
+                        <label className="text-sm font-medium mb-2 block text-foreground">Reason for disabling:</label>
                         <Textarea
                             placeholder="Please provide a reason..."
                             value={reason}

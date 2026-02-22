@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, CheckCircle2, XCircle } from "lucide-react"
 import { toast } from "sonner"
 
 export default function ChangePasswordPage() {
@@ -50,8 +50,9 @@ export default function ChangePasswordPage() {
             return
         }
 
-        if (newPassword.length < 6) {
-            setError("Password must be at least 6 characters")
+        const strictRegex = /^(?=.*[A-Za-z])(?=.*[^A-Za-z0-9]).{12,}$/
+        if (!strictRegex.test(newPassword)) {
+            setError("Password must be at least 12 characters, including one letter and one special character")
             return
         }
 
@@ -95,19 +96,22 @@ export default function ChangePasswordPage() {
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     required
                                     className="pr-10 border border-black rounded-lg h-11"
-                                    minLength={8}
+                                    minLength={12}
                                     maxLength={64}
-                                    pattern="^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$"
-                                    title="Password must be at least 8 characters and include at least one letter and one number"
+                                    pattern="^(?=.*[A-Za-z])(?=.*[^A-Za-z0-9]).{12,}$"
+                                    title="Password must be at least 12 characters, including one letter and one special character"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 focus:outline-none bg-transparent"
                                 >
                                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </button>
                             </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Must be at least 12 characters, including 1 letter and 1 special character.
+                            </p>
                         </div>
 
                         <div className="space-y-2 pb-5">
@@ -119,8 +123,17 @@ export default function ChangePasswordPage() {
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
                                 className="border border-black rounded-lg h-11"
-                                minLength={8}
+                                minLength={12}
                             />
+                            {confirmPassword.length > 0 && (
+                                <p className={`text-xs flex items-center gap-1 mt-1 ${newPassword === confirmPassword ? "text-emerald-600" : "text-red-500"}`}>
+                                    {newPassword === confirmPassword ? (
+                                        <><CheckCircle2 size={12} /> Passwords match</>
+                                    ) : (
+                                        <><XCircle size={12} /> Passwords do not match</>
+                                    )}
+                                </p>
+                            )}
                         </div>
                     </CardContent>
                     <CardFooter>

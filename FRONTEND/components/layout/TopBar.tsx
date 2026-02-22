@@ -1,6 +1,8 @@
 "use client"
 
-import { Bell, User, Wallet, ChevronUp, LogOut, Settings } from "lucide-react"
+import { useState } from "react"
+
+import { Bell, User, Wallet, ChevronUp, LogOut, Settings, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -15,7 +17,18 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import Link from "next/link"
+import { Skeleton } from "@/components/ui/skeleton"
 
 import { useAuth } from "@/hooks/use-auth"
 
@@ -32,6 +45,7 @@ interface TopBarProps {
     userName?: string;
     notifications?: NotificationItem[];
     profileLink?: string;
+    onMenuClick?: () => void;
 }
 
 const DEFAULT_NOTIFICATIONS: NotificationItem[] = [
@@ -52,9 +66,11 @@ export function TopBar({
     organizationName,
     userName,
     notifications = DEFAULT_NOTIFICATIONS,
-    profileLink = "/settings"
+    profileLink = "/settings",
+    onMenuClick
 }: TopBarProps) {
-    const { user } = useAuth()
+    const { user, logout } = useAuth()
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false)
 
     const displayUserName = userName || user?.username || "User"
     // Prefer the formatted role from user if organizationName is not passed, 
@@ -63,9 +79,22 @@ export function TopBar({
     const displayRole = organizationName || formatRole(user?.role)
 
     return (
-        <header className="h-20 border-b border-border bg-background px-6 flex items-center justify-between">
-            {/* Page Title */}
-            <h1 className="text-xl font-bold text-foreground">{title}</h1>
+        <header className="h-20 border-b border-border bg-background px-4 md:px-6 flex items-center justify-between">
+            {/* Left Side: Mobile Menu + Page Title */}
+            <div className="flex items-center gap-3">
+                {onMenuClick && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="md:hidden text-foreground hover:bg-muted shrink-0"
+                        onClick={onMenuClick}
+                        suppressHydrationWarning
+                    >
+                        <Menu className="h-5 w-5" />
+                    </Button>
+                )}
+                <h1 className="text-xl font-bold text-foreground truncate">{title}</h1>
+            </div>
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-4">
@@ -107,14 +136,22 @@ export function TopBar({
                             <div className="bg-primary/20 h-8 w-8 rounded-full flex items-center justify-center text-primary">
                                 <User className="h-4 w-4" />
                             </div>
-                            <div className="flex flex-col items-start text-sm">
-                                <span className="font-semibold leading-none">{displayUserName}</span>
-                                <span className="text-xs text-muted-foreground leading-none mt-1">{displayRole}</span>
+                            <div className="flex flex-col items-start justify-center h-8 text-sm">
+                                {userName || user?.username ? (
+                                    <span className="font-semibold leading-none">{displayUserName}</span>
+                                ) : (
+                                    <Skeleton className="h-4 w-24 mb-1.5" />
+                                )}
+                                {organizationName || user?.role ? (
+                                    <span className="text-xs text-muted-foreground leading-none mt-0.5">{displayRole}</span>
+                                ) : (
+                                    <Skeleton className="h-3 w-16" />
+                                )}
                             </div>
                             <ChevronUp className="h-3 w-3 text-muted-foreground ml-2 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuContent align="end" className="w-56 bg-sidebar text-sidebar-foreground border-sidebar-border">
                         <DropdownMenuLabel>My Account</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <Link href={profileLink}>
@@ -123,19 +160,42 @@ export function TopBar({
                                 <span className="font-medium">Profile</span>
                             </DropdownMenuItem>
                         </Link>
-                        <DropdownMenuItem className="cursor-pointer">
-                            <Wallet className="mr-2 h-4 w-4" />
-                            <span className="font-medium">Wallet</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <Link href="/">
-                            <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive">
-                                <LogOut className="mr-2 h-4 w-4" />
-                                <span className="font-medium">Log out</span>
+                        {user?.role === 'SUPER_ADMIN' && (
+                            <DropdownMenuItem className="cursor-pointer">
+                                <Wallet className="mr-2 h-4 w-4" />
+                                <span className="font-medium">Wallet</span>
                             </DropdownMenuItem>
-                        </Link>
+                        )}
+                        <DropdownMenuSeparator className="bg-sidebar-border" />
+                        <DropdownMenuItem
+                            className="cursor-pointer text-white focus:bg-red-500/80 focus:text-white focus:outline-none"
+                            onSelect={(e) => {
+                                e.preventDefault()
+                                setShowLogoutDialog(true)
+                            }}
+                        >
+                            <LogOut className="mr-2 h-4 w-4" />
+                            <span className="font-medium">Log out</span>
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
+
+                <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                You will be directed back to the login screen and will need to provide your credentials to access the system again.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => logout()} className="bg-red-600 hover:bg-red-700 text-white">
+                                Log out
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </header >
     )

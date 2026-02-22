@@ -47,7 +47,7 @@ export function RiskAnalysis({
                 <div className="space-y-6">
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-bold text-black">Average Risk Score</span>
+                            <span className="text-sm font-bold text-foreground">Average Risk Score</span>
                             <span className="font-bold">
                                 {(averageRiskScore * 100).toFixed(0)}%
                             </span>
