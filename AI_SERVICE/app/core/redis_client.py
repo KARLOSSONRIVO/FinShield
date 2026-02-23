@@ -156,6 +156,32 @@ def cache_invalidate_pattern(pattern: str) -> int:
     return 0
 
 
+def publish_event(channel: str, data: dict) -> bool:
+    """
+    Publish a JSON event to a Redis Pub/Sub channel.
+
+    Used to bridge AI Service → Node backend via Redis.
+    The Node Socket.IO layer subscribes to these channels
+    and fans the events out to connected clients.
+
+    Args:
+        channel: Redis pub/sub channel name (e.g. "channel:invoice")
+        data: Dict payload to JSON-serialize and publish
+
+    Returns:
+        True if published successfully, False otherwise
+    """
+    try:
+        client = get_redis_client()
+        if client:
+            client.publish(channel, json.dumps(data))
+            logger.info(f"📡 Published to {channel}: {data.get('event', 'unknown')}")
+            return True
+    except Exception as e:
+        logger.error(f"Redis publish error on '{channel}': {e}")
+    return False
+
+
 def close_redis() -> None:
     """Close all Redis connections gracefully."""
     global _redis_client, _redis_binary_client

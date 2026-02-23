@@ -3,6 +3,7 @@ import * as UsersRepositories from "../../repositories/user.repositories.js";
 import { toUserPublic } from "../../mappers/user.mapper.js";
 import { cacheDel, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
 import { CachePrefix } from "../../../common/utils/cache.constants.js";
+import { getIO, SocketEvents } from "../../../infrastructure/socket/socket.service.js";
 
 export async function updateUser({ actor, userId, status, reason }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED")
@@ -56,6 +57,12 @@ export async function updateUser({ actor, userId, status, reason }) {
         invalidatePrefix(CachePrefix.USERS_LIST),
         invalidatePrefix(CachePrefix.USERS_EMP),
     ]);
+
+    // Notify admins that user list changed
+    const io = getIO();
+    if (io) {
+        io.to("role:SUPER_ADMIN").emit(SocketEvents.USER_LIST_INVALIDATE);
+    }
 
     return toUserPublic(updated);
 }

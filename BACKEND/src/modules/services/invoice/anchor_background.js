@@ -7,14 +7,16 @@ import { triggerOcr } from "../../../infrastructure/ai/ocr_client.js";
 import { unpinByCid } from "../../../infrastructure/storage/ipfs.service.js";
 import { cacheDel, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
 import { CachePrefix } from "../../../common/utils/cache.constants.js";
+import { getIO, SocketEvents } from "../../../infrastructure/socket/socket.service.js";
 
 /* ============================
  * BACKGROUND ANCHOR WORKER
  * ============================ */
 export const anchorWorker = new Worker(ANCHOR_QUEUE_NAME, async (job) => {
-    const { invoiceId, ipfsCid, fileSha, allowAutoOcr } = job.data;
+    const { invoiceId, ipfsCid, fileSha, allowAutoOcr, uploadedByUserId, orgId } = job.data;
 
     console.log(`[Worker] Started processing anchor job for invoice ${invoiceId}`);
+    const io = getIO();
 
     try {
         const anchored = await anchorInvoice({
@@ -38,8 +40,23 @@ export const anchorWorker = new Worker(ANCHOR_QUEUE_NAME, async (job) => {
             invalidatePrefix(CachePrefix.LEDGER),
         ]);
 
+        // ── Emit anchor success to uploader + organization ──
+        if (io) {
+            const anchorPayload = { invoiceId, txHash: anchored.txHash, blockNumber: anchored.blockNumber };
+            if (uploadedByUserId) io.to(`user:${uploadedByUserId}`).emit(SocketEvents.INVOICE_ANCHOR_SUCCESS, anchorPayload);
+            if (orgId) {
+                io.to(`org:${orgId}`).emit(SocketEvents.INVOICE_ANCHOR_SUCCESS, anchorPayload);
+                io.to(`org:${orgId}`).emit(SocketEvents.INVOICE_LIST_INVALIDATE, { orgId });
+            }
+        }
+
         // ✅ OCR ONLY FOR DOCUMENTS
         if (allowAutoOcr) {
+            // Notify uploader that AI processing is starting
+            if (io && uploadedByUserId) {
+                io.to(`user:${uploadedByUserId}`).emit(SocketEvents.INVOICE_PROCESSING, { invoiceId, stage: "ai" });
+            }
+
             // We do not await this, OCR trigger is fire-and-forget
             triggerOcr(invoiceId).catch((e) => {
                 console.error(`❌ OCR trigger failed for ${invoiceId}:`, e?.message || e);
@@ -65,9 +82,20 @@ export const anchorWorker = new Worker(ANCHOR_QUEUE_NAME, async (job) => {
             invalidatePrefix(CachePrefix.INV_MY),
         ]);
 
+        // ── Emit anchor failure to uploader + admins ──
+        const isFinalAttempt = job.attemptsMade >= job.opts.attempts - 1;
+        if (io) {
+            const failPayload = { invoiceId, error: e?.message || "Anchor failed", isFinalAttempt };
+            if (uploadedByUserId) io.to(`user:${uploadedByUserId}`).emit(SocketEvents.INVOICE_ANCHOR_FAILED, failPayload);
+            io.to("role:SUPER_ADMIN").emit(SocketEvents.INVOICE_ANCHOR_FAILED, failPayload);
+            if (orgId) {
+                io.to(`org:${orgId}`).emit(SocketEvents.INVOICE_LIST_INVALIDATE, { orgId });
+            }
+        }
+
         // 🗑️ Remove file from IPFS when anchoring fails entirely
         // We only want to delete it if we are sure we aren't retrying
-        if (job.attemptsMade >= job.opts.attempts - 1) {
+        if (isFinalAttempt) {
             try {
                 await unpinByCid(ipfsCid);
                 console.log(`🗑️ Removed IPFS pin for failed invoice ${invoiceId}`);

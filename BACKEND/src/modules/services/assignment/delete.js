@@ -2,6 +2,7 @@ import AppError from "../../../common/errors/AppErrors.js";
 import * as AssignmentRepositories from "../../repositories/assignment.repositories.js";
 import { cacheDel, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
 import { CachePrefix } from "../../../common/utils/cache.constants.js";
+import { getIO, SocketEvents } from "../../../infrastructure/socket/socket.service.js";
 
 export async function deleteAssignment({ actor, assignmentId }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED")
@@ -25,6 +26,19 @@ export async function deleteAssignment({ actor, assignmentId }) {
         cacheDel(`${CachePrefix.AUDITOR_ORGS}${auditorId}`),
         cacheDel(`${CachePrefix.AUDITOR_ACTIVE}${companyOrgId}`),
     ]);
+
+    const io = getIO();
+    if (io) {
+        io.to(`user:${auditorId}`).emit(SocketEvents.ASSIGNMENT_DEACTIVATED, {
+            assignmentId,
+            companyOrgId: companyOrgId.toString(),
+        });
+        io.to(`role:SUPER_ADMIN`).emit(SocketEvents.ASSIGNMENT_DEACTIVATED, {
+            assignmentId,
+            auditorUserId: auditorId.toString(),
+            companyOrgId: companyOrgId.toString(),
+        });
+    }
 
     return { message: "Assignment deleted successfully" }
 }

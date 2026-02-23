@@ -6,6 +6,7 @@ import { toUserPublic } from "../../mappers/user.mapper.js";
 import { isPlatformRole, isCompanyRole, expectedOrgTypeForRole } from "../../../common/utils/role_helpers.js";
 import { invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
 import { CachePrefix } from "../../../common/utils/cache.constants.js";
+import { getIO, SocketEvents } from "../../../infrastructure/socket/socket.service.js";
 
 export async function createUser({ actor, payload }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED")
@@ -66,6 +67,12 @@ export async function createUser({ actor, payload }) {
         invalidatePrefix(CachePrefix.USERS_LIST),
         invalidatePrefix(CachePrefix.USERS_EMP),
     ]);
+
+    // Notify admins that user list changed
+    const io = getIO();
+    if (io) {
+        io.to("role:SUPER_ADMIN").emit(SocketEvents.USER_LIST_INVALIDATE);
+    }
 
     return toUserPublic(createUser)
 }

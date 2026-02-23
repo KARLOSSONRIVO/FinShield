@@ -3,6 +3,7 @@ import * as AssignmentRepositories from "../../repositories/assignment.repositor
 import { toAssignmentPublic } from "../../mappers/assignment.mapper.js";
 import { cacheDel, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
 import { CachePrefix } from "../../../common/utils/cache.constants.js";
+import { getIO, SocketEvents } from "../../../infrastructure/socket/socket.service.js";
 
 export async function updateAssignment({ actor, assignmentId, payload }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED")
@@ -37,6 +38,19 @@ export async function updateAssignment({ actor, assignmentId, payload }) {
         cacheDel(`${CachePrefix.AUDITOR_ORGS}${auditorId}`),
         cacheDel(`${CachePrefix.AUDITOR_ACTIVE}${companyOrgId}`),
     ]);
+
+    const io = getIO();
+    if (io) {
+        io.to(`user:${auditorId}`).emit(SocketEvents.ASSIGNMENT_UPDATED, {
+            assignmentId,
+            status: updateData.status,
+        });
+        io.to(`role:SUPER_ADMIN`).emit(SocketEvents.ASSIGNMENT_UPDATED, {
+            assignmentId,
+            auditorUserId: auditorId.toString(),
+            companyOrgId: companyOrgId.toString(),
+        });
+    }
 
     return toAssignmentPublic(updated)
 }

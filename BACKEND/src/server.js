@@ -3,8 +3,12 @@ import http from "http";
 import { PORT } from "./config/env.js";
 import { connectDB, disconnectDB } from "./infrastructure/db/database.js";
 import { anchorWorker } from "./modules/services/invoice/anchor_background.js";
+import { initSocket } from "./infrastructure/socket/socket.service.js";
 
 const server = http.createServer(app)
+
+// Initialize Socket.IO on the HTTP server
+initSocket(server);
 
 async function bootstrap() {
     try {

@@ -20,7 +20,7 @@ from bson import ObjectId
 from typing import Dict, Any, Optional
 
 from app.core.config import IPFS_GATEWAY_BASE, CHAIN_RPC_URL
-from app.core.redis_client import cache_get, cache_set, is_redis_available
+from app.core.redis_client import cache_get, cache_set, is_redis_available, publish_event
 from app.db.mongo import invoices, organizations
 from app.engines.tesseract.extractor import extract_text_simple, extract_text_with_layout
 from app.utils.parser import parse_invoice_fields
@@ -262,6 +262,17 @@ async def run_ocr_for_invoice(invoice_id: str) -> Dict[str, Any]:
                 {"_id": ObjectId(invoice_id)},
                 {"$set": update}
             )
+
+        # ── Publish AI completion event to Node backend via Redis Pub/Sub ──
+        publish_event("channel:invoice", {
+            "event": "ai_complete",
+            "invoiceId": invoice_id,
+            "orgId": org_id,
+            "uploadedByUserId": str(inv.get("uploadedByUserId", "")),
+            "aiVerdict": update.get("aiVerdict"),
+            "aiRiskScore": update.get("aiRiskScore"),
+            "riskLevel": update.get("riskLevel"),
+        })
 
         return {
             "invoiceId": invoice_id,

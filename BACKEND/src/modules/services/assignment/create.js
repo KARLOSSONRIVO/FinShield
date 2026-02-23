@@ -5,6 +5,7 @@ import * as OrganizationRepositories from "../../repositories/organization.repos
 import { toAssignmentPublic } from "../../mappers/assignment.mapper.js";
 import { cacheDel, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
 import { CachePrefix } from "../../../common/utils/cache.constants.js";
+import { getIO, SocketEvents } from "../../../infrastructure/socket/socket.service.js";
 
 export async function createAssignment({ actor, payload }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED")
@@ -59,6 +60,20 @@ export async function createAssignment({ actor, payload }) {
             const reactivated = await AssignmentRepositories.findById(updated._id);
 
             await invalidateAssignmentCaches();
+
+            const io = getIO();
+            if (io) {
+                io.to(`user:${payload.auditorUserId}`).emit(SocketEvents.ASSIGNMENT_CREATED, {
+                    assignmentId: reactivated._id.toString(),
+                    companyOrgId: payload.companyOrgId,
+                });
+                io.to(`role:SUPER_ADMIN`).emit(SocketEvents.ASSIGNMENT_CREATED, {
+                    assignmentId: reactivated._id.toString(),
+                    auditorUserId: payload.auditorUserId,
+                    companyOrgId: payload.companyOrgId,
+                });
+            }
+
             return toAssignmentPublic(reactivated)
         }
     }
@@ -75,5 +90,19 @@ export async function createAssignment({ actor, payload }) {
     const created = await AssignmentRepositories.findById(assignment._id)
 
     await invalidateAssignmentCaches();
+
+    const io = getIO();
+    if (io) {
+        io.to(`user:${payload.auditorUserId}`).emit(SocketEvents.ASSIGNMENT_CREATED, {
+            assignmentId: created._id.toString(),
+            companyOrgId: payload.companyOrgId,
+        });
+        io.to(`role:SUPER_ADMIN`).emit(SocketEvents.ASSIGNMENT_CREATED, {
+            assignmentId: created._id.toString(),
+            auditorUserId: payload.auditorUserId,
+            companyOrgId: payload.companyOrgId,
+        });
+    }
+
     return toAssignmentPublic(created)
 }

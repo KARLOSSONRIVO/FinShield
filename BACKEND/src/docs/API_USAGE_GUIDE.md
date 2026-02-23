@@ -15,9 +15,10 @@
 6. [Invoices](#6-invoices)
 7. [Blockchain Ledger](#7-blockchain-ledger)
 8. [Sessions](#8-sessions)
-9. [Pagination](#9-pagination)
-10. [Error Handling](#10-error-handling)
-11. [Role Permissions Matrix](#11-role-permissions-matrix)
+9. [WebSocket (Real-Time Events)](#9-websocket-real-time-events)
+10. [Pagination](#10-pagination)
+11. [Error Handling](#11-error-handling)
+12. [Role Permissions Matrix](#12-role-permissions-matrix)
 
 ---
 
@@ -975,7 +976,471 @@ DELETE /session/:sessionId
 
 ---
 
-## 9. Pagination
+## 9. WebSocket (Real-Time Events)
+
+The API provides real-time push notifications via **Socket.IO** (WebSocket). Connected clients receive instant updates when invoices are uploaded, processed, flagged, or when assignments change — without polling.
+
+### 9.1 Connecting
+
+**URL:** `ws://localhost:5000` (same port as the REST API)
+
+**Library:** [`socket.io-client`](https://www.npmjs.com/package/socket.io-client)
+
+```js
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000", {
+  auth: { token: "<accessToken>" },  // Same JWT used for REST API
+  transports: ["websocket"],          // Skip HTTP long-polling
+});
+
+socket.on("connect", () => console.log("Connected:", socket.id));
+socket.on("connect_error", (err) => console.error("Auth failed:", err.message));
+```
+
+**Authentication:** The server validates the JWT on handshake using the same `JWT_SECRET` and token blacklist as REST endpoints. Invalid, expired, or revoked tokens are rejected with a `connect_error`.
+
+### 9.2 Room Assignment (Automatic)
+
+Rooms are assigned **automatically** on connection based on the JWT payload — clients do not need to join rooms manually.
+
+| Room Pattern | Who Joins | Purpose |
+|---|---|---|
+| `user:{userId}` | Every connected user | Targeted personal notifications |
+| `org:{orgId}` | Users with an `orgId` in their JWT | Organization-wide broadcasts |
+| `role:SUPER_ADMIN` | Super admins | Platform-wide admin alerts |
+| `role:AUDITOR` | Auditors | Flagged invoice alerts |
+| `role:REGULATOR` | Regulators | Flagged invoice alerts |
+
+### 9.3 Events Reference
+
+#### Invoice Pipeline Events
+
+| Event | Target Rooms | Payload | When |
+|---|---|---|---|
+| `invoice:created` | `org:{orgId}` | `{ invoiceId, uploadedBy }` | After a new invoice is uploaded |
+| `invoice:anchor:success` | `user:{uploader}`, `org:{orgId}` | `{ invoiceId }` | Blockchain anchoring completed successfully |
+| `invoice:anchor:failed` | `user:{uploader}`, `role:SUPER_ADMIN` | `{ invoiceId, error }` | Blockchain anchoring failed (all retries exhausted) |
+| `invoice:processing` | `org:{orgId}` | `{ invoiceId }` | AI/OCR processing has started |
+| `invoice:ai:complete` | `user:{uploader}`, `org:{orgId}` | `{ invoiceId, aiVerdict, aiRiskScore, riskLevel }` | AI pipeline finished processing |
+| `invoice:flagged` | `role:AUDITOR`, `role:SUPER_ADMIN`, `role:REGULATOR` | `{ invoiceId, aiRiskScore, riskLevel }` | AI flagged an invoice as suspicious |
+| `invoice:list:invalidate` | `org:{orgId}` | `{ orgId }` | Invoice list data changed — refetch recommended |
+
+#### Assignment Events
+
+| Event | Target Rooms | Payload | When |
+|---|---|---|---|
+| `assignment:created` | `user:{auditorId}`, `role:SUPER_ADMIN` | `{ assignmentId, companyOrgId }` | New auditor assignment created or reactivated |
+| `assignment:updated` | `user:{auditorId}`, `role:SUPER_ADMIN` | `{ assignmentId, status }` | Assignment status or notes changed |
+| `assignment:deactivated` | `user:{auditorId}`, `role:SUPER_ADMIN` | `{ assignmentId, companyOrgId }` | Assignment deactivated (soft delete) |
+
+#### Admin List Invalidation Events
+
+| Event | Target Rooms | Payload | When |
+|---|---|---|---|
+| `user:list:invalidate` | `role:SUPER_ADMIN` | — | A user was created or updated |
+| `org:list:invalidate` | `role:SUPER_ADMIN` | — | An organization was created |
+
+### 9.4 Listening for Events
+
+```js
+// Invoice finished AI processing
+socket.on("invoice:ai:complete", (data) => {
+  // data = { invoiceId, aiVerdict, aiRiskScore, riskLevel }
+  // → Refetch invoice detail or update UI state
+});
+
+// New invoice uploaded in your org
+socket.on("invoice:created", (data) => {
+  // data = { invoiceId, uploadedBy }
+  // → Show toast notification, refetch invoice list
+});
+
+// Invoice flagged by AI
+socket.on("invoice:flagged", (data) => {
+  // data = { invoiceId, aiRiskScore, riskLevel }
+  // → Show alert badge, refetch flagged invoices
+});
+
+// Invoice list changed — time to refetch
+socket.on("invoice:list:invalidate", () => {
+  // → Refetch invoice list
+});
+
+// Auditor received a new assignment
+socket.on("assignment:created", (data) => {
+  // data = { assignmentId, companyOrgId }
+  // → Show toast, refetch assignments
+});
+
+// Admin: user list changed
+socket.on("user:list:invalidate", () => {
+  // → Refetch user list
+});
+```
+
+### 9.5 Disconnecting
+
+```js
+socket.disconnect();
+```
+
+The server automatically cleans up rooms when a client disconnects.
+
+### 9.6 Event Flow Diagram
+
+```
+┌──────────────┐     upload      ┌──────────────┐  invoice:created  ┌──────────┐
+│   Frontend   │ ──── REST ────► │   Backend    │ ── Socket.IO ──► │ Org Room │
+└──────────────┘                 └──────┬───────┘                   └──────────┘
+                                        │ BullMQ job
+                                        ▼
+                                 ┌──────────────┐  invoice:anchor:success
+                                 │  Blockchain  │ ── Socket.IO ──► user + org
+                                 │  Worker      │
+                                 └──────┬───────┘
+                                        │ HTTP trigger
+                                        ▼
+                                 ┌──────────────┐  Redis Pub/Sub   ┌──────────┐
+                                 │  AI Service  │ ──────────────► │ Backend  │
+                                 │  (Python)    │                  │ Socket   │
+                                 └──────────────┘                  │ Layer    │
+                                                                   └────┬─────┘
+                                                    invoice:ai:complete │
+                                                    invoice:flagged     │
+                                                                        ▼
+                                                                   Connected
+                                                                   Clients
+```
+
+### 9.7 Notes
+
+- **No polling needed**: Events push instantly when data changes. Use `*:list:invalidate` events as signals to refetch list data.
+- **Graceful degradation**: If the WebSocket connection drops, the REST API still works normally. Reconnect and the server re-assigns rooms from the JWT.
+- **AI Service bridge**: The AI Service (Python) does not use Socket.IO directly. It publishes events to Redis Pub/Sub (`channel:invoice`), and the Backend's Socket.IO layer subscribes and fans them to clients.
+- **Token expiry**: If the JWT expires while connected, the socket remains connected until the next reconnect attempt, which will fail authentication. Handle `connect_error` to redirect to login.
+
+### 9.8 Frontend Implementation Guide (Next.js)
+
+Step-by-step guide for integrating WebSocket into the FinShield Next.js frontend.
+
+#### Step 1: Install dependency
+
+```bash
+pnpm add socket.io-client
+```
+
+#### Step 2: Add environment variable
+
+Add to `.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+
+#### Step 3: Create socket constants
+
+Create `lib/socket-events.ts` — shared event name constants matching the backend's `SocketEvents`:
+
+```ts
+export const SocketEvents = {
+  // Invoice pipeline
+  INVOICE_CREATED:         "invoice:created",
+  INVOICE_ANCHOR_SUCCESS:  "invoice:anchor:success",
+  INVOICE_ANCHOR_FAILED:   "invoice:anchor:failed",
+  INVOICE_PROCESSING:      "invoice:processing",
+  INVOICE_AI_COMPLETE:     "invoice:ai:complete",
+  INVOICE_FLAGGED:         "invoice:flagged",
+  INVOICE_LIST_INVALIDATE: "invoice:list:invalidate",
+
+  // Assignments
+  ASSIGNMENT_CREATED:      "assignment:created",
+  ASSIGNMENT_UPDATED:      "assignment:updated",
+  ASSIGNMENT_DEACTIVATED:  "assignment:deactivated",
+
+  // Admin list invalidation
+  USER_LIST_INVALIDATE:    "user:list:invalidate",
+  ORG_LIST_INVALIDATE:     "org:list:invalidate",
+} as const;
+
+export type SocketEvent = (typeof SocketEvents)[keyof typeof SocketEvents];
+```
+
+#### Step 4: Create the socket hook
+
+Create `hooks/global/use-socket.ts`:
+
+```ts
+"use client";
+
+import { useEffect, useRef, useCallback } from "react";
+import { io, Socket } from "socket.io-client";
+import type { SocketEvent } from "@/lib/socket-events";
+
+const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+
+/**
+ * Manages a single Socket.IO connection for the authenticated user.
+ * Automatically connects when a token is provided and disconnects on cleanup.
+ *
+ * @param token - JWT access token (pass null/undefined when logged out)
+ * @returns socket ref + on/off helpers
+ */
+export function useSocket(token: string | null | undefined) {
+  const socketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    if (!token) return;
+
+    const socket = io(SOCKET_URL, {
+      auth: { token },
+      transports: ["websocket"],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
+    });
+
+    socket.on("connect", () => {
+      console.log("[WS] Connected:", socket.id);
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("[WS] Connection error:", err.message);
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.log("[WS] Disconnected:", reason);
+    });
+
+    socketRef.current = socket;
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [token]);
+
+  /** Subscribe to a Socket.IO event. Returns an unsubscribe function. */
+  const on = useCallback(
+    <T = unknown>(event: SocketEvent | string, handler: (data: T) => void) => {
+      socketRef.current?.on(event, handler as any);
+      return () => {
+        socketRef.current?.off(event, handler as any);
+      };
+    },
+    []
+  );
+
+  /** Unsubscribe from a Socket.IO event. */
+  const off = useCallback(
+    (event: SocketEvent | string, handler?: (...args: any[]) => void) => {
+      socketRef.current?.off(event, handler);
+    },
+    []
+  );
+
+  return { socket: socketRef, on, off };
+}
+```
+
+#### Step 5: Export from hooks barrel
+
+Update `hooks/global/index.ts`:
+
+```ts
+export { useToast, toast } from "./use-toast";
+export { useIsMobile } from "./use-mobile";
+export { useSocket } from "./use-socket";
+```
+
+Update `hooks/index.ts`:
+
+```ts
+export { useToast, toast } from "./global";
+export { useIsMobile } from "./global";
+export { useSocket } from "./global";
+// ...rest of exports
+```
+
+#### Step 6: Create an event listener hook
+
+Create `hooks/global/use-socket-event.ts` — a convenience hook for subscribing to a single event inside any component:
+
+```ts
+"use client";
+
+import { useEffect } from "react";
+import type { SocketEvent } from "@/lib/socket-events";
+
+type SocketRef = { socket: React.RefObject<import("socket.io-client").Socket | null> };
+
+/**
+ * Subscribe to a single Socket.IO event. Handles cleanup automatically.
+ *
+ * @param socketCtx - The return value of useSocket()
+ * @param event     - The event name to listen for
+ * @param handler   - Callback when the event fires
+ */
+export function useSocketEvent<T = unknown>(
+  socketCtx: SocketRef & { on: (event: string, handler: (data: T) => void) => () => void },
+  event: SocketEvent | string,
+  handler: (data: T) => void
+) {
+  useEffect(() => {
+    if (!socketCtx.socket.current) return;
+    const unsub = socketCtx.on(event, handler);
+    return unsub;
+  }, [socketCtx, event, handler]);
+}
+```
+
+#### Step 7: Usage examples
+
+**A) Initialize socket at app level** (e.g., in a layout or auth provider):
+
+```tsx
+"use client";
+
+import { useSocket } from "@/hooks";
+
+export function AppProviders({ children }: { children: React.ReactNode }) {
+  // Get token from your auth state (context, store, cookies, etc.)
+  const token = useAuthToken();
+  const socketCtx = useSocket(token);
+
+  return (
+    <SocketContext.Provider value={socketCtx}>
+      {children}
+    </SocketContext.Provider>
+  );
+}
+```
+
+**B) Show toast when an invoice is flagged:**
+
+```tsx
+"use client";
+
+import { useContext, useCallback } from "react";
+import { SocketContext } from "@/providers/socket-provider";
+import { useSocketEvent } from "@/hooks/global/use-socket-event";
+import { SocketEvents } from "@/lib/socket-events";
+import { toast } from "@/hooks";
+
+interface FlaggedPayload {
+  invoiceId: string;
+  aiRiskScore: number;
+  riskLevel: string;
+}
+
+export function FlaggedInvoiceListener() {
+  const socketCtx = useContext(SocketContext);
+
+  const handleFlagged = useCallback((data: FlaggedPayload) => {
+    toast({
+      title: "Invoice Flagged",
+      description: `Invoice flagged with risk score ${data.aiRiskScore} (${data.riskLevel})`,
+      variant: "destructive",
+    });
+  }, []);
+
+  useSocketEvent(socketCtx, SocketEvents.INVOICE_FLAGGED, handleFlagged);
+
+  return null; // Render nothing — listener only
+}
+```
+
+**C) Auto-refetch invoice list when data changes:**
+
+```tsx
+"use client";
+
+import { useContext, useCallback } from "react";
+import { SocketContext } from "@/providers/socket-provider";
+import { useSocketEvent } from "@/hooks/global/use-socket-event";
+import { SocketEvents } from "@/lib/socket-events";
+
+export function useInvoiceListSocket(refetchFn: () => void) {
+  const socketCtx = useContext(SocketContext);
+
+  const handleInvalidate = useCallback(() => {
+    refetchFn();
+  }, [refetchFn]);
+
+  // Refetch when any of these events occur
+  useSocketEvent(socketCtx, SocketEvents.INVOICE_CREATED, handleInvalidate);
+  useSocketEvent(socketCtx, SocketEvents.INVOICE_LIST_INVALIDATE, handleInvalidate);
+  useSocketEvent(socketCtx, SocketEvents.INVOICE_AI_COMPLETE, handleInvalidate);
+}
+```
+
+**D) Show real-time processing status on invoice detail:**
+
+```tsx
+"use client";
+
+import { useContext, useCallback, useState } from "react";
+import { SocketContext } from "@/providers/socket-provider";
+import { useSocketEvent } from "@/hooks/global/use-socket-event";
+import { SocketEvents } from "@/lib/socket-events";
+
+interface AiCompletePayload {
+  invoiceId: string;
+  aiVerdict: "clean" | "flagged";
+  aiRiskScore: number;
+  riskLevel: string;
+}
+
+export function useInvoiceStatus(invoiceId: string) {
+  const socketCtx = useContext(SocketContext);
+  const [status, setStatus] = useState<string>("idle");
+  const [aiResult, setAiResult] = useState<AiCompletePayload | null>(null);
+
+  useSocketEvent(socketCtx, SocketEvents.INVOICE_ANCHOR_SUCCESS, 
+    useCallback((data: { invoiceId: string }) => {
+      if (data.invoiceId === invoiceId) setStatus("anchored");
+    }, [invoiceId])
+  );
+
+  useSocketEvent(socketCtx, SocketEvents.INVOICE_PROCESSING,
+    useCallback((data: { invoiceId: string }) => {
+      if (data.invoiceId === invoiceId) setStatus("processing");
+    }, [invoiceId])
+  );
+
+  useSocketEvent(socketCtx, SocketEvents.INVOICE_AI_COMPLETE,
+    useCallback((data: AiCompletePayload) => {
+      if (data.invoiceId === invoiceId) {
+        setStatus("complete");
+        setAiResult(data);
+      }
+    }, [invoiceId])
+  );
+
+  return { status, aiResult };
+}
+```
+
+#### Step 8: Recommended file structure
+
+After implementation, the frontend socket files should look like:
+
+```
+FRONTEND/
+  lib/
+    socket-events.ts          ← Event name constants
+  hooks/
+    global/
+      use-socket.ts           ← Core socket connection hook
+      use-socket-event.ts     ← Single-event listener hook
+      index.ts                ← Updated exports
+    index.ts                  ← Updated exports
+  providers/
+    socket-provider.tsx       ← React context for socket (optional)
+```
+
+---
+
+## 10. Pagination
 
 All list endpoints support a consistent pagination interface.
 
@@ -1029,7 +1494,7 @@ All paginated endpoints return:
 
 ---
 
-## 10. Error Handling
+## 11. Error Handling
 
 ### Standard Error Response
 
@@ -1077,7 +1542,7 @@ When request validation fails, the response includes field-level details:
 
 ---
 
-## 11. Role Permissions Matrix
+## 12. Role Permissions Matrix
 
 | Endpoint                              | SUPER_ADMIN | AUDITOR | REGULATOR | COMPANY_MANAGER | COMPANY_USER |
 |---------------------------------------|:-----------:|:-------:|:---------:|:---------------:|:------------:|

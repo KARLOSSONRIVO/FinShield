@@ -4,6 +4,7 @@ import { toOrganizationPublic } from "../../mappers/organization.mapper.js";
 import { processInvoiceTemplate } from "./process_template.js";
 import { invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
 import { CachePrefix } from "../../../common/utils/cache.constants.js";
+import { getIO, SocketEvents } from "../../../infrastructure/socket/socket.service.js";
 
 export async function createOrganization({ actor, payload, file }) {
     if (!actor || actor.role !== "SUPER_ADMIN") {
@@ -31,6 +32,12 @@ export async function createOrganization({ actor, payload, file }) {
 
     // Invalidate org list cache
     await invalidatePrefix(CachePrefix.ORGS_LIST);
+
+    // Notify admins that org list changed
+    const io = getIO();
+    if (io) {
+        io.to("role:SUPER_ADMIN").emit(SocketEvents.ORG_LIST_INVALIDATE);
+    }
 
     return toOrganizationPublic(org);
 }

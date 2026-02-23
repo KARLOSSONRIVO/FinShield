@@ -10,6 +10,7 @@ import { addAnchorJob } from "../../../infrastructure/queue/anchor.queue.js";
 import { extractInvoiceNumber } from "../../../common/utils/invoiceParser.js";
 import { cacheGet, cacheSet, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
 import { CachePrefix, CacheTTL } from "../../../common/utils/cache.constants.js";
+import { getIO, SocketEvents } from "../../../infrastructure/socket/socket.service.js";
 
 /* ============================
  * MAIN UPLOAD SERVICE
@@ -144,7 +145,9 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
         invoiceId: invoice._id.toString(),
         ipfsCid: ipfsCid,
         fileSha: fileSha,
-        allowAutoOcr: documentFile
+        allowAutoOcr: documentFile,
+        uploadedByUserId: actor.sub,
+        orgId: actor.orgId,
     });
 
     // Invalidate invoice list caches after new upload
@@ -152,6 +155,16 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
         invalidatePrefix(CachePrefix.INV_LIST),
         invalidatePrefix(CachePrefix.INV_MY),
     ]);
+
+    // ── Notify organization that a new invoice was uploaded ──
+    const io = getIO();
+    if (io) {
+        io.to(`org:${actor.orgId}`).emit(SocketEvents.INVOICE_CREATED, {
+            invoiceId: invoice._id.toString(),
+            uploadedBy: actor.sub,
+        });
+        io.to(`org:${actor.orgId}`).emit(SocketEvents.INVOICE_LIST_INVALIDATE, { orgId: actor.orgId });
+    }
 
     return {
         ...toInvoicePublic(invoice),
