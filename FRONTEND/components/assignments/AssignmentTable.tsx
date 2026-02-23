@@ -8,7 +8,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Building2, Pencil, Trash2, ArrowUpDown } from "lucide-react"
+import { Building2, Pencil, Trash2, ChevronUp, ChevronDown } from "lucide-react"
 import { RealAssignment } from "@/hooks/assignments/use-assignments"
 import { DeleteAssignmentDialog } from "./DeleteAssignmentDialog"
 import { EditAssignmentDialog } from "./EditAssignmentDialog"
@@ -97,7 +97,7 @@ export function AssignmentTableContent({ assignments, onDelete, onUpdate, compan
                             <TableHead className="px-6 py-4">
                                 <div className="flex items-center justify-center gap-2 cursor-pointer font-bold text-base text-foreground" onClick={() => onSort?.("status")}>
                                     Status
-                                    <ArrowUpDown className={`h-4 w-4 ${sortBy === 'status' ? 'text-primary' : 'text-muted-foreground'}`} />
+                                    {sortBy === 'status' ? (order === 'asc' ? <ChevronUp className="h-4 w-4 text-primary" /> : <ChevronDown className="h-4 w-4 text-primary" />) : <ChevronUp className="h-4 w-4 text-muted-foreground/40" />}
                                 </div>
                             </TableHead>
                             <TableHead className="px-6 py-4 text-center text-foreground font-bold text-base">

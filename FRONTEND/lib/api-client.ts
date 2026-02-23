@@ -23,7 +23,7 @@ apiClient.interceptors.request.use(
     (error) => Promise.reject(error)
 )
 
-// Response Interceptor: Handle Errors
+// Response Interceptor: Handle Errors & Token Refresh
 interface QueueItem {
     resolve: (value?: unknown) => void
     reject: (error: unknown) => void
@@ -40,17 +40,23 @@ const processQueue = (error: unknown, token: string | null = null) => {
             prom.resolve(token)
         }
     })
-
     failedQueue = []
 }
 
-// Response Interceptor: Handle Errors & Token Refresh
+// Auth endpoints that should NEVER trigger a token refresh cycle
+const AUTH_ENDPOINTS = ["/auth/login", "/auth/refresh", "/auth/logout"]
+
 apiClient.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        // Skip refresh logic entirely for auth endpoints or non-401 errors
+        const isAuthEndpoint = AUTH_ENDPOINTS.some((ep) =>
+            originalRequest?.url?.includes(ep)
+        )
+
+        if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject })
@@ -84,7 +90,6 @@ apiClient.interceptors.response.use(
                     localStorage.setItem("refreshToken", newRefreshToken)
                 }
 
-                // Update the header for the original request
                 apiClient.defaults.headers.common["Authorization"] = `Bearer ${newAccessToken}`
                 originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`
 
@@ -96,7 +101,12 @@ apiClient.interceptors.response.use(
                 localStorage.removeItem("refreshToken")
                 localStorage.removeItem("user")
                 document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-                window.location.href = "/login"
+
+                // Only redirect if we're not already on the login page
+                if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
+                    window.location.href = "/login"
+                }
+
                 return Promise.reject(refreshError)
             } finally {
                 isRefreshing = false

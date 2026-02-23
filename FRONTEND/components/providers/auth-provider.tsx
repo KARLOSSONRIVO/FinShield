@@ -27,23 +27,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true)
     const router = useRouter()
 
-    // Initialize auth state
+    // Initialize auth state — validates token against API, not just localStorage
     useEffect(() => {
         const initializeAuth = async () => {
             const token = localStorage.getItem("token")
-            if (token) {
-                try {
-                    const storedUser = localStorage.getItem("user")
-                    if (storedUser) {
-                        setUser(JSON.parse(storedUser))
-                    }
-                } catch (error) {
-                    console.error("Failed to parse stored user", error)
-                    localStorage.removeItem("token")
-                    localStorage.removeItem("user")
-                }
+            if (!token) {
+                setIsLoading(false)
+                return
             }
-            setIsLoading(false)
+            try {
+                // Validate the stored token by calling /auth/me
+                const response = await AuthService.getMe()
+                const userData = response?.data?.user || response?.data || response?.user
+                if (userData) {
+                    setUser(userData)
+                    localStorage.setItem("user", JSON.stringify(userData))
+                } else {
+                    throw new Error("Invalid user data from /auth/me")
+                }
+            } catch (error) {
+                // Token is expired or invalid — clear everything so user stays on /login
+                console.warn("Token validation failed, clearing session:", error)
+                localStorage.removeItem("token")
+                localStorage.removeItem("refreshToken")
+                localStorage.removeItem("user")
+                document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+            } finally {
+                setIsLoading(false)
+            }
         }
 
         initializeAuth()

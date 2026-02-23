@@ -50,8 +50,8 @@ export default function RegulatorLayout({
             {/* Main content wrapper */}
             <div
                 className={cn(
-                    "flex-1 flex flex-col min-w-0 w-full transition-all duration-700 ease-in-out",
-                    collapsed ? "md:ml-24" : "md:ml-72"
+                    "flex-1 flex flex-col min-w-0 transition-all duration-700 ease-in-out",
+                    collapsed ? "ml-0 md:ml-24" : "ml-0 md:ml-72"
                 )}
             >
                 {/* Top Navigation Bar - Sticky */}

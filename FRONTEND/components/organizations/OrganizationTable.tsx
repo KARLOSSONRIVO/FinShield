@@ -7,7 +7,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Building2, ArrowUpDown } from "lucide-react"
+import { Building2, ChevronUp, ChevronDown } from "lucide-react"
 import { Organization } from "@/services/organization.service"
 import { PaginationDetails } from "@/lib/types"
 import { DataPagination } from "../common/DataPagination"
@@ -42,13 +42,13 @@ export function OrganizationTable({ organizations, onEdit, onDelete, pagination,
                             <TableHead className="w-[300px] px-6 py-4">
                                 <div className="flex items-center justify-center gap-2 cursor-pointer font-bold text-base text-foreground" onClick={() => onSort?.("name")}>
                                     Company Name
-                                    <ArrowUpDown className={`h-4 w-4 ${sortBy === 'name' ? 'text-primary' : 'text-muted-foreground'}`} />
+                                    {sortBy === 'name' ? (order === 'asc' ? <ChevronUp className="h-4 w-4 text-primary" /> : <ChevronDown className="h-4 w-4 text-primary" />) : <ChevronUp className="h-4 w-4 text-muted-foreground/40" />}
                                 </div>
                             </TableHead>
                             <TableHead className="px-6 py-4">
                                 <div className="flex items-center justify-center gap-2 cursor-pointer font-bold text-base text-foreground" onClick={() => onSort?.("type")}>
                                     Type
-                                    <ArrowUpDown className={`h-4 w-4 ${sortBy === 'type' ? 'text-primary' : 'text-muted-foreground'}`} />
+                                    {sortBy === 'type' ? (order === 'asc' ? <ChevronUp className="h-4 w-4 text-primary" /> : <ChevronDown className="h-4 w-4 text-primary" />) : <ChevronUp className="h-4 w-4 text-muted-foreground/40" />}
                                 </div>
                             </TableHead>
                             <TableHead className="px-6 py-4 text-center text-foreground font-bold text-base">

@@ -1,4 +1,4 @@
-// Types based on the ERD
+// ─── Primitive Types ───────────────────────────────────────────────────────
 export type OrganizationType = "platform" | "company" | "auditor" | "regulator"
 export type OrganizationStatus = "active" | "inactive"
 
@@ -6,15 +6,14 @@ export type UserPortal = "admin" | "user"
 export type UserRole = "SUPER_ADMIN" | "AUDITOR" | "REGULATOR" | "COMPANY_MANAGER" | "COMPANY_USER"
 export type UserStatus = "active" | "disabled"
 
-export type AssignmentStatus = "active" | "inactive"
+export type AssignmentStatus = "ACTIVE" | "INACTIVE"
 
 export type AIVerdict = "clean" | "flagged"
-export type InvoiceStatus = "pending" | "verified" | "flagged" | "fraudulent"
-
-export type ReviewDecision = "verified" | "fraudulent" | "needs_clarification"
-
+export type InvoiceStatus = "pending" | "verified" | "flagged" | "fraudulent" | "anchored"
+export type ReviewDecision = "pending" | "approved" | "verified" | "fraudulent" | "needs_clarification"
 export type EntityType = "organization" | "user" | "assignment" | "invoice" | "review"
 
+// ─── Pagination ─────────────────────────────────────────────────────────────
 export interface PaginationDetails {
   total: number;
   page: number;
@@ -39,65 +38,151 @@ export interface PaginationQuery {
   [key: string]: any;
 }
 
+// ─── Organization ────────────────────────────────────────────────────────────
+// API returns `id`, not `_id`. We accept both for backwards compatibility.
 export interface Organization {
-  _id: string
+  id: string
+  _id?: string   // alias kept for backward compatibility
   type: OrganizationType
   name: string
   status: OrganizationStatus
-  employees: number
-  createdAt: Date
-  updatedAt: Date
+  invoiceTemplate?: {
+    s3Key: string
+    fileName: string
+    uploadedAt: string
+  } | null
+  createdAt: string
+  updatedAt: string
 }
 
+// ─── User ────────────────────────────────────────────────────────────────────
+// API returns `id`, not `_id`. We accept both for backwards compatibility.
 export interface User {
-  _id: string
+  id?: string
+  _id: string   // mapped from `id` via data layer or apiClient interceptor
   orgId: string
-  portal: UserPortal
+  portal?: UserPortal
   role: UserRole
   email: string
   username: string
   status: UserStatus
   mustChangePassword: boolean
   mfaEnabled?: boolean
-  mfaSecret?: any
-  createdByUserId?: string
-  disabledByUserId?: string
-  disabledAt?: Date
-  disableReason?: string
-  lastLoginAt?: Date
+  lastLoginAt?: string
   organizationName?: string
-  createdAt: Date
-  updatedAt: Date
+  disabledByUserId?: string
+  disabledAt?: string
+  disableReason?: string
+  createdAt: string
+  updatedAt: string
 }
 
+// ─── Assignment ──────────────────────────────────────────────────────────────
 export interface CompanyAssignment {
-  _id: string
+  id: string
+  _id?: string  // alias kept for backward compatibility
+  auditorOrgId: string
   companyOrgId: string
-  auditorUserId: string
   status: AssignmentStatus
-  assignedByUserId: string
-  assignedAt: Date
-  notes?: string
-  taskName: string
-  dueDate: Date
+  auditorUserId?: string
+  assignedByUserId?: string
+  assignedAt?: string
+  createdAt?: string
+  updatedAt?: string
+  // Populated fields
+  company?: Partial<Organization>
+  auditor?: Partial<User>
+  assignedBy?: Partial<User>
+}
+
+// ─── Invoice Types ───────────────────────────────────────────────────────────
+
+/**
+ * Shape returned by GET /invoice/list
+ * Used in all invoice table views (super-admin, auditor, regulator, manager)
+ */
+export interface ListInvoice {
+  id: string
+  _id?: string   // alias
+  invoiceNumber: string
+  date?: string  // invoiceDate
+  amount?: number // totalAmount
+  aiVerdict?: {
+    verdict: AIVerdict
+    riskScore: number
+  }
+  status: InvoiceStatus
+  blockchain?: string // txHash
+  companyName?: string // company name — field name as returned by the API
 }
 
 /**
- * LedgerInvoice — mirrors the exact shape returned by GET /blockchain/ledger.
- * This is the canonical invoice type used throughout the frontend.
+ * Shape returned by GET /invoice/my-invoices (COMPANY_USER only)
  */
-export interface LedgerInvoice {
-  _id: string          // mapped from ledger `id`
-  invoiceNo: string    // mapped from ledger `invoiceNumber`
-  companyName: string  // mapped from ledger `company`
-  txHash: string       // mapped from ledger `transactionHash`
-  anchoredAt: string   // ISO date string
-  status: string       // e.g. "anchored"
+export interface MyInvoice {
+  id: string
+  _id?: string
+  invoiceNumber: string
+  date?: string
+  amount?: number
+  fileName?: string
+  status: InvoiceStatus
+  anchorStatus?: string
+  uploadedAt?: string
 }
 
-/** Alias kept for backward compatibility with existing imports */
-export type Invoice = LedgerInvoice
+/**
+ * Shape returned by GET /invoice/:id (full detail)
+ */
+export interface InvoiceDetail {
+  id: string
+  _id?: string
+  invoiceNumber: string
+  company?: string
+  invoiceDate?: string
+  totalAmount?: number
+  status: InvoiceStatus
+  imageUrl?: string        // signed URL to view the scanned invoice
+  originalFileName?: string
+  aiAnalysis?: {
+    verdict: AIVerdict
+    riskScore: number
+    summary?: string
+  }
+  blockchain?: {
+    txHash: string
+    anchoredAt: string
+    ipfsCid?: string
+    fileUrl?: string  // Pinata IPFS gateway URL for viewing the invoice file
+  }
+  review?: {
+    reviewer: string
+    decision: ReviewDecision
+    notes?: string
+    reviewedAt: string
+  }
+}
 
+/**
+ * Shape returned by GET /blockchain/ledger
+ */
+export interface LedgerInvoice {
+  id: string
+  _id?: string
+  invoiceNumber: string
+  company: string
+  transactionHash: string
+  anchoredAt: string
+  status: string
+}
+
+/**
+ * Alias: ListInvoice is the canonical "Invoice" type throughout the app.
+ * The InvoiceTable component expects this shape.
+ */
+export type Invoice = ListInvoice
+
+// ─── Review ──────────────────────────────────────────────────────────────────
 export interface Review {
   _id: string
   invoiceId: string
@@ -105,11 +190,11 @@ export interface Review {
   reviewedByUserId: string
   decision: ReviewDecision
   notes?: string
-  createdAt: Date
-  // Joined fields
+  createdAt: string
   reviewerName?: string
 }
 
+// ─── Audit Log ───────────────────────────────────────────────────────────────
 export interface AuditLog {
   _id: string
   actorUserId: string
@@ -117,8 +202,7 @@ export interface AuditLog {
   action: string
   entity_type: EntityType
   entity_id: string
-  createdAt: Date
-  // Joined fields
+  createdAt: string
   actorName?: string
   actorEmail?: string
 }

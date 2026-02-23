@@ -40,7 +40,7 @@ export function AppSidebar({ links, collapsed, setCollapsed, title = "FinShield"
             {/* Mobile Overlay */}
             {!collapsed && (
                 <div
-                    className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[60] md:hidden"
+                    className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[20] md:hidden"
                     onClick={() => setCollapsed(true)}
                     aria-hidden="true"
                 />
@@ -48,12 +48,12 @@ export function AppSidebar({ links, collapsed, setCollapsed, title = "FinShield"
 
             <aside
                 className={cn(
-                    "flex flex-col h-screen fixed inset-y-0 left-0 z-[70] bg-sidebar border-r border-sidebar-border transition-all duration-700 ease-in-out text-sidebar-foreground shadow-sm overflow-hidden",
+                    "flex flex-col h-screen fixed inset-y-0 left-0 z-[30] bg-sidebar border-r border-border transition-all duration-700 ease-in-out text-sidebar-foreground shadow-sm overflow-hidden",
                     collapsed ? "-translate-x-full md:translate-x-0 md:w-24" : "translate-x-0 w-[280px] md:w-72",
                 )}
             >
                 {/* Header / Logo Area */}
-                <div className="h-20 flex shrink-0 items-center pl-[30px] pr-4 border-b border-sidebar-border relative">
+                <div className="h-20 flex shrink-0 items-center pl-[30px] pr-4 border-b border-border relative">
                     <div className={cn(
                         "flex items-center transition-opacity duration-700 ease-in-out",
                         collapsed ? "opacity-0 pointer-events-none" : "opacity-100"
@@ -117,7 +117,7 @@ export function AppSidebar({ links, collapsed, setCollapsed, title = "FinShield"
                 </nav>
 
                 {/* Footer / Sign Out */}
-                <div className="p-4 border-t border-sidebar-border mt-auto">
+                <div className="p-4 border-t border-border mt-auto">
                     <Link href="/">
                         <div className={cn(
                             "flex items-center gap-4 w-full pl-[22px] pr-4 py-3.5 rounded-xl text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all duration-700 ease-in-out cursor-pointer whitespace-nowrap overflow-hidden relative justify-start",

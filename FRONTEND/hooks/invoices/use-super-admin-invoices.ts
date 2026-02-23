@@ -34,7 +34,7 @@ export function useSuperAdminInvoices({ initialLimit = 10 } = {}) { // Renamed f
             }
             delete apiParams.statusFilter // clean up frontend-only params before sending
 
-            const response = await InvoiceService.getAll(apiParams)
+            const response = await InvoiceService.list(apiParams)
             return {
                 items: response.data.items || [],
                 pagination: response.data.pagination || { total: 0, page: 1, limit: 10, totalPages: 1 }

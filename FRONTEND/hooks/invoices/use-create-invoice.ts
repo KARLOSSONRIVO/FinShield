@@ -2,32 +2,36 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { InvoiceService } from "@/services/invoice.service"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 export function useCreateInvoice() {
     const queryClient = useQueryClient()
-    const { toast } = useToast()
 
     return useMutation({
-        mutationFn: InvoiceService.upload,
+        mutationFn: ({ file }: { file: File }) => InvoiceService.upload(file),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["invoices"] })
-            toast({
-                variant: 'success',
-                title: "Upload Successful",
+            toast.success("Upload Successful", {
                 description: "Your invoice has been uploaded and queued for anchoring.",
             })
         },
         onError: (error: any) => {
-            console.error("Upload failed:", error)
-            const errorMsg = error.response?.data?.message || error.message || "Unknown error";
-            const errorDetails = error.response?.data?.error || "";
+            console.error("Upload failed:", error.response?.data ?? error)
 
-            toast({
-                variant: "destructive",
-                title: "Upload Failed",
-                description: `Error: ${errorMsg} ${errorDetails ? `(${JSON.stringify(errorDetails)})` : ''}`,
-            })
+            // Drill through all possible error shapes the API may return
+            const data = error.response?.data
+            const message =
+                data?.error?.message ||   // { error: { message: "..." } }
+                data?.message ||           // { message: "..." }
+                data?.error ||             // { error: "string" }
+                error.message ||
+                "Unknown error"
+
+            const details = data?.error?.details
+                ? ` — ${JSON.stringify(data.error.details)}`
+                : ""
+
+            toast.error(`Upload Failed: ${message}${details}`)
         }
     })
 }

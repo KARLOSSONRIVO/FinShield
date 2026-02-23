@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { InvoiceService } from "@/services/invoice.service"
+import { blockchainService } from "@/services/blockchain.service"
 import { useUrlPagination } from "../common/use-url-pagination"
 
 export type SortConfig = {
@@ -18,9 +18,13 @@ export function useBlockchain({ initialLimit = 10 } = {}) {
     const { data, isLoading, isError, error } = useQuery({
         queryKey: ["blockchain", "ledger", queryParams],
         queryFn: async () => {
-            // InvoiceService.getAll calls blockchainService.getLedger and maps 
-            // the items to the frontend LedgerInvoice type properly.
-            const response = await InvoiceService.getAll(queryParams)
+            const ledgerParams = {
+                ...queryParams,
+                sortBy: (queryParams.sortBy === "anchoredAt" || queryParams.sortBy === "invoiceNumber")
+                    ? queryParams.sortBy
+                    : undefined
+            } as const
+            const response = await blockchainService.getLedger(ledgerParams)
 
             return {
                 items: response.data?.items || [],

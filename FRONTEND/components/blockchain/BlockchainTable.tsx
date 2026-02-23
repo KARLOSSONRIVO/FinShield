@@ -8,11 +8,11 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import type { Invoice } from "@/lib/types"
-import { ArrowUpDown } from "lucide-react"
+import type { LedgerInvoice } from "@/lib/types"
+import { ChevronUp, ChevronDown } from "lucide-react"
 
 interface BlockchainTableProps {
-    invoices: Invoice[]
+    invoices: LedgerInvoice[]
     sortBy?: string
     order?: "asc" | "desc"
     onSort?: (field: string) => void
@@ -33,7 +33,7 @@ export function BlockchainTable({ invoices, sortBy, order, onSort }: BlockchainT
                                 onClick={() => onSort?.("anchoredAt")}
                             >
                                 Anchored At
-                                <ArrowUpDown className={`h-4 w-4 ${sortBy === 'anchoredAt' ? 'text-primary' : 'text-muted-foreground'}`} />
+                                {sortBy === 'anchoredAt' ? (order === 'asc' ? <ChevronUp className="h-4 w-4 text-primary" /> : <ChevronDown className="h-4 w-4 text-primary" />) : <ChevronUp className="h-4 w-4 text-muted-foreground/40" />}
                             </div>
                         </TableHead>
                         <TableHead className="px-6 py-4 text-foreground font-bold text-base text-center">Status</TableHead>
@@ -48,18 +48,22 @@ export function BlockchainTable({ invoices, sortBy, order, onSort }: BlockchainT
                         </TableRow>
                     ) : (
                         invoices.map((row) => (
-                            <TableRow key={row._id} className="h-20 hover:bg-muted/30 transition-colors border-b border-border/50">
-                                <TableCell className="px-6 font-bold text-base text-foreground">{row.invoiceNo || '—'}</TableCell>
-                                <TableCell className="px-6 font-bold text-base text-foreground">{row.companyName || '—'}</TableCell>
+                            <TableRow key={row.id || (row as any)._id} className="h-20 hover:bg-muted/30 transition-colors border-b border-border/50">
+                                <TableCell className="px-6 font-bold text-base text-foreground">
+                                    {row.invoiceNumber || '—'}
+                                </TableCell>
+                                <TableCell className="px-6 font-bold text-base text-foreground">
+                                    {row.company || '—'}
+                                </TableCell>
                                 <TableCell className="px-6 font-mono text-sm text-muted-foreground max-w-[220px] truncate">
-                                    {row.txHash || "—"}
+                                    {row.transactionHash || "—"}
                                 </TableCell>
                                 <TableCell className="px-6 font-bold text-base text-foreground">
                                     {row.anchoredAt ? new Date(row.anchoredAt).toLocaleString() : "—"}
                                 </TableCell>
                                 <TableCell className="px-6 text-center">
                                     <div className="bg-emerald-600 text-white px-4 py-1.5 rounded-md text-[10px] font-bold inline-block min-w-[80px] uppercase tracking-wider">
-                                        Anchored
+                                        {row.status || "Anchored"}
                                     </div>
                                 </TableCell>
                             </TableRow>

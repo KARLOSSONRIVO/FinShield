@@ -1,8 +1,33 @@
 import { apiClient } from "@/lib/api-client"
-import { paths } from "@/lib/api-types"
 
-type LoginRequest = paths["/auth/login"]["post"]["requestBody"]["content"]["application/json"]
-type LoginResponse = paths["/auth/login"]["post"]["responses"]["200"]["content"]["application/json"]
+interface LoginRequest {
+    email: string
+    password: string
+}
+
+interface LoginResponse {
+    success: boolean
+    data: {
+        accessToken: string
+        refreshToken: string
+        user: {
+            id: string
+            email: string
+            role: string
+            username: string
+            status: string
+            mfaEnabled: boolean
+        }
+    }
+}
+
+interface RefreshResponse {
+    success: boolean
+    data: {
+        accessToken: string
+        refreshToken: string
+    }
+}
 
 export const AuthService = {
     login: async (credentials: LoginRequest): Promise<LoginResponse> => {
@@ -10,22 +35,29 @@ export const AuthService = {
         return data
     },
 
+    refreshToken: async (refreshToken: string): Promise<RefreshResponse> => {
+        const { data } = await apiClient.post<RefreshResponse>("/auth/refresh", { refreshToken })
+        return data
+    },
+
     logout: async () => {
-        // We might need the refresh token from storage if the API requires it, 
-        // but for now we'll just hit the endpoint if needed or simply clear client state.
-        // The API definition says it takes a refreshToken in the body.
         const refreshToken = localStorage.getItem("refreshToken")
         if (refreshToken) {
             await apiClient.post("/auth/logout", { refreshToken })
         }
     },
 
-    changePassword: async (payload: { currentPassword?: string; newPassword: string }) => {
+    getMe: async () => {
+        const { data } = await apiClient.get("/auth/me")
+        return data
+    },
+
+    changePassword: async (payload: { currentPassword: string; newPassword: string }) => {
         const { data } = await apiClient.post("/auth/change-password", payload)
         return data
     },
 
-    // MFA Methods
+    // MFA Methods (undocumented but kept)
     verifyMfa: async (payload: { tempToken: string; token: string }) => {
         const { data } = await apiClient.post("/auth/login/mfa", payload)
         return data

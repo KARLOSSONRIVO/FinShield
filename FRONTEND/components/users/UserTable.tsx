@@ -11,12 +11,12 @@ import {
 import { Button } from "@/components/ui/button"
 import { User, PaginationDetails } from "@/lib/types"
 import { DataPagination } from "../common/DataPagination"
-import { ArrowUpDown } from "lucide-react"
+import { ChevronUp, ChevronDown } from "lucide-react"
 
 import { useState, Fragment } from "react"
 import { DisableUserDialog } from "./DisableUserDialog"
 
-import { ChevronDown, ChevronUp } from "lucide-react"
+
 
 interface UserTableProps {
     users: User[]
@@ -53,7 +53,7 @@ export function UserTable({ users, onUpdateStatus, renderSubComponent, paginatio
                             <TableHead className="w-[300px] px-6 py-4">
                                 <div className="flex items-center justify-center gap-2 cursor-pointer font-bold text-base text-foreground" onClick={() => onSort?.("username")}>
                                     User Details
-                                    <ArrowUpDown className={`h-4 w-4 ${sortBy === 'username' ? 'text-primary' : 'text-muted-foreground'}`} />
+                                    {sortBy === 'username' ? (order === 'asc' ? <ChevronUp className="h-4 w-4 text-primary" /> : <ChevronDown className="h-4 w-4 text-primary" />) : <ChevronUp className="h-4 w-4 text-muted-foreground/40" />}
                                 </div>
                             </TableHead>
                             {!hideRoleAndOrg && (
@@ -70,7 +70,7 @@ export function UserTable({ users, onUpdateStatus, renderSubComponent, paginatio
                             <TableHead className="px-6 py-4">
                                 <div className="flex items-center justify-center gap-2 cursor-pointer font-bold text-base text-foreground" onClick={() => onSort?.("lastLoginAt")}>
                                     Last Login
-                                    <ArrowUpDown className={`h-4 w-4 ${sortBy === 'lastLoginAt' ? 'text-primary' : 'text-muted-foreground'}`} />
+                                    {sortBy === 'lastLoginAt' ? (order === 'asc' ? <ChevronUp className="h-4 w-4 text-primary" /> : <ChevronDown className="h-4 w-4 text-primary" />) : <ChevronUp className="h-4 w-4 text-muted-foreground/40" />}
                                 </div>
                             </TableHead>
                             <TableHead className="px-6 py-4 text-center text-foreground font-bold text-base">Action</TableHead>

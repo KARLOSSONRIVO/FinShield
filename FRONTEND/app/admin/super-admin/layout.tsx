@@ -66,7 +66,7 @@ export default function SuperAdminLayout({
             <div
                 className={cn(
                     "flex-1 flex flex-col min-w-0 w-full transition-all duration-700 ease-in-out",
-                    collapsed ? "md:ml-24" : "md:ml-72"
+                    collapsed ? "ml-0 md:ml-24" : "ml-0 md:ml-72"
                 )}
             >
                 {/* Top Navigation Bar - Sticky */}

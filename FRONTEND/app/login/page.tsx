@@ -25,7 +25,7 @@ export default function LoginPage() {
   const [mfaRequired, setMfaRequired] = useState(false)
   const [tempToken, setTempToken] = useState("")
   const [otp, setOtp] = useState("")
-  const { login, verifyMfaLogin, isLoading } = useAuth()
+  const { login, verifyMfaLogin, isLoading, user } = useAuth()
   const { setTheme } = useTheme()
 
   // Force light mode on login page
@@ -33,12 +33,27 @@ export default function LoginPage() {
     setTheme('light')
   }, [setTheme])
 
-  // Local state for error handling since the hook throws
+  // If already authenticated (e.g. valid session token), redirect to dashboard
+  useEffect(() => {
+    if (!isLoading && user) {
+      const roleRoutes: Record<string, string> = {
+        SUPER_ADMIN: "/admin/super-admin",
+        AUDITOR: "/admin/auditor",
+        REGULATOR: "/admin/regulator",
+        COMPANY_MANAGER: "/company/manager",
+        COMPANY_USER: "/company/employee",
+      }
+      router.replace(roleRoutes[user.role ?? ""] || "/")
+    }
+  }, [isLoading, user, router])
+
   const [isPending, setIsPending] = useState(false)
+  const [loginError, setLoginError] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsPending(true)
+    setLoginError(false)
     try {
       const response = await login({ email: sanitizeInput(email), password })
       if (response?.mfaRequired) {
@@ -52,6 +67,7 @@ export default function LoginPage() {
       console.error("Login failed", error)
       const message = error.response?.data?.message || error.message || "Invalid credentials"
       toast.error(`Login failed: ${message}`)
+      setLoginError(true)
     } finally {
       setIsPending(false)
     }
@@ -200,11 +216,14 @@ export default function LoginPage() {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setLoginError(false) }}
                 required
                 maxLength={100}
                 title="Please enter a valid email address"
-                className="!bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 h-14 rounded-xl focus:border-emerald-500 focus:ring-emerald-500 shadow-sm text-base"
+                className={`!bg-white text-gray-900 placeholder:text-gray-400 h-14 rounded-xl shadow-sm text-base transition-all focus:ring-emerald-500 ${loginError
+                  ? "border-2 border-red-500 focus:border-red-500 animate-shake"
+                  : "border-gray-300 focus:border-emerald-500"
+                  }`}
               />
             </div>
 
@@ -219,15 +238,19 @@ export default function LoginPage() {
                   type={inputType}
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); setLoginError(false) }}
                   required
                   minLength={8}
                   maxLength={64}
-                  className="!bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 h-14 rounded-xl focus:border-emerald-500 focus:ring-emerald-500 shadow-sm pr-12 text-base"
+                  className={`!bg-white text-gray-900 placeholder:text-gray-400 h-14 rounded-xl shadow-sm pr-12 text-base transition-all focus:ring-emerald-500 ${loginError
+                    ? "border-2 border-red-500 focus:border-red-500 animate-shake"
+                    : "border-gray-300 focus:border-emerald-500"
+                    }`}
                 />
                 <button
                   type="button"
                   onClick={toggle}
+                  suppressHydrationWarning
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600 transition-colors"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}

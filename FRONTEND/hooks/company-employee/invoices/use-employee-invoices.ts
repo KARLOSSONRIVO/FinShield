@@ -1,42 +1,29 @@
 "use client"
 
-import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
-import type { Invoice } from "@/lib/types"
 import { InvoiceService } from "@/services/invoice.service"
-import { useAuth } from "@/hooks/use-auth" // Assuming we filter by user's org if backend doesn't already
 import { useUrlPagination } from "@/hooks/common/use-url-pagination"
 
-export type InvoiceStatusFilter = "all" | "pending" | "verified" | "flagged" | "fraudulent"
+export type MyInvoiceStatusFilter = "all" | "pending" | "verified" | "flagged" | "fraudulent"
 
-export type SortConfig = {
-    key: keyof Invoice | string
-    direction: 'asc' | 'desc'
-}
-
-export function useManagerInvoices({ initialLimit = 10 } = {}) {
-    // 1. URL State Hook
+export function useEmployeeInvoices({ initialLimit = 10 } = {}) {
     const {
         page, limit, search, sortBy, order, queryParams,
         setPage, setSearch, setSort, setFilter
     } = useUrlPagination(initialLimit)
 
-    // Pull status filter from URL or default to "all"
-    const statusFilter = ((queryParams as any).statusFilter as InvoiceStatusFilter) || "all"
+    const statusFilter = ((queryParams as any).statusFilter as MyInvoiceStatusFilter) || "all"
 
-    // 2. Data Fetching
     const { data, isLoading, isError } = useQuery({
-        // Include statusFilter in queryKey and params so React Query refetches when it changes
-        queryKey: ["invoices", "manager", queryParams, statusFilter],
+        queryKey: ["invoices", "employee", queryParams, statusFilter],
         queryFn: async () => {
-            // Let the backend handle pagination and filtering if possible.
             const apiParams: Record<string, any> = { ...queryParams }
             if (statusFilter !== "all") {
                 apiParams.status = statusFilter
             }
-            delete apiParams.statusFilter // clean up frontend-only params before sending
+            delete apiParams.statusFilter
 
-            const response = await InvoiceService.list(apiParams)
+            const response = await InvoiceService.myInvoices(apiParams)
             return {
                 items: response.data.items || [],
                 pagination: response.data.pagination || { total: 0, page: 1, limit: 10, totalPages: 1 }
@@ -45,20 +32,15 @@ export function useManagerInvoices({ initialLimit = 10 } = {}) {
     })
 
     return {
-        // Table Data & Pagination
         invoices: data?.items || [],
         pagination: data?.pagination,
         isLoading,
         isError,
-
-        // URL Pagination Handlers
         search,
         setSearch,
         setPage,
         sortConfig: sortBy ? { key: sortBy, direction: order || 'desc' } : null,
         requestSort: setSort,
-
-        // Filters
         statusFilter,
         setStatusFilter: (val: string) => setFilter('statusFilter', val),
     }

@@ -35,7 +35,7 @@ export function useAuditorInvoices({ initialLimit = 5 } = {}) {
             }
             delete apiParams.statusFilter // clean up frontend-only params before sending
 
-            const response = await InvoiceService.getAll(apiParams)
+            const response = await InvoiceService.list(apiParams)
             return {
                 items: response.data.items || [],
                 pagination: response.data.pagination || { total: 0, page: 1, limit: 5, totalPages: 1 }

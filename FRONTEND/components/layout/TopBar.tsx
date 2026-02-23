@@ -168,13 +168,13 @@ export function TopBar({
                         )}
                         <DropdownMenuSeparator className="bg-sidebar-border" />
                         <DropdownMenuItem
-                            className="cursor-pointer text-white focus:bg-red-500/80 focus:text-white focus:outline-none"
+                            className="cursor-pointer text-red-500 focus:bg-red-500/10 focus:text-red-500"
                             onSelect={(e) => {
                                 e.preventDefault()
                                 setShowLogoutDialog(true)
                             }}
                         >
-                            <LogOut className="mr-2 h-4 w-4" />
+                            <LogOut className="mr-2 h-4 w-4 text-red-500" />
                             <span className="font-medium">Log out</span>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
