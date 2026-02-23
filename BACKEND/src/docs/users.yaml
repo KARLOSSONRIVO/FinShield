@@ -3,16 +3,27 @@ paths:
     get:
       summary: List all users
       description: |
-        Get a list of users. Current user is excluded from results.
+        Get a paginated list of users. Current user is excluded from results.
         - SUPER_ADMIN: Can list all users or filter by orgId (query parameter)
         - COMPANY_MANAGER: Can only list users in their own organization
-        
-        Note: COMPANY_MANAGER users in the response will include an "employees" array showing their COMPANY_USER employees.
+
+        Supports search (by username or email), sorting, and pagination.
       tags:
         - Users
       security:
         - bearerAuth: []
       parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SearchParam"
+        - $ref: "#/components/parameters/OrderParam"
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            enum: [createdAt, username, email, role, lastLoginAt]
+            default: createdAt
+          description: Field to sort by
         - in: query
           name: orgId
           schema:
@@ -21,7 +32,7 @@ paths:
           example: "698db6ce38263f5e8f5a8bbc"
       responses:
         "200":
-          description: List of users
+          description: Paginated list of users
           content:
             application/json:
               schema:
@@ -31,39 +42,14 @@ paths:
                     type: boolean
                     example: true
                   data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/User"
-              example:
-                ok: true
-                data:
-                  - id: "698db6e438263f5e8f5a8bc3"
-                    orgId: "698db6ce38263f5e8f5a8bbc"
-                    role: "COMPANY_MANAGER"
-                    email: "manager@finshield.com"
-                    username: "manager"
-                    status: "active"
-                    mustChangePassword: false
-                    mfaEnabled: false
-                    employees:
-                      - id: "698db123..."
-                        username: "employee1"
-                        status: "active"
-                      - id: "698db456..."
-                        username: "employee2"
-                        status: "active"
-                    createdAt: "2026-02-12T11:17:56.057Z"
-                    updatedAt: "2026-02-16T03:16:24.606Z"
-                  - id: "698db789..."
-                    orgId: "698db6ce38263f5e8f5a8bbc"
-                    role: "COMPANY_USER"
-                    email: "user@finshield.com"
-                    username: "user1"
-                    status: "active"
-                    mustChangePassword: true
-                    mfaEnabled: false
-                    createdAt: "2026-02-13T09:20:10.123Z"
-                    updatedAt: "2026-02-13T09:20:10.123Z"
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/User"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
         "401":
           description: Unauthorized
         "403":
@@ -72,14 +58,29 @@ paths:
   /user/listEmployees:
     get:
       summary: List company employees
-      description: Get a list of all employees (COMPANY_USER role) in the manager's organization. Only accessible by COMPANY_MANAGER. Excludes the manager themselves.
+      description: |
+        Get a paginated list of all employees (COMPANY_USER role) in the manager's organization.
+        Only accessible by COMPANY_MANAGER. Excludes the manager themselves.
+        Supports search (by username or email), sorting, and pagination.
       tags:
         - Users
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SearchParam"
+        - $ref: "#/components/parameters/OrderParam"
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            enum: [createdAt, username, email]
+            default: createdAt
+          description: Field to sort by
       responses:
         "200":
-          description: List of employees
+          description: Paginated list of employees
           content:
             application/json:
               schema:
@@ -89,36 +90,14 @@ paths:
                     type: boolean
                     example: true
                   data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/User"
-              example:
-                ok: true
-                data:
-                  - id: "698db123..."
-                    orgId: "698db6ce38263f5e8f5a8bbc"
-                    role: "COMPANY_USER"
-                    email: "employee1@company.com"
-                    username: "employee1"
-                    status: "active"
-                    mustChangePassword: false
-                    createdByUserId: "698db6e4..."
-                    mfaEnabled: false
-                    lastLoginAt: "2026-02-15T10:30:00.000Z"
-                    createdAt: "2026-02-10T10:00:00.000Z"
-                    updatedAt: "2026-02-15T10:30:00.000Z"
-                  - id: "698db456..."
-                    orgId: "698db6ce38263f5e8f5a8bbc"
-                    role: "COMPANY_USER"
-                    email: "employee2@company.com"
-                    username: "employee2"
-                    status: "active"
-                    mustChangePassword: true
-                    createdByUserId: "698db6e4..."
-                    mfaEnabled: false
-                    lastLoginAt: null
-                    createdAt: "2026-02-12T14:20:00.000Z"
-                    updatedAt: "2026-02-12T14:20:00.000Z"
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/User"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
         "401":
           description: Unauthorized
         "403":

@@ -3,6 +3,8 @@ import * as AssignmentRepositories from "../../repositories/assignment.repositor
 import * as UserRepositories from "../../repositories/user.repositories.js";
 import * as OrganizationRepositories from "../../repositories/organization.repositories.js";
 import { toAssignmentPublic } from "../../mappers/assignment.mapper.js";
+import { cacheDel, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix } from "../../../common/utils/cache.constants.js";
 
 export async function createAssignment({ actor, payload }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED")
@@ -34,6 +36,15 @@ export async function createAssignment({ actor, payload }) {
         companyOrgId: payload.companyOrgId
     })
 
+    // Helper to invalidate assignment-related caches
+    const invalidateAssignmentCaches = async () => {
+        await Promise.all([
+            invalidatePrefix(CachePrefix.ASSIGN_LIST),
+            cacheDel(`${CachePrefix.AUDITOR_ORGS}${payload.auditorUserId}`),
+            cacheDel(`${CachePrefix.AUDITOR_ACTIVE}${payload.companyOrgId}`),
+        ]);
+    };
+
     if (existingAssignment) {
         if (existingAssignment.status === "active") {
             throw new AppError("Auditor is already assigned to this company", 409, "AUDITOR_ALREADY_ASSIGNED_TO_COMPANY")
@@ -46,6 +57,8 @@ export async function createAssignment({ actor, payload }) {
                 notes: payload.notes || existingAssignment.notes
             })
             const reactivated = await AssignmentRepositories.findById(updated._id);
+
+            await invalidateAssignmentCaches();
             return toAssignmentPublic(reactivated)
         }
     }
@@ -60,5 +73,7 @@ export async function createAssignment({ actor, payload }) {
     })
 
     const created = await AssignmentRepositories.findById(assignment._id)
+
+    await invalidateAssignmentCaches();
     return toAssignmentPublic(created)
 }

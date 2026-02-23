@@ -48,26 +48,43 @@ paths:
   /assignment/listAssignments:
     get:
       summary: List all assignments
-      description: Get a list of all auditor-company assignments (SUPER_ADMIN only)
+      description: Get a paginated list of all auditor-company assignments (SUPER_ADMIN only). Supports sorting and pagination.
       tags:
         - Assignments
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PageParam"
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/SearchParam"
+        - $ref: "#/components/parameters/OrderParam"
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            enum: [createdAt, assignedAt, status]
+            default: createdAt
+          description: Field to sort by
       responses:
         "200":
-          description: List of assignments
+          description: Paginated list of assignments
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success:
+                  ok:
                     type: boolean
                     example: true
                   data:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Assignment"
+                    type: object
+                    properties:
+                      items:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Assignment"
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
         "401":
           description: Unauthorized
         "403":

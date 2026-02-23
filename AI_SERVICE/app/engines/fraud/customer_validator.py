@@ -80,7 +80,7 @@ class CustomerValidator:
             previous_approved = self.invoices.count_documents({
                 'orgId': ObjectId(organization_id),
                 'issuedTo': {'$regex': customer_name, '$options': 'i'},
-                'reviewDecision': 'APPROVED'
+                'reviewDecision': 'approved'
             })
             
             if previous_approved >= 5:

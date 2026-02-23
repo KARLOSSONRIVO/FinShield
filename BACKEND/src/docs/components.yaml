@@ -71,22 +71,6 @@ components:
           format: date-time
           nullable: true
           example: "2026-02-16T03:16:24.605Z"
-        employees:
-          type: array
-          description: List of employees (only present for COMPANY_MANAGER role)
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-                example: "698db123..."
-              username:
-                type: string
-                example: "employee1"
-              status:
-                type: string
-                enum: [active, disabled]
-                example: "active"
         createdAt:
           type: string
           format: date-time
@@ -180,6 +164,180 @@ components:
         uploadedBy:
           type: string
           example: "507f1f77bcf86cd799439011"
+        reviewDecision:
+          type: string
+          enum: [pending, approved, rejected]
+          default: pending
+          description: >
+            Invoice review status. Defaults to "pending" on upload.
+            Set to "approved" or "rejected" by auditor review.
+            Used as ML training labels (approved = legitimate, rejected = fraud).
+          example: pending
+
+    InvoiceListItem:
+      type: object
+      description: Invoice summary returned by GET /invoice/list
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        invoiceNumber:
+          type: string
+          example: "INV-2024-001"
+        date:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-12-01T00:00:00.000Z"
+        amount:
+          type: number
+          nullable: true
+          example: 15000
+        aiVerdict:
+          type: object
+          properties:
+            verdict:
+              type: string
+              enum: [clean, flagged]
+              nullable: true
+              example: "clean"
+            riskScore:
+              type: number
+              nullable: true
+              example: 12
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+          example: "approved"
+        blockchain:
+          type: string
+          nullable: true
+          description: Ethereum anchor transaction hash
+          example: "0xabc123def456..."
+
+    MyInvoiceItem:
+      type: object
+      description: Simplified invoice item returned by GET /invoice/my-invoices for COMPANY_USER
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        invoiceNumber:
+          type: string
+          example: "INV-2024-001"
+        date:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-12-01T00:00:00.000Z"
+        amount:
+          type: number
+          nullable: true
+          example: 15000
+        fileName:
+          type: string
+          nullable: true
+          example: "invoice-2024-001.pdf"
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+          example: "pending"
+        anchorStatus:
+          type: string
+          enum: [pending, anchored, failed]
+          example: "anchored"
+        uploadedAt:
+          type: string
+          format: date-time
+          example: "2024-12-01T08:00:00.000Z"
+
+    InvoiceDetail:
+      type: object
+      description: Full invoice detail returned by GET /invoice/:id
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        invoiceNumber:
+          type: string
+          example: "INV-2024-001"
+        company:
+          type: string
+          example: "Acme Corporation"
+        invoiceDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2024-12-01T00:00:00.000Z"
+        totalAmount:
+          type: number
+          nullable: true
+          example: 15000
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+          example: "approved"
+        aiAnalysis:
+          type: object
+          properties:
+            verdict:
+              type: string
+              enum: [clean, flagged]
+              nullable: true
+              example: "clean"
+            riskScore:
+              type: number
+              nullable: true
+              example: 12
+            summary:
+              type: string
+              nullable: true
+              example: "No anomalies detected in billing structure."
+        blockchain:
+          type: object
+          properties:
+            txHash:
+              type: string
+              nullable: true
+              example: "0x1234567890abcdef1234567890abcdef12345678"
+            anchoredAt:
+              type: string
+              format: date-time
+              nullable: true
+              example: "2024-12-01T10:30:00.000Z"
+            ipfsCid:
+              type: string
+              nullable: true
+              description: IPFS Content Identifier decoded from the Ethereum anchor transaction logs via fetchInvoiceCidFromTx.
+              example: "bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi"
+            fileUrl:
+              type: string
+              nullable: true
+              description: >
+                Viewable URL for the anchored file. For PDF files this is the direct
+                Pinata IPFS gateway URL. For DOCX files it wraps the gateway URL in
+                Google Docs Viewer so the document renders inline instead of downloading.
+              example: "https://gateway.pinata.cloud/ipfs/bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi"
+        review:
+          type: object
+          properties:
+            reviewer:
+              type: string
+              nullable: true
+              example: "Auditor 1"
+            decision:
+              type: string
+              enum: [pending, approved, rejected]
+              example: "approved"
+            notes:
+              type: string
+              nullable: true
+              example: "All documentation verified. Invoice matches purchase order."
+            reviewedAt:
+              type: string
+              format: date-time
+              nullable: true
+              example: "2024-12-02T08:00:00.000Z"
 
     Session:
       type: object
@@ -200,6 +358,87 @@ components:
           type: string
           format: date-time
 
+    Pagination:
+      type: object
+      description: Pagination metadata returned with all paginated list endpoints
+      properties:
+        total:
+          type: integer
+          example: 42
+          description: Total number of matching records
+        page:
+          type: integer
+          example: 1
+          description: Current page number
+        limit:
+          type: integer
+          example: 20
+          description: Number of items per page
+        totalPages:
+          type: integer
+          example: 3
+          description: Total number of pages
+
+    LedgerEntry:
+      type: object
+      description: A blockchain-anchored invoice ledger entry
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        invoiceNumber:
+          type: string
+          example: "INV-2024-001"
+        company:
+          type: string
+          example: "Acme Corporation"
+          description: Organization name (from populated orgId)
+        transactionHash:
+          type: string
+          example: "0xabc123def456..."
+          description: Ethereum transaction hash
+        anchoredAt:
+          type: string
+          format: date-time
+          example: "2026-02-15T10:30:00.000Z"
+        status:
+          type: string
+          example: "anchored"
+
+  parameters:
+    PageParam:
+      in: query
+      name: page
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: Page number (1-based)
+    LimitParam:
+      in: query
+      name: limit
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+      description: Number of items per page (1-100)
+    SearchParam:
+      in: query
+      name: search
+      schema:
+        type: string
+        maxLength: 100
+      description: Search term to filter results
+    OrderParam:
+      in: query
+      name: order
+      schema:
+        type: string
+        enum: [asc, desc]
+        default: desc
+      description: Sort order
+
 tags:
   - name: Health
     description: Health check endpoints
@@ -215,3 +454,5 @@ tags:
     description: Invoice upload and blockchain anchoring endpoints
   - name: Sessions
     description: User session management endpoints
+  - name: Blockchain
+    description: Blockchain ledger and anchoring endpoints

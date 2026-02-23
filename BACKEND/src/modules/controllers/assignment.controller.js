@@ -14,8 +14,8 @@ export const createAssignment = asyncHandler(async (req, res) => {
 });
 
 export const listAssignments = asyncHandler(async (req, res) => {
-    const assignments = await AssignmentServices.listAssignments({ actor: req.auth })
-    res.json({ ok: true, data: assignments });
+    const data = await AssignmentServices.listAssignments({ actor: req.auth, query: req.query })
+    res.json({ ok: true, data });
 });
 
 export const getAssignmentById = asyncHandler(async (req, res) => {

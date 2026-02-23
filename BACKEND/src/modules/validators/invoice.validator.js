@@ -1,5 +1,15 @@
 import { z } from "zod";
+import { validate } from "../../common/middlewares/validate.middleware.js";
 import AppError from "../../common/errors/AppErrors.js";
+
+// Validate :id param is a valid MongoDB ObjectId
+export const validateInvoiceIdParam = validate(
+    z.object({
+        params: z.object({
+            id: z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid invoice ID"),
+        }),
+    })
+);
 
 // Allowed file MIME types for invoices (PDF and DOCX only)
 export const ALLOWED_MIME_TYPES = [

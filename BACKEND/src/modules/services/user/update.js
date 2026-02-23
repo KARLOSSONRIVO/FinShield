@@ -1,6 +1,8 @@
 import AppError from "../../../common/errors/AppErrors.js";
 import * as UsersRepositories from "../../repositories/user.repositories.js";
 import { toUserPublic } from "../../mappers/user.mapper.js";
+import { cacheDel, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix } from "../../../common/utils/cache.constants.js";
 
 export async function updateUser({ actor, userId, status, reason }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED")
@@ -47,6 +49,13 @@ export async function updateUser({ actor, userId, status, reason }) {
     }
 
     const updated = await UsersRepositories.updateById(userId, updateData)
+
+    // Invalidate user caches
+    await Promise.all([
+        cacheDel(`${CachePrefix.USER}${userId}`),
+        invalidatePrefix(CachePrefix.USERS_LIST),
+        invalidatePrefix(CachePrefix.USERS_EMP),
+    ]);
 
     return toUserPublic(updated);
 }

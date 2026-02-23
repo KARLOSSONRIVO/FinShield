@@ -2,6 +2,7 @@ import { Router } from "express";
 import { validate } from "../../common/middlewares/validate.middleware.js";
 import { allowRoles } from "../../common/middlewares/rbac.middleware.js";
 import { createAssignmentSchema, updateAssignmentSchema } from "../../modules/validators/assignment.validator.js";
+import { validateAssignmentListQuery } from "../../modules/validators/pagination.validator.js";
 import * as AssignmentController from "../../modules/controllers/assignment.controller.js";
 
 const assignmentRouter = Router();
@@ -10,7 +11,7 @@ const assignmentRouter = Router();
 
 assignmentRouter.post('/createAssignment', validate(createAssignmentSchema), allowRoles("SUPER_ADMIN"), AssignmentController.createAssignment)
 
-assignmentRouter.get('/listAssignments', allowRoles("SUPER_ADMIN"), AssignmentController.listAssignments)
+assignmentRouter.get('/listAssignments', allowRoles("SUPER_ADMIN"), validateAssignmentListQuery, AssignmentController.listAssignments)
 
 assignmentRouter.get('/:id', allowRoles("SUPER_ADMIN"), AssignmentController.getAssignmentById)
 

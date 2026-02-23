@@ -1,7 +1,8 @@
 import app from "./app.js";
 import http from "http";
 import { PORT } from "./config/env.js";
-import { connectDB,disconnectDB } from "./infrastructure/db/database.js";
+import { connectDB, disconnectDB } from "./infrastructure/db/database.js";
+import { anchorWorker } from "./modules/services/invoice/anchor_background.js";
 
 const server = http.createServer(app)
 
@@ -15,12 +16,14 @@ async function bootstrap() {
 
         process.on("SIGINT", async () => {
             console.log("Shutting down server...")
+            await anchorWorker.close()
             await disconnectDB()
             process.exit(0)
         })
 
         process.on("SIGTERM", async () => {
             console.log("Shutting down server...")
+            await anchorWorker.close()
             await disconnectDB()
             process.exit(0)
         })

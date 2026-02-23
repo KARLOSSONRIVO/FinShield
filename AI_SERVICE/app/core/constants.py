@@ -84,7 +84,7 @@ NON_INVOICE_KEYWORDS = [
 ]
 
 # Common regex patterns for detection
-MONEY_REGEX_PATTERN = r"([$€£₱]?\s*\d[\d,]*(?:\.\d{2})?)"
+MONEY_REGEX_PATTERN = r"([$€£₱]\s*\d[\d,]*(?:\.\d{2})?|\b\d[\d,]*\.\d{2}\b)"
 DATE_REGEX_PATTERN = r"\b[0-9]{1,2}[/\-][0-9]{1,2}[/\-][0-9]{2,4}\b"
 
 # Used in app/engines/tesseract/signature.py to identify field zones

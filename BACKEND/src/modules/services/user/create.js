@@ -4,6 +4,8 @@ import * as UsersRepositories from "../../repositories/user.repositories.js";
 import * as OrganizationRepositories from "../../repositories/organization.repositories.js";
 import { toUserPublic } from "../../mappers/user.mapper.js";
 import { isPlatformRole, isCompanyRole, expectedOrgTypeForRole } from "../../../common/utils/role_helpers.js";
+import { invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix } from "../../../common/utils/cache.constants.js";
 
 export async function createUser({ actor, payload }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED")
@@ -58,5 +60,12 @@ export async function createUser({ actor, payload }) {
         mustChangePassword: payload.mustChangePassword ?? true,
         createdByUserId: actor.sub,
     })
+
+    // Invalidate user list caches
+    await Promise.all([
+        invalidatePrefix(CachePrefix.USERS_LIST),
+        invalidatePrefix(CachePrefix.USERS_EMP),
+    ]);
+
     return toUserPublic(createUser)
 }

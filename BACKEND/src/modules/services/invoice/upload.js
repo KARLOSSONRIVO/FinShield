@@ -6,8 +6,10 @@ import * as InvoiceRepositories from "../../repositories/invoice.repositories.js
 import * as AssignmentRepositories from "../../repositories/assignment.repositories.js";
 import { isDocument } from "../../../common/utils/fileTypHelpers.js";
 import { toInvoicePublic } from "../../mappers/invoice.mapper.js";
-import { anchorInvoiceInBackground } from "./anchor_background.js";
+import { addAnchorJob } from "../../../infrastructure/queue/anchor.queue.js";
 import { extractInvoiceNumber } from "../../../common/utils/invoiceParser.js";
+import { cacheGet, cacheSet, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix, CacheTTL } from "../../../common/utils/cache.constants.js";
 
 /* ============================
  * MAIN UPLOAD SERVICE
@@ -23,7 +25,13 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
         throw new AppError("Missing organization", 400);
     }
 
-    const hasAuditor = await AssignmentRepositories.hasActiveAuditor(actor.orgId);
+    // Check cached auditor status first, fall back to DB
+    const auditorCacheKey = `${CachePrefix.AUDITOR_ACTIVE}${actor.orgId}`;
+    let hasAuditor = await cacheGet(auditorCacheKey);
+    if (hasAuditor === null) {
+        hasAuditor = await AssignmentRepositories.hasActiveAuditor(actor.orgId);
+        await cacheSet(auditorCacheKey, hasAuditor, CacheTTL.AUDITOR_ACTIVE);
+    }
     if (!hasAuditor) {
         throw new AppError("No auditor assigned", 403);
     }
@@ -50,10 +58,10 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
 
     if (invoiceNumber) {
         const existingByNumber = await InvoiceRepositories.findByInvoiceNumberAndOrg(
-            invoiceNumber, 
+            invoiceNumber,
             actor.orgId
         );
-        
+
         if (existingByNumber) {
             throw new AppError(
                 `Duplicate invoice detected: Invoice #${invoiceNumber} already exists for this organization`,
@@ -112,7 +120,6 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
         orgId: actor.orgId,
         uploadedByUserId: actor.sub,
 
-        ipfsCid: ipfsCid,
         fileHashSha256: fileSha,
 
         originalFileName: file.originalname || null,
@@ -128,20 +135,23 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
         aiVerdict: null,
 
         anchorStatus: "pending",
-        status: "pending",
     });
 
     /* ============================
      * STEP 6: BACKGROUND ANCHOR
      * ============================ */
-    anchorInvoiceInBackground(
-        invoice._id,
-        ipfsCid,
-        fileSha,
-        documentFile // ← only process OCR for docs
-    ).catch(err => {
-        console.error(`Error starting background anchor for ${invoice._id}`, err);
+    await addAnchorJob({
+        invoiceId: invoice._id.toString(),
+        ipfsCid: ipfsCid,
+        fileSha: fileSha,
+        allowAutoOcr: documentFile
     });
+
+    // Invalidate invoice list caches after new upload
+    await Promise.all([
+        invalidatePrefix(CachePrefix.INV_LIST),
+        invalidatePrefix(CachePrefix.INV_MY),
+    ]);
 
     return {
         ...toInvoicePublic(invoice),

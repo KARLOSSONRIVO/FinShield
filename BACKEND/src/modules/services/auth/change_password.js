@@ -7,6 +7,8 @@ import { toUserPublic } from "../../mappers/user.mapper.js";
 import { parseDuration } from "./utils.js";
 import { createRefreshToken } from "./refresh_helper.js";
 import { signAccessToken } from "./token_helper.js";
+import { cacheDel } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix } from "../../../common/utils/cache.constants.js";
 
 export async function changePassword({ actor, payload, ipAddress }) {
     const user = await UsersRepository.findByIdWithPassword(actor.sub);
@@ -22,6 +24,9 @@ export async function changePassword({ actor, payload, ipAddress }) {
         passwordHash,
         mustChangePassword: false,
     });
+
+    // Invalidate user profile cache
+    await cacheDel(`${CachePrefix.USER}${actor.sub}`);
 
     // Revoke all existing refresh tokens (force re-login on other devices)
     await RefreshTokenRepository.revokeAllByUserId(user._id, {

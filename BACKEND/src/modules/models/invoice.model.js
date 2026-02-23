@@ -1,10 +1,9 @@
 import mongoose from "mongoose";
 
 export const ANCHOR_STATUS = ["pending", "anchored", "failed"]
-export const INVOICE_STATUS = ["pending", "verified", "flagged", "fraudulent"]
 export const AI_VERDICT = ["clean", "flagged"]
 export const AI_RISK_LEVEL = ["low", "medium", "high"]
-export const REVIEW_DECISION = ["approved", "rejected"]
+export const REVIEW_DECISION = ["pending", "approved", "rejected"]
 
 
 const InvoiceSchema = new mongoose.Schema({
@@ -27,7 +26,6 @@ const InvoiceSchema = new mongoose.Schema({
     taxAmount: { type: Number, default: null },
     lineItems: { type: Array, default: [] },
     issuedTo: { type: String, default: null },
-    ipfsCid: { type: String, required: true, index: true },
     fileHashSha256: { type: String, required: true, index: true },
     originalFileName: { type: String, default: null },
     mimeType: { type: String, default: null },
@@ -41,7 +39,6 @@ const InvoiceSchema = new mongoose.Schema({
     aiVerdict: { type: String, enum: AI_VERDICT, default: null },
     aiSummary: { type: String, default: null },
     riskLevel: { type: String, enum: AI_RISK_LEVEL, default: null },
-    status: { type: String, enum: INVOICE_STATUS, default: "pending", index: true },
 
     reviewedByUserId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -57,7 +54,7 @@ const InvoiceSchema = new mongoose.Schema({
     reviewDecision: {
         type: String,
         enum: REVIEW_DECISION,
-        default: null,
+        default: "pending",
         index: true
     },
     reviewNotes: {
@@ -67,15 +64,14 @@ const InvoiceSchema = new mongoose.Schema({
 }, { timestamps: true })
 
 InvoiceSchema.index({ orgId: 1, createdAt: -1 })
-InvoiceSchema.index({ ipfsCid: 1, anchorStatus: 1 })
 InvoiceSchema.index({ fileHashSha256: 1, anchorStatus: 1 })
 InvoiceSchema.index({ anchorTxHash: 1, anchorStatus: 1 })
 // Audit & compliance queries
-InvoiceSchema.index({ orgId: 1, status: 1, createdAt: -1 });
+InvoiceSchema.index({ orgId: 1, reviewDecision: 1, createdAt: -1 });
 // Content-based duplicate detection
 InvoiceSchema.index({ orgId: 1, invoiceNumber: 1 }, { sparse: true });
 // ML training data queries (find reviewed invoices)
-InvoiceSchema.index({ reviewDecision: 1, updatedAt: -1 }, { sparse: true });
+InvoiceSchema.index({ reviewDecision: 1, updatedAt: -1 });
 
 const Invoice = mongoose.models.Invoice || mongoose.model("Invoice", InvoiceSchema)
 

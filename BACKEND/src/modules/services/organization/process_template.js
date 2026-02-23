@@ -2,6 +2,8 @@ import AppError from "../../../common/errors/AppErrors.js";
 import { uploadTemplate, isS3Configured } from "../../../infrastructure/storage/s3.service.js";
 import { processTemplate } from "../../../infrastructure/ai/template_client.js";
 import * as OrganizationRepositories from "../../repositories/organization.repositories.js";
+import { cacheDel } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix } from "../../../common/utils/cache.constants.js";
 
 /**
  * Process invoice template upload - uploads to S3 and extracts text using PaddleOCR
@@ -61,4 +63,7 @@ export async function processInvoiceTemplate(orgId, file) {
         totalElements: totalElements,
         source: source,
     });
+
+    // Invalidate cached org detail
+    await cacheDel(`${CachePrefix.ORG}${orgId}`);
 }

@@ -1,6 +1,8 @@
 import AppError from "../../../common/errors/AppErrors.js";
 import * as AssignmentRepositories from "../../repositories/assignment.repositories.js";
 import { toAssignmentPublic } from "../../mappers/assignment.mapper.js";
+import { cacheDel, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix } from "../../../common/utils/cache.constants.js";
 
 export async function updateAssignment({ actor, assignmentId, payload }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED")
@@ -25,5 +27,16 @@ export async function updateAssignment({ actor, assignmentId, payload }) {
     // If needed, delete old assignment and create new one
 
     const updated = await AssignmentRepositories.updateById(assignmentId, updateData)
+
+    // Invalidate assignment-related caches
+    const auditorId = assignment.auditorUserId?._id || assignment.auditorUserId;
+    const companyOrgId = assignment.companyOrgId?._id || assignment.companyOrgId;
+    await Promise.all([
+        cacheDel(`${CachePrefix.ASSIGN_DETAIL}${assignmentId}`),
+        invalidatePrefix(CachePrefix.ASSIGN_LIST),
+        cacheDel(`${CachePrefix.AUDITOR_ORGS}${auditorId}`),
+        cacheDel(`${CachePrefix.AUDITOR_ACTIVE}${companyOrgId}`),
+    ]);
+
     return toAssignmentPublic(updated)
 }
