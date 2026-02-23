@@ -2,6 +2,8 @@ import AppError from "../../../common/errors/AppErrors.js";
 import * as UsersRepositories from "../../repositories/user.repositories.js";
 import * as OrganizationRepositories from "../../repositories/organization.repositories.js";
 import { toUserPublic } from "../../mappers/user.mapper.js";
+import { cacheGet, cacheSet, buildQueryHash } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix, CacheTTL } from "../../../common/utils/cache.constants.js";
 
 export async function listUsers({ actor, orgId, query = {} }) {
     if (!actor) throw new AppError("Unauthorized", 403, "UNAUTHORIZED")
@@ -23,9 +25,14 @@ export async function listUsers({ actor, orgId, query = {} }) {
     // Exclude the current user
     filter._id = { $ne: actor.userId || actor.sub };
 
+    const queryHash = buildQueryHash({ role: actor.role, sub: actor.sub, orgId: actor.orgId, filter, page, limit, search, sortBy, order });
+    const cacheKey = `${CachePrefix.USERS_LIST}${queryHash}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) return cached;
+
     const result = await UsersRepositories.findManyPaginated({ filter, page, limit, search, sortBy, order });
 
-    return {
+    const response = {
         items: result.items.map(toUserPublic),
         pagination: {
             page: result.page,
@@ -34,4 +41,7 @@ export async function listUsers({ actor, orgId, query = {} }) {
             totalPages: result.totalPages,
         },
     };
+
+    await cacheSet(cacheKey, response, CacheTTL.USERS_LIST);
+    return response;
 }

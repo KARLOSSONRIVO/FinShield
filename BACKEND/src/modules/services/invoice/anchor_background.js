@@ -5,6 +5,8 @@ import { anchorInvoice } from "../../../infrastructure/blockchain/ethereum.servi
 import * as InvoiceRepositories from "../../repositories/invoice.repositories.js";
 import { triggerOcr } from "../../../infrastructure/ai/ocr_client.js";
 import { unpinByCid } from "../../../infrastructure/storage/ipfs.service.js";
+import { cacheDel, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix } from "../../../common/utils/cache.constants.js";
 
 /* ============================
  * BACKGROUND ANCHOR WORKER
@@ -28,6 +30,14 @@ export const anchorWorker = new Worker(ANCHOR_QUEUE_NAME, async (job) => {
             anchorStatus: "anchored",
         });
 
+        // Invalidate invoice caches after anchor status change
+        await Promise.all([
+            cacheDel(`${CachePrefix.INV_DETAIL}${invoiceId}`),
+            invalidatePrefix(CachePrefix.INV_LIST),
+            invalidatePrefix(CachePrefix.INV_MY),
+            invalidatePrefix(CachePrefix.LEDGER),
+        ]);
+
         // ✅ OCR ONLY FOR DOCUMENTS
         if (allowAutoOcr) {
             // We do not await this, OCR trigger is fire-and-forget
@@ -47,6 +57,13 @@ export const anchorWorker = new Worker(ANCHOR_QUEUE_NAME, async (job) => {
             anchorStatus: "failed",
             anchorError: e?.message || "Anchor failed",
         });
+
+        // Invalidate invoice caches after failure status update
+        await Promise.all([
+            cacheDel(`${CachePrefix.INV_DETAIL}${invoiceId}`),
+            invalidatePrefix(CachePrefix.INV_LIST),
+            invalidatePrefix(CachePrefix.INV_MY),
+        ]);
 
         // 🗑️ Remove file from IPFS when anchoring fails entirely
         // We only want to delete it if we are sure we aren't retrying

@@ -1,7 +1,10 @@
 import * as InvoiceRepository from "../../repositories/invoice.repositories.js";
 import { toInvoiceDetail } from "../../mappers/invoice.mapper.js";
+import { fetchInvoiceCidFromTx } from "../../../infrastructure/blockchain/ethereum.service.js";
 import Assignment from "../../models/assignment.model.js";
 import AppError from "../../../common/errors/AppErrors.js";
+import { cacheGet, cacheSet } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix, CacheTTL } from "../../../common/utils/cache.constants.js";
 
 /**
  * Get a single invoice's full detail with role-based access control.
@@ -58,5 +61,25 @@ export async function getInvoiceDetail({ actor, invoiceId }) {
             throw new AppError("Invoice not found", 404);
     }
 
-    return toInvoiceDetail(doc);
+    // Check cache for the fully-built detail (post access-control)
+    const cacheKey = `${CachePrefix.INV_DETAIL}${invoiceId}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) return cached;
+
+    // Fetch IPFS CID from blockchain if the invoice has been anchored
+    // (fetchInvoiceCidFromTx has its own permanent cache for the RPC call)
+    let ipfsCid = null;
+    if (doc.anchorTxHash) {
+        try {
+            const txData = await fetchInvoiceCidFromTx(doc.anchorTxHash);
+            ipfsCid = txData.cid;
+        } catch {
+            // If blockchain fetch fails, still return the invoice without CID
+            ipfsCid = null;
+        }
+    }
+
+    const result = toInvoiceDetail(doc, { ipfsCid });
+    await cacheSet(cacheKey, result, CacheTTL.INV_DETAIL);
+    return result;
 }

@@ -1,6 +1,8 @@
 import * as InvoiceRepository from "../../repositories/invoice.repositories.js";
 import { toInvoiceListItem } from "../../mappers/invoice.mapper.js";
 import Assignment from "../../models/assignment.model.js";
+import { cacheGet, cacheSet, buildQueryHash } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix, CacheTTL } from "../../../common/utils/cache.constants.js";
 
 /**
  * List invoices with role-based scoping:
@@ -20,12 +22,19 @@ export async function listInvoices({ actor, query }) {
             break;
 
         case "AUDITOR": {
-            const assignments = await Assignment.find(
-                { auditorUserId: actor.sub, status: "ACTIVE" },
-                { companyOrgId: 1 }
-            ).lean();
+            // Try to get auditor's assigned org IDs from cache
+            const auditorCacheKey = `${CachePrefix.AUDITOR_ORGS}${actor.sub}`;
+            let assignedOrgIds = await cacheGet(auditorCacheKey);
 
-            const assignedOrgIds = assignments.map((a) => a.companyOrgId);
+            if (!assignedOrgIds) {
+                const assignments = await Assignment.find(
+                    { auditorUserId: actor.sub, status: "ACTIVE" },
+                    { companyOrgId: 1 }
+                ).lean();
+
+                assignedOrgIds = assignments.map((a) => a.companyOrgId);
+                await cacheSet(auditorCacheKey, assignedOrgIds, CacheTTL.AUDITOR_ORGS);
+            }
 
             if (assignedOrgIds.length === 0) {
                 return {
@@ -43,6 +52,12 @@ export async function listInvoices({ actor, query }) {
             break;
     }
 
+    // Build cache key from role scope + query params
+    const queryHash = buildQueryHash({ role: actor.role, sub: actor.sub, orgId: actor.orgId, filter, page, limit, search, sortBy, order });
+    const cacheKey = `${CachePrefix.INV_LIST}${queryHash}`;
+    const cached = await cacheGet(cacheKey);
+    if (cached) return cached;
+
     const result = await InvoiceRepository.findAllInvoicesPaginated({
         filter,
         page,
@@ -52,7 +67,7 @@ export async function listInvoices({ actor, query }) {
         order,
     });
 
-    return {
+    const response = {
         items: result.items.map(toInvoiceListItem),
         pagination: {
             total: result.total,
@@ -61,4 +76,7 @@ export async function listInvoices({ actor, query }) {
             totalPages: result.totalPages,
         },
     };
+
+    await cacheSet(cacheKey, response, CacheTTL.INV_LIST);
+    return response;
 }

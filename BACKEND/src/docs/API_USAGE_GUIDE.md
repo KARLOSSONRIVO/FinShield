@@ -771,7 +771,9 @@ GET /invoice/507f1f77bcf86cd799439011
     },
     "blockchain": {
       "txHash": "0x1234567890abcdef1234567890abcdef12345678",
-      "anchoredAt": "2024-12-01T10:30:00.000Z"
+      "anchoredAt": "2024-12-01T10:30:00.000Z",
+      "ipfsCid": "bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi",
+      "fileUrl": "https://gateway.pinata.cloud/ipfs/bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi"
     },
     "review": {
       "reviewer": "Auditor 1",
@@ -782,6 +784,13 @@ GET /invoice/507f1f77bcf86cd799439011
   }
 }
 ```
+
+**Blockchain fields:**
+
+| Field     | Description                                                                                      |
+|-----------|--------------------------------------------------------------------------------------------------|
+| `ipfsCid` | IPFS CID decoded from the Ethereum anchor transaction logs. `null` if not yet anchored or on error. |
+| `fileUrl`  | Viewable URL — direct Pinata gateway for PDF; Google Docs Viewer wrapper for DOCX so documents render inline instead of downloading. `null` if CID unavailable. |
 
 **Error Responses:**
 

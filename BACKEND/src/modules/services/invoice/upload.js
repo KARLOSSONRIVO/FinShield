@@ -8,6 +8,8 @@ import { isDocument } from "../../../common/utils/fileTypHelpers.js";
 import { toInvoicePublic } from "../../mappers/invoice.mapper.js";
 import { addAnchorJob } from "../../../infrastructure/queue/anchor.queue.js";
 import { extractInvoiceNumber } from "../../../common/utils/invoiceParser.js";
+import { cacheGet, cacheSet, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix, CacheTTL } from "../../../common/utils/cache.constants.js";
 
 /* ============================
  * MAIN UPLOAD SERVICE
@@ -23,7 +25,13 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
         throw new AppError("Missing organization", 400);
     }
 
-    const hasAuditor = await AssignmentRepositories.hasActiveAuditor(actor.orgId);
+    // Check cached auditor status first, fall back to DB
+    const auditorCacheKey = `${CachePrefix.AUDITOR_ACTIVE}${actor.orgId}`;
+    let hasAuditor = await cacheGet(auditorCacheKey);
+    if (hasAuditor === null) {
+        hasAuditor = await AssignmentRepositories.hasActiveAuditor(actor.orgId);
+        await cacheSet(auditorCacheKey, hasAuditor, CacheTTL.AUDITOR_ACTIVE);
+    }
     if (!hasAuditor) {
         throw new AppError("No auditor assigned", 403);
     }
@@ -138,6 +146,12 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
         fileSha: fileSha,
         allowAutoOcr: documentFile
     });
+
+    // Invalidate invoice list caches after new upload
+    await Promise.all([
+        invalidatePrefix(CachePrefix.INV_LIST),
+        invalidatePrefix(CachePrefix.INV_MY),
+    ]);
 
     return {
         ...toInvoicePublic(invoice),

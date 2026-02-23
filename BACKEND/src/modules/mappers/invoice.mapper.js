@@ -55,7 +55,18 @@ export function toMyInvoiceItem(doc) {
     };
 }
 
-export function toInvoiceDetail(doc) {
+export function toInvoiceDetail(doc, { ipfsCid = null } = {}) {
+    const GATEWAY = "https://gateway.pinata.cloud/ipfs";
+    let fileUrl = null;
+
+    if (ipfsCid) {
+        const raw = `${GATEWAY}/${ipfsCid}`;
+        const isDocx = doc.mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+        fileUrl = isDocx
+            ? `https://docs.google.com/gview?url=${encodeURIComponent(raw)}&embedded=true`
+            : raw;
+    }
+
     return {
         id: String(doc._id),
         invoiceNumber: doc.invoiceNumber || "N/A",
@@ -71,6 +82,8 @@ export function toInvoiceDetail(doc) {
         blockchain: {
             txHash: doc.anchorTxHash || null,
             anchoredAt: doc.anchoredAt || null,
+            ipfsCid: ipfsCid,
+            fileUrl: fileUrl,
         },
         review: {
             reviewer: doc.reviewedByUserId?.username || null,

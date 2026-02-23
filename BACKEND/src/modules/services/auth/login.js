@@ -8,6 +8,8 @@ import { parseDuration } from "./utils.js";
 import { createRefreshToken } from "./refresh_helper.js";
 import { signAccessToken, verifyToken } from "./token_helper.js";
 import { verifyMfaToken } from "../mfa/verifyMfaToken.js";
+import { cacheDel } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix } from "../../../common/utils/cache.constants.js";
 
 export async function login({ payload, ipAddress, userAgent }) {
     const user = await UsersRepository.findByEmailWithPassword(payload.email);
@@ -53,6 +55,7 @@ export async function login({ payload, ipAddress, userAgent }) {
     }
 
     await UsersRepository.updateById(user._id, { lastLoginAt: new Date() });
+    await cacheDel(`${CachePrefix.USER}${user._id}`);
 
     // MFA Check
     if (user.mfaEnabled) {

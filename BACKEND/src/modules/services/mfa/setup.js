@@ -4,6 +4,8 @@ import { generateMfaSecret } from "./generateMfaSecret.js";
 import { verifyMfaToken } from "./verifyMfaToken.js";
 import AppError from "../../../common/errors/AppErrors.js";
 import bcrypt from "bcrypt";
+import { cacheDel } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix } from "../../../common/utils/cache.constants.js";
 
 export async function setupMfa(user) {
     const userId = user.sub || user._id; // JWT payload uses 'sub', DB object uses '_id'
@@ -15,6 +17,7 @@ export async function setupMfa(user) {
     const { secret, qrCodeUrl } = await generateMfaSecret(userDoc.email);
 
     await UsersRepository.updateById(userId, { mfaSecret: secret });
+    await cacheDel(`${CachePrefix.USER}${userId}`);
 
     return {
         secret: secret.base32,
@@ -37,6 +40,7 @@ export async function enableMfa({ user, token }) {
     }
 
     await UsersRepository.updateById(userId, { mfaEnabled: true });
+    await cacheDel(`${CachePrefix.USER}${userId}`);
 
     return { message: "MFA enabled successfully" };
 }
@@ -51,6 +55,7 @@ export async function disableMfa({ user, password }) {
     }
 
     await UsersRepository.updateById(userId, { mfaEnabled: false, mfaSecret: null });
+    await cacheDel(`${CachePrefix.USER}${userId}`);
 
     return { message: "MFA disabled successfully" };
 }

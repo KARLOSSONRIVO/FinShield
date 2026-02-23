@@ -109,6 +109,9 @@ paths:
         AUDITOR can view invoices from assigned companies.
         COMPANY_MANAGER can view invoices in their organization.
         COMPANY_USER can view only their own uploaded invoices.
+        When the invoice has been anchored on-chain, the IPFS CID is decoded from
+        the Ethereum transaction logs and a viewable file URL is generated
+        (Google Docs Viewer for DOCX, direct Pinata gateway for PDF).
       tags:
         - Invoices
       security:

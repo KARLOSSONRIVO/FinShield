@@ -305,6 +305,19 @@ components:
               format: date-time
               nullable: true
               example: "2024-12-01T10:30:00.000Z"
+            ipfsCid:
+              type: string
+              nullable: true
+              description: IPFS Content Identifier decoded from the Ethereum anchor transaction logs via fetchInvoiceCidFromTx.
+              example: "bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi"
+            fileUrl:
+              type: string
+              nullable: true
+              description: >
+                Viewable URL for the anchored file. For PDF files this is the direct
+                Pinata IPFS gateway URL. For DOCX files it wraps the gateway URL in
+                Google Docs Viewer so the document renders inline instead of downloading.
+              example: "https://gateway.pinata.cloud/ipfs/bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi"
         review:
           type: object
           properties:

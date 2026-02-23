@@ -2,6 +2,8 @@ import AppError from "../../../common/errors/AppErrors.js";
 import * as OrganizationRepositories from "../../repositories/organization.repositories.js";
 import { toOrganizationPublic } from "../../mappers/organization.mapper.js";
 import { processInvoiceTemplate } from "./process_template.js";
+import { invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
+import { CachePrefix } from "../../../common/utils/cache.constants.js";
 
 export async function createOrganization({ actor, payload, file }) {
     if (!actor || actor.role !== "SUPER_ADMIN") {
@@ -26,6 +28,9 @@ export async function createOrganization({ actor, payload, file }) {
     if (file) {
         await processInvoiceTemplate(org._id, file);
     }
+
+    // Invalidate org list cache
+    await invalidatePrefix(CachePrefix.ORGS_LIST);
 
     return toOrganizationPublic(org);
 }

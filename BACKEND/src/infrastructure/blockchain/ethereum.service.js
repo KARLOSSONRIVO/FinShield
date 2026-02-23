@@ -2,6 +2,8 @@ import Web3 from "web3";
 import { nonceQueue } from "./nonceQueue.js";
 import AppError from "../../common/errors/AppErrors.js";
 import { CHAIN_RPC_URL, ANCHOR_PRIVATE_KEY, ANCHOR_CONTRACT_ADDRESS } from "../../config/env.js";
+import { cacheGet, cacheSet } from "../redis/cache.service.js";
+import { CachePrefix } from "../../common/utils/cache.constants.js";
 
 
 const ABI = [
@@ -112,11 +114,17 @@ export async function anchorInvoice({ invoiceMongoId, ipfsCid, sha256Hex }) {
 }
 
 /**
- * Fetches the IPFS CID string directly from an Ethereum Transaction log
+ * Fetches the IPFS CID string directly from an Ethereum Transaction log.
+ * Results are permanently cached in Redis — blockchain data is immutable.
  * @param {string} txHash - The 0x-prefixed transaction hash
  * @returns {Promise<{cid: string, uploader: string, timestamp: number}>}
  */
 export async function fetchInvoiceCidFromTx(txHash) {
+  // Check permanent cache first
+  const cacheKey = `${CachePrefix.TX_CID}${txHash}`;
+  const cached = await cacheGet(cacheKey);
+  if (cached) return cached;
+
   try {
     const receipt = await web3.eth.getTransactionReceipt(txHash);
 
@@ -136,11 +144,16 @@ export async function fetchInvoiceCidFromTx(txHash) {
       { type: 'uint256', name: 'timestamp' }
     ], log.data);
 
-    return {
+    const result = {
       cid: decoded.cid,
       uploader: decoded.uploader,
       timestamp: Number(decoded.timestamp)
     };
+
+    // Cache permanently — blockchain data is immutable
+    await cacheSet(cacheKey, result);
+
+    return result;
   } catch (err) {
     if (err instanceof AppError) throw err;
     throw new AppError(`Failed to fetch CID from blockchain: ${err.message}`, 500, "BLOCKCHAIN_FETCH_ERROR");
