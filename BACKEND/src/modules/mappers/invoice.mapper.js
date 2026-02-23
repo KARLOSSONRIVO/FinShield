@@ -31,6 +31,7 @@ export function toInvoiceListItem(doc) {
     return {
         id: String(doc._id),
         invoiceNumber: doc.invoiceNumber || "N/A",
+        companyName: doc.orgId?.name || null,
         date: doc.invoiceDate || null,
         amount: doc.totalAmount || null,
         aiVerdict: {
