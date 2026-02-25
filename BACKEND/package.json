@@ -7,6 +7,7 @@
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "seed:super-admin": "node src/seeders/create-super-admin.seeder.js",
+    "seed:full-system": "node src/seeders/full-system.seeder.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
