@@ -28,7 +28,7 @@ export async function listInvoices({ actor, query }) {
 
             if (!assignedOrgIds) {
                 const assignments = await Assignment.find(
-                    { auditorUserId: actor.sub, status: "ACTIVE" },
+                    { auditorUserId: actor.sub, status: "active" },
                     { companyOrgId: 1 }
                 ).lean();
 

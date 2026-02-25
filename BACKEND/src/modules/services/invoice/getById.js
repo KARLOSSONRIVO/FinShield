@@ -36,7 +36,7 @@ export async function getInvoiceDetail({ actor, invoiceId }) {
             const assignment = await Assignment.findOne({
                 auditorUserId: actor.sub,
                 companyOrgId: invoiceOrgId,
-                status: "ACTIVE",
+                status: "active",
             }).lean();
 
             if (!assignment) {

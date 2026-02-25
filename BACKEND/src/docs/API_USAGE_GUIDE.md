@@ -165,6 +165,87 @@ POST /auth/change-password
 
 **Response (200):** Password changed successfully.
 
+### 1.6 MFA Login
+
+Login using a temporary token and a TOTP code when MFA is enabled.
+
+```
+POST /auth/login/mfa
+```
+
+**Request Body:**
+
+```json
+{
+  "tempToken": "eyJhbGciOi...",
+  "code": "123456"
+}
+```
+
+**Response (200):** Returns access and refresh tokens.
+
+### 1.7 MFA Setup
+
+Initialize TOTP MFA. Returns a secrete and QR code.
+
+```
+POST /auth/mfa/setup
+```
+
+**Headers:** `Authorization: Bearer <accessToken>`
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "secret": "JBSWY3DPEHPK3PXP",
+    "qrCode": "data:image/png;base64,iVBORw0KGgo..."
+  }
+}
+```
+
+### 1.8 MFA Enable
+
+Verify the TOTP code to formally enable MFA.
+
+```
+POST /auth/mfa/enable
+```
+
+**Headers:** `Authorization: Bearer <accessToken>`
+
+**Request Body:**
+
+```json
+{
+  "code": "123456"
+}
+```
+
+**Response (200):** MFA enabled successfully.
+
+### 1.9 MFA Disable
+
+Disable MFA.
+
+```
+POST /auth/mfa/disable
+```
+
+**Headers:** `Authorization: Bearer <accessToken>`
+
+**Request Body:**
+
+```json
+{
+  "code": "123456"
+}
+```
+
+**Response (200):** MFA disabled successfully.
+
 ---
 
 ## 2. Health Check
@@ -1547,8 +1628,12 @@ When request validation fails, the response includes field-level details:
 | Endpoint                              | SUPER_ADMIN | AUDITOR | REGULATOR | COMPANY_MANAGER | COMPANY_USER |
 |---------------------------------------|:-----------:|:-------:|:---------:|:---------------:|:------------:|
 | `POST /auth/login`                    | ✅          | ✅      | ✅        | ✅              | ✅           |
+| `POST /auth/login/mfa`                | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `POST /auth/refresh`                  | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `POST /auth/logout`                   | ✅          | ✅      | ✅        | ✅              | ✅           |
+| `POST /auth/mfa/setup`                | ✅          | ✅      | ✅        | ✅              | ✅           |
+| `POST /auth/mfa/enable`               | ✅          | ✅      | ✅        | ✅              | ✅           |
+| `POST /auth/mfa/disable`              | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `GET  /auth/me`                       | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `POST /auth/change-password`          | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `GET  /health`                        | 🔓          | 🔓      | 🔓        | 🔓              | 🔓           |
