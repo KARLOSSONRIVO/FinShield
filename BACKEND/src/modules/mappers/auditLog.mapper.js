@@ -13,11 +13,9 @@ export function toAuditLogItem(log) {
             username: log.actor?.username ?? null,
             email:    log.actor?.email    ?? null,
         },
-        action:  log.action,
-        target:  log.target?.type
-            ? { type: log.target.type ?? null }
-            : null,
-        summary:   log.summary,
+        action:     log.action,
+        targetType: log.target?.type ?? null,
+        summary:    log.summary,
         metadata:  log.metadata  ?? {},
         ip:        log.ip        ?? null,
         userAgent: log.userAgent ?? null,

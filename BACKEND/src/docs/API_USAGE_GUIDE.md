@@ -19,6 +19,7 @@
 10. [Pagination](#10-pagination)
 11. [Error Handling](#11-error-handling)
 12. [Role Permissions Matrix](#12-role-permissions-matrix)
+13. [Audit Logs](#13-audit-logs)
 
 ---
 
@@ -1115,6 +1116,12 @@ Rooms are assigned **automatically** on connection based on the JWT payload — 
 | `assignment:updated` | `user:{auditorId}`, `role:SUPER_ADMIN` | `{ assignmentId, status }` | Assignment status or notes changed |
 | `assignment:deactivated` | `user:{auditorId}`, `role:SUPER_ADMIN` | `{ assignmentId, companyOrgId }` | Assignment deactivated (soft delete) |
 
+#### Audit Log Events
+
+| Event | Target Rooms | Payload | When |
+|---|---|---|---|
+| `audit:created` | `role:SUPER_ADMIN` | `{ id, actorId, actorRole, actor, action, targetType, summary, metadata, ip, userAgent, createdAt }` | New audit log entry written |
+
 #### Admin List Invalidation Events
 
 | Event | Target Rooms | Payload | When |
@@ -1659,6 +1666,7 @@ When request validation fails, the response includes field-level details:
 | `GET  /session/count`                 | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `DELETE /session/all`                 | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `DELETE /session/:sessionId`          | ✅          | ✅      | ✅        | ✅              | ✅           |
+| `GET  /audit-logs`                    | ✅          | —      | —        | —              | —           |
 
 > 🔓 = Public (no auth required)
 > ¹ Own organization only
@@ -1667,3 +1675,100 @@ When request validation fails, the response includes field-level details:
 > ⁴ Assigned companies only
 > ⁵ Own organization's invoices only
 > ⁶ Own uploaded invoices only
+
+---
+
+## 13. Audit Logs
+
+Append-only log of every significant action taken in the system. Accessible only to `SUPER_ADMIN`. Logs older than 90 days are automatically archived to S3 and hard-deleted from MongoDB nightly at 2 AM.
+
+### 13.1 List Audit Logs
+
+```
+GET /audit-logs
+```
+
+**Roles:** `SUPER_ADMIN`
+
+**Headers:** `Authorization: Bearer <accessToken>`
+
+**Query Parameters:**
+
+| Param       | Type    | Default     | Description                                          |
+|-------------|---------|-------------|------------------------------------------------------|
+| `page`      | integer | `1`         | Page number                                          |
+| `limit`     | integer | `20`        | Items per page (1–100)                               |
+| `action`    | string  | —           | Filter by action name (see AuditActions enum below)  |
+| `actorRole` | string  | —           | Filter by actor role                                 |
+| `search`    | string  | —           | Free-text search on summary field                    |
+| `from`      | date    | —           | Start of date range (ISO 8601 or parseable date)     |
+| `to`        | date    | —           | End of date range (ISO 8601 or parseable date)       |
+
+**Example:**
+
+```
+GET /audit-logs?page=1&limit=20&action=LOGIN_SUCCESS&from=2026-03-01
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": {
+    "items": [
+      {
+        "id": "69a521b31f03c85a6fa7cd68",
+        "actorId": "698db6b9aa83105def51ddb0",
+        "actorRole": "SUPER_ADMIN",
+        "actor": {
+          "username": "admin",
+          "email": "admin@finshield.com"
+        },
+        "action": "LOGIN_SUCCESS",
+        "targetType": "User",
+        "summary": "admin@finshield.com logged in successfully",
+        "metadata": { "email": "admin@finshield.com" },
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0...",
+        "isArchived": false,
+        "archivedAt": null,
+        "archiveKey": null,
+        "archiveFileHash": null,
+        "createdAt": "2026-03-02T05:25:35.502+00:00"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 1
+  }
+}
+```
+
+### AuditActions Enum
+
+| Category | Actions |
+|---|---|
+| Authentication | `LOGIN_SUCCESS`, `ACCOUNT_LOCKED`, `LOGOUT` |
+| MFA | `MFA_ENABLED`, `MFA_DISABLED` |
+| User Management | `USER_CREATED`, `USER_UPDATED`, `USER_DISABLED`, `USER_ENABLED`, `PASSWORD_RESET_FORCED` |
+| Organization | `ORG_CREATED`, `ORG_TEMPLATE_UPLOADED` |
+| Assignments | `ASSIGNMENT_CREATED`, `ASSIGNMENT_UPDATED`, `ASSIGNMENT_DELETED` |
+| Invoices | `INVOICE_UPLOADED`, `INVOICE_FLAGGED` |
+| Reviews | `REVIEW_SUBMITTED`, `REVIEW_UPDATED` |
+| Archival | `ARCHIVE_EXECUTED`, `ARCHIVE_ACCESSED` |
+
+> **Note:** `LOGIN_FAILED` is intentionally not logged.
+
+### Archive Behavior
+
+- Nightly at **2 AM**, a BullMQ worker archives all audit logs older than **90 days**.
+- Up to **1,000 logs per run** are processed; remainder handled on subsequent nights.
+- Each batch is serialized to **JSONL**, compressed with **gzip**, and uploaded to S3 at key `audit-logs/YYYY/MM/DD/audit-YYYY-MM-DD-{batchId}.jsonl.gz`.
+- A **SHA-256 hash** of the compressed file is stored in S3 object metadata for tamper detection.
+- Logs are **hard-deleted** from MongoDB only after S3 upload is confirmed.
+
+### Real-Time Push
+
+Every audit log write emits `audit:created` via WebSocket to the `role:SUPER_ADMIN` room. See [Section 9 — WebSocket Events](#9-websocket-real-time-events).
