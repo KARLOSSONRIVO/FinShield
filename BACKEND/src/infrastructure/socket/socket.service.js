@@ -21,6 +21,9 @@ export const SocketEvents = {
     USER_LIST_INVALIDATE:    "user:list:invalidate",
     ORG_LIST_INVALIDATE:     "org:list:invalidate",
 
+    // Auditor review
+    INVOICE_REVIEWED:       "invoice:reviewed",
+
     // Assignments
     ASSIGNMENT_CREATED:     "assignment:created",
     ASSIGNMENT_UPDATED:     "assignment:updated",

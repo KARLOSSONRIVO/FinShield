@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import AppError from "../../../common/errors/AppErrors.js";
 import { JWT_EXPIRES_IN } from "../../../config/env.js";
 import * as UsersRepository from "../../repositories/user.repositories.js";
-import { toUserPublic } from "../../mappers/user.mapper.js";
+import { toUserLogin } from "../../mappers/user.mapper.js";
 import { parseDuration } from "./utils.js";
 import { createRefreshToken } from "./refresh_helper.js";
 import { signAccessToken, verifyToken } from "./token_helper.js";
@@ -74,8 +74,7 @@ export async function login({ payload, ipAddress, userAgent }) {
         accessToken,
         refreshToken,
         expiresIn: Math.floor(parseDuration(JWT_EXPIRES_IN) / 1000),
-        user: toUserPublic(user),
-        mustChangePassword: user.mustChangePassword,
+        user: toUserLogin(user),
     };
 }
 
@@ -109,7 +108,6 @@ export async function verifyMfaLogin({ tempToken, token, ipAddress, userAgent })
         accessToken,
         refreshToken,
         expiresIn: Math.floor(parseDuration(JWT_EXPIRES_IN) / 1000),
-        user: toUserPublic(user),
-        mustChangePassword: user.mustChangePassword,
+        user: toUserLogin(user)
     };
 }
