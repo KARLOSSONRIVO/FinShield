@@ -1700,14 +1700,15 @@ GET /audit-logs
 | `limit`     | integer | `20`        | Items per page (1–100)                               |
 | `action`    | string  | —           | Filter by action name (see AuditActions enum below)  |
 | `actorRole` | string  | —           | Filter by actor role                                 |
-| `search`    | string  | —           | Free-text search on summary field                    |
+| `search`    | string  | —           | Filter by actor username (case-insensitive partial match) |
 | `from`      | date    | —           | Start of date range (ISO 8601 or parseable date)     |
 | `to`        | date    | —           | End of date range (ISO 8601 or parseable date)       |
 
 **Example:**
 
 ```
-GET /audit-logs?page=1&limit=20&action=LOGIN_SUCCESS&from=2026-03-01
+GET /audit-logs?page=1&limit=20&action=LOGIN_SUCCESS&search=auditor_hamish&from=2026-03-01
+GET /audit-logs?search=admin
 ```
 
 **Response (200):**

@@ -17,7 +17,7 @@ export async function createLog(data) {
  * @param {number} options.limit
  * @param {string} [options.action]      - filter by specific action
  * @param {string} [options.actorRole]   - filter by actor role
- * @param {string} [options.search]      - full-text search on summary
+ * @param {string} [options.search]      - filter by actor.username (case-insensitive regex)
  * @param {Date}   [options.from]        - createdAt >= from
  * @param {Date}   [options.to]          - createdAt <= to
  * @returns {Promise<{ items: AuditLog[], total: number }>}
@@ -27,7 +27,7 @@ export async function findAllPaginated({ page = 1, limit = 50, action, actorRole
 
     if (action)     filter.action     = action;
     if (actorRole)  filter.actorRole  = actorRole;
-    if (search)     filter.summary    = { $regex: search, $options: "i" };
+    if (search)     filter["actor.username"] = { $regex: search, $options: "i" };
 
     if (from || to) {
         filter.createdAt = {};

@@ -11,7 +11,7 @@ export const validateAuditLogQuery = validate(
             limit:      z.coerce.number().int().min(1).max(100).optional(),
             action:     z.enum(ALL_AUDIT_ACTIONS).optional(),
             actorRole:  z.enum(ROLES).optional(),
-            search:     z.string().trim().max(200).optional(),
+            search:     z.string().trim().max(100).optional(),
             from:       z.coerce.date().optional(),
             to:         z.coerce.date().optional(),
         }),
