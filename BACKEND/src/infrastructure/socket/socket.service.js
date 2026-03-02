@@ -24,6 +24,9 @@ export const SocketEvents = {
     // Auditor review
     INVOICE_REVIEWED:       "invoice:reviewed",
 
+    // Audit logs
+    AUDIT_CREATED:          "audit:created",
+
     // Assignments
     ASSIGNMENT_CREATED:     "assignment:created",
     ASSIGNMENT_UPDATED:     "assignment:updated",
@@ -134,6 +137,20 @@ export function initSocket(httpServer) {
                       .to("role:SUPER_ADMIN")
                       .to("role:REGULATOR")
                       .emit(SocketEvents.INVOICE_FLAGGED, payload);
+
+                    // Dynamic import to avoid circular dependency (socket.service ↔ audit.js)
+                    import("../../common/utils/audit.js").then(({ createAuditLog }) => {
+                        import("../../common/utils/audit.constants.js").then(({ AuditActions }) => {
+                            createAuditLog({
+                                actorId:   null,
+                                actorRole: "SYSTEM",
+                                actor:     { username: "system", email: null },
+                                action:    AuditActions.INVOICE_FLAGGED,
+                                target:    { type: "Invoice" },
+                                metadata:  { invoiceId: data.invoiceId, orgId: data.orgId, aiVerdict: data.aiVerdict, aiRiskScore: data.aiRiskScore, riskLevel: data.riskLevel },
+                            });
+                        });
+                    }).catch((err) => console.error("[Audit] Failed to log INVOICE_FLAGGED:", err.message));
                 }
 
                 // Invalidate invoice lists for the org

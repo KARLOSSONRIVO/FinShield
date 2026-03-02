@@ -4,6 +4,8 @@ import AppError from "../../../common/errors/AppErrors.js";
 import { cacheDel, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
 import { CachePrefix } from "../../../common/utils/cache.constants.js";
 import { getIO, SocketEvents } from "../../../infrastructure/socket/socket.service.js";
+import { createAuditLog } from "../../../common/utils/audit.js";
+import { AuditActions } from "../../../common/utils/audit.constants.js";
 
 /**
  * AUDITOR-only: Submit or change the review decision + notes on an invoice
@@ -15,7 +17,7 @@ import { getIO, SocketEvents } from "../../../infrastructure/socket/socket.servi
  *  - AUDITOR must have an active Assignment for invoice.orgId
  *  - Re-submittable — reviewedAt is refreshed on every call
  */
-export async function submitReviewDecision({ actor, invoiceId, reviewDecision, reviewNotes }) {
+export async function submitReviewDecision({ actor, invoiceId, reviewDecision, reviewNotes, ip, userAgent }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED");
     if (actor.role !== "AUDITOR") throw new AppError("Invoice not found", 404);
 
@@ -71,6 +73,15 @@ export async function submitReviewDecision({ actor, invoiceId, reviewDecision, r
           reviewDecision,
           reviewedBy: actor.sub,
       });
+
+    createAuditLog({
+        actorId: actor.sub, actorRole: actor.role,
+        actor: { username: actor.username ?? null, email: actor.email ?? null },
+        action: isUpdate ? AuditActions.REVIEW_UPDATED : AuditActions.REVIEW_SUBMITTED,
+        target: { type: "Invoice" },
+        metadata: { invoiceId, decision: reviewDecision, auditorEmail: actor.email, orgId },
+        ip, userAgent,
+    });
 
     return { invoiceId, reviewDecision, reviewNotes, reviewedAt, isUpdate };
 }

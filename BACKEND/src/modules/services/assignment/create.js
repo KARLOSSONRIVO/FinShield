@@ -6,8 +6,10 @@ import { toAssignmentPublic } from "../../mappers/assignment.mapper.js";
 import { cacheDel, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
 import { CachePrefix } from "../../../common/utils/cache.constants.js";
 import { getIO, SocketEvents } from "../../../infrastructure/socket/socket.service.js";
+import { createAuditLog } from "../../../common/utils/audit.js";
+import { AuditActions } from "../../../common/utils/audit.constants.js";
 
-export async function createAssignment({ actor, payload }) {
+export async function createAssignment({ actor, payload, ip, userAgent }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED")
     if (actor.role !== "SUPER_ADMIN") {
         throw new AppError("Only SUPER_ADMIN can create assignments", 403, "FORBIDDEN")
@@ -74,6 +76,15 @@ export async function createAssignment({ actor, payload }) {
                 });
             }
 
+            createAuditLog({
+                actorId: actor.sub, actorRole: actor.role,
+                actor: { username: actor.username ?? null, email: actor.email ?? null },
+                action: AuditActions.ASSIGNMENT_CREATED,
+                target: { type: "Assignment" },
+                metadata: { assignmentId: reactivated._id.toString(), auditorUserId: payload.auditorUserId, companyOrgId: payload.companyOrgId, reactivated: true, actorEmail: actor.email },
+                ip, userAgent,
+            });
+
             return toAssignmentPublic(reactivated)
         }
     }
@@ -103,6 +114,15 @@ export async function createAssignment({ actor, payload }) {
             companyOrgId: payload.companyOrgId,
         });
     }
+
+    createAuditLog({
+        actorId: actor.sub, actorRole: actor.role,
+        actor: { username: actor.username ?? null, email: actor.email ?? null },
+        action: AuditActions.ASSIGNMENT_CREATED,
+        target: { type: "Assignment" },
+        metadata: { assignmentId: created._id.toString(), auditorUserId: payload.auditorUserId, companyOrgId: payload.companyOrgId, actorEmail: actor.email },
+        ip, userAgent,
+    });
 
     return toAssignmentPublic(created)
 }

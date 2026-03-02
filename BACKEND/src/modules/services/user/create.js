@@ -7,8 +7,10 @@ import { isPlatformRole, isCompanyRole, expectedOrgTypeForRole } from "../../../
 import { invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
 import { CachePrefix } from "../../../common/utils/cache.constants.js";
 import { getIO, SocketEvents } from "../../../infrastructure/socket/socket.service.js";
+import { createAuditLog } from "../../../common/utils/audit.js";
+import { AuditActions } from "../../../common/utils/audit.constants.js";
 
-export async function createUser({ actor, payload }) {
+export async function createUser({ actor, payload, ip, userAgent }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED")
 
     let finalOrgId = payload.orgId
@@ -73,6 +75,15 @@ export async function createUser({ actor, payload }) {
     if (io) {
         io.to("role:SUPER_ADMIN").emit(SocketEvents.USER_LIST_INVALIDATE);
     }
+
+    createAuditLog({
+        actorId: actor.sub, actorRole: actor.role,
+        actor: { username: actor.username ?? null, email: actor.email ?? null },
+        action: AuditActions.USER_CREATED,
+        target: { type: "User" },
+        metadata: { targetEmail: payload.email, targetUsername: payload.username, targetRole: payload.role, actorEmail: actor.email },
+        ip, userAgent,
+    });
 
     return toUserPublic(createUser)
 }

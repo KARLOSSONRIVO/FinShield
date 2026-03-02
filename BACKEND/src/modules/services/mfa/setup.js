@@ -6,6 +6,8 @@ import AppError from "../../../common/errors/AppErrors.js";
 import bcrypt from "bcrypt";
 import { cacheDel } from "../../../infrastructure/redis/cache.service.js";
 import { CachePrefix } from "../../../common/utils/cache.constants.js";
+import { createAuditLog } from "../../../common/utils/audit.js";
+import { AuditActions } from "../../../common/utils/audit.constants.js";
 
 export async function setupMfa(user) {
     const userId = user.sub || user._id; // JWT payload uses 'sub', DB object uses '_id'
@@ -42,6 +44,8 @@ export async function enableMfa({ user, token }) {
     await UsersRepository.updateById(userId, { mfaEnabled: true });
     await cacheDel(`${CachePrefix.USER}${userId}`);
 
+    createAuditLog({ actorId: userId, actorRole: user.role, actor: { username: userWithSecret.username, email: userWithSecret.email }, action: AuditActions.MFA_ENABLED, target: { type: "User" }, metadata: { email: userWithSecret.email } });
+
     return { message: "MFA enabled successfully" };
 }
 
@@ -56,6 +60,8 @@ export async function disableMfa({ user, password }) {
 
     await UsersRepository.updateById(userId, { mfaEnabled: false, mfaSecret: null });
     await cacheDel(`${CachePrefix.USER}${userId}`);
+
+    createAuditLog({ actorId: userId, actorRole: user.role, actor: { username: userWithPassword.username, email: userWithPassword.email }, action: AuditActions.MFA_DISABLED, target: { type: "User" }, metadata: { email: userWithPassword.email } });
 
     return { message: "MFA disabled successfully" };
 }

@@ -11,6 +11,7 @@ import sessionRouter from "./session/session.route.js";
 import assignmentRouter from "./assignment/assignment.route.js";
 import invoiceRouter from "./invoice/invoice.route.js";
 import blockchainRouter from "./blockchain/blockchain.route.js";
+import auditLogRouter from "./auditLog/auditLog.route.js";
 import docsRouter from "./docs/docs.route.js";
 
 
@@ -45,4 +46,5 @@ router.use("/user", userRouter);
 router.use("/assignment", assignmentRouter)
 router.use("/invoice", invoiceRouter)
 router.use("/blockchain", blockchainRouter)
+router.use("/audit-logs", auditLogRouter)
 export default router;

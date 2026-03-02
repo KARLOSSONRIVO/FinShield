@@ -2,6 +2,8 @@ import jwt from "jsonwebtoken";
 import * as RefreshTokenRepository from "../../repositories/refreshToken.repositories.js";
 import * as TokenBlacklistRepository from "../../repositories/tokenBlacklist.repositories.js";
 import { blacklistAdd } from "../../../infrastructure/redis/cache.service.js";
+import { createAuditLog } from "../../../common/utils/audit.js";
+import { AuditActions } from "../../../common/utils/audit.constants.js";
 
 export async function logout({ actor, accessToken, refreshToken, ipAddress, logoutAll = false }) {
     // Blacklist the current access token
@@ -34,6 +36,8 @@ export async function logout({ actor, accessToken, refreshToken, ipAddress, logo
         // Logout current session only
         await RefreshTokenRepository.revokeByToken(refreshToken, { revokedByIp: ipAddress });
     }
+
+    createAuditLog({ actorId: actor.sub, actorRole: actor.role, actor: { username: actor.username ?? null, email: actor.email ?? null }, action: AuditActions.LOGOUT, target: { type: "User" }, metadata: { logoutAll: !!logoutAll }, ip: ipAddress, userAgent: null });
 
     return { message: logoutAll ? "Logged out from all devices" : "Logged out successfully" };
 }

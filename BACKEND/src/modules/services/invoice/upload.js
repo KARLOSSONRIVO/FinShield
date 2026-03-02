@@ -11,11 +11,13 @@ import { extractInvoiceNumber } from "../../../common/utils/invoiceParser.js";
 import { cacheGet, cacheSet, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
 import { CachePrefix, CacheTTL } from "../../../common/utils/cache.constants.js";
 import { getIO, SocketEvents } from "../../../infrastructure/socket/socket.service.js";
+import { createAuditLog } from "../../../common/utils/audit.js";
+import { AuditActions } from "../../../common/utils/audit.constants.js";
 
 /* ============================
  * MAIN UPLOAD SERVICE
  * ============================ */
-export async function uploadToIpfsAndAnchor({ actor, file }) {
+export async function uploadToIpfsAndAnchor({ actor, file, ip, userAgent }) {
     if (!actor) throw new AppError("Unauthorized", 401);
 
     if (!["COMPANY_MANAGER", "COMPANY_USER"].includes(actor.role)) {
@@ -165,6 +167,15 @@ export async function uploadToIpfsAndAnchor({ actor, file }) {
         });
         io.to(`org:${actor.orgId}`).emit(SocketEvents.INVOICE_LIST_INVALIDATE, { orgId: actor.orgId });
     }
+
+    createAuditLog({
+        actorId: actor.sub, actorRole: actor.role,
+        actor: { username: actor.username ?? null, email: actor.email ?? null },
+        action: AuditActions.INVOICE_UPLOADED,
+        target: { type: "Invoice" },
+        metadata: { invoiceId: invoice._id.toString(), orgId: actor.orgId, uploaderEmail: actor.email, fileName: file.originalname },
+        ip, userAgent,
+    });
 
     return {
         ...toInvoicePublic(invoice),

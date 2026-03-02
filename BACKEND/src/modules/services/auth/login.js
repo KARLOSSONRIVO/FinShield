@@ -1,6 +1,8 @@
 
 import bcrypt from "bcrypt";
 import AppError from "../../../common/errors/AppErrors.js";
+import { createAuditLog } from "../../../common/utils/audit.js";
+import { AuditActions } from "../../../common/utils/audit.constants.js";
 import { JWT_EXPIRES_IN } from "../../../config/env.js";
 import * as UsersRepository from "../../repositories/user.repositories.js";
 import { toUserLogin } from "../../mappers/user.mapper.js";
@@ -13,13 +15,18 @@ import { CachePrefix } from "../../../common/utils/cache.constants.js";
 
 export async function login({ payload, ipAddress, userAgent }) {
     const user = await UsersRepository.findByEmailWithPassword(payload.email);
-    if (!user) throw new AppError("Invalid email or password", 401, "INVALID_CREDENTIALS");
+    if (!user) {
+        throw new AppError("Invalid email or password", 401, "INVALID_CREDENTIALS");
+    }
 
-    if (user.status !== "active") throw new AppError("User is not active", 401, "USER_NOT_ACTIVE");
+    if (user.status !== "active") {
+        throw new AppError("User is not active", 401, "USER_NOT_ACTIVE");
+    }
 
     // Check if account is locked
     if (user.accountLockedUntil && new Date() < user.accountLockedUntil) {
         const remainingMinutes = Math.ceil((user.accountLockedUntil - new Date()) / 1000 / 60);
+        createAuditLog({ actorId: user._id, actorRole: user.role, actor: { username: user.username, email: user.email }, action: AuditActions.ACCOUNT_LOCKED, target: { type: "User" }, metadata: { lockedUntil: user.accountLockedUntil, remainingMinutes }, ip: ipAddress, userAgent });
         throw new AppError(
             `Account is locked due to too many failed login attempts. Please try again in ${remainingMinutes} minute(s).`,
             401,
@@ -39,6 +46,7 @@ export async function login({ payload, ipAddress, userAgent }) {
         if (updatedUser.failedLoginAttempts >= 5) {
             const lockUntil = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
             await UsersRepository.lockAccount(user._id, lockUntil);
+            createAuditLog({ actorId: user._id, actorRole: user.role, actor: { username: user.username, email: user.email }, action: AuditActions.ACCOUNT_LOCKED, target: { type: "User" }, metadata: { lockedUntil: lockUntil, failedAttempts: updatedUser.failedLoginAttempts }, ip: ipAddress, userAgent });
             throw new AppError(
                 "Account locked due to too many failed login attempts. Please try again in 5 minutes.",
                 401,
@@ -69,6 +77,8 @@ export async function login({ payload, ipAddress, userAgent }) {
 
     const accessToken = signAccessToken(user);
     const { refreshToken, expiresAt } = await createRefreshToken(user, ipAddress, userAgent);
+
+    createAuditLog({ actorId: user._id, actorRole: user.role, actor: { username: user.username, email: user.email }, action: AuditActions.LOGIN_SUCCESS, target: { type: "User" }, metadata: { email: user.email }, ip: ipAddress, userAgent });
 
     return {
         accessToken,
@@ -103,6 +113,8 @@ export async function verifyMfaLogin({ tempToken, token, ipAddress, userAgent })
 
     const accessToken = signAccessToken(user);
     const { refreshToken } = await createRefreshToken(user, ipAddress, userAgent);
+
+    createAuditLog({ actorId: user._id, actorRole: user.role, actor: { username: user.username, email: user.email }, action: AuditActions.LOGIN_SUCCESS, target: { type: "User" }, metadata: { email: user.email, mfa: true }, ip: ipAddress, userAgent });
 
     return {
         accessToken,

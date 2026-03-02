@@ -1,8 +1,14 @@
 import asyncHandler from "../../common/utils/asyncHandler.js";
 import * as UserServices from "../services/user.service.js";
 
+function getClientIp(req) {
+    return req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+        req.socket?.remoteAddress ||
+        req.ip;
+}
+
 export const createUser = asyncHandler(async(req,res)=>{
-    await UserServices.createUser({actor: req.auth, payload: req.body})
+    await UserServices.createUser({ actor: req.auth, payload: req.body, ip: getClientIp(req), userAgent: req.headers["user-agent"] ?? null })
     res.status(201).json({ok: true, message: "User created successfully"})
 })
 
@@ -27,6 +33,8 @@ export const update = asyncHandler(async(req,res)=>{
         actor: req.auth,
         userId: req.params.id,
         status: req.body.status,
+        ip: getClientIp(req),
+        userAgent: req.headers["user-agent"] ?? null,
     }
     
     if (req.body.status === "disabled") {

@@ -1,12 +1,19 @@
 import asyncHandler from "../../common/utils/asyncHandler.js";
 import * as InvoiceService from "../services/invoice.service.js";
 
+function getClientIp(req) {
+    return req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+        req.socket?.remoteAddress ||
+        req.ip;
+}
 
 export const uploadAndAnchorInvoice = asyncHandler(async (req, res) => {
  await InvoiceService.uploadToIpfsAndAnchor({
     actor: req.auth,
     file: req.file,
     fields: req.body, // 🔴 REQUIRED
+    ip: getClientIp(req),
+    userAgent: req.headers["user-agent"] ?? null,
   });
 
   res.json({ ok: true, message: "Invoice uploaded and anchored successfully" });
@@ -45,6 +52,8 @@ export const submitReviewDecision = asyncHandler(async (req, res) => {
     invoiceId: req.params.id,
     reviewDecision: req.body.reviewDecision,
     reviewNotes: req.body.reviewNotes,
+    ip: getClientIp(req),
+    userAgent: req.headers["user-agent"] ?? null,
   });
 
   const message = data.isUpdate
