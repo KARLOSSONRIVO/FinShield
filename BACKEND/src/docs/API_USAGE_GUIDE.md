@@ -924,6 +924,74 @@ curl -X POST http://localhost:5000/api/invoice/upload \
 }
 ```
 
+### 6.5 Submit Review Decision
+
+Submit or update an auditor's review decision on an invoice. Re-submittable — each call overwrites the previous decision and notes and refreshes `reviewedAt`.
+
+```
+PATCH /invoice/:id/review
+```
+
+**Roles:** `AUDITOR` (own assigned companies only)
+
+**Headers:** `Authorization: Bearer <accessToken>`
+
+**Path Parameter:**
+
+| Param | Type   | Description             |
+|-------|--------|-------------------------|
+| `id`  | string | Invoice MongoDB ObjectId |
+
+**Request Body:**
+
+```json
+{
+  "reviewDecision": "approved",
+  "reviewNotes": "All line items verified and amounts match the purchase order."
+}
+```
+
+| Field            | Type   | Required | Constraints                        |
+|------------------|--------|----------|------------------------------------|
+| `reviewDecision` | string | Yes      | `"approved"` or `"rejected"`       |
+| `reviewNotes`    | string | Yes      | 1–1000 characters, cannot be empty |
+
+**Business Rules:**
+
+- The invoice's AI analysis must be complete (`aiVerdict` must not be `null`). Returns `400 AI_PENDING` if processing is still in progress.
+- The auditor must have an **active assignment** for the invoice's organization. Returns `404` if not assigned (to avoid leaking invoice existence).
+- The decision is **re-submittable** — calling this endpoint again overwrites the previous `reviewDecision`, `reviewNotes`, and `reviewedAt`.
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": {
+    "invoiceId": "507f1f77bcf86cd799439011",
+    "reviewDecision": "approved",
+    "reviewNotes": "All line items verified and amounts match the purchase order.",
+    "reviewedAt": "2026-03-04T10:30:00.000Z",
+    "isUpdate": false
+  }
+}
+```
+
+> `isUpdate: true` when the invoice already had a prior decision (i.e. this is a re-submission). The action logged will be `REVIEW_UPDATED` instead of `REVIEW_SUBMITTED`.
+
+**Error Responses:**
+
+| Status | Code          | Description                                            |
+|--------|---------------|--------------------------------------------------------|
+| `400`  | `AI_PENDING`  | AI analysis not yet complete                           |
+| `400`  | —             | Validation error (missing/invalid `reviewDecision` or `reviewNotes`) |
+| `401`  | —             | Unauthorized                                           |
+| `404`  | —             | Invoice not found or auditor not assigned to this org  |
+
+**Socket Event emitted:**
+
+`invoice:reviewed` → rooms `user:{uploadedByUserId}`, `org:{orgId}`, `role:SUPER_ADMIN`
+
 ---
 
 ## 7. Blockchain Ledger
@@ -1661,6 +1729,7 @@ When request validation fails, the response includes field-level details:
 | `GET  /invoice/list`                  | ✅          | ✅⁴     | ✅        | ✅⁵             | —            |
 | `GET  /invoice/my-invoices`           | —           | —       | —         | —               | ✅           |
 | `GET  /invoice/:id`                   | ✅          | ✅⁴     | ✅        | ✅⁵             | ✅⁶          |
+| `PATCH /invoice/:id/review`           | —           | ✅⁴     | —         | —               | —            |
 | `GET  /blockchain/ledger`             | ✅          | —       | ✅        | —               | —            |
 | `GET  /session`                       | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `GET  /session/count`                 | ✅          | ✅      | ✅        | ✅              | ✅           |
@@ -1675,6 +1744,7 @@ When request validation fails, the response includes field-level details:
 > ⁴ Assigned companies only
 > ⁵ Own organization's invoices only
 > ⁶ Own uploaded invoices only
+> ⁷ Assignment-scoped; AI analysis must be complete (`aiVerdict != null`)
 
 ---
 
