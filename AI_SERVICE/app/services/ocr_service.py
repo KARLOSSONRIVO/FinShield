@@ -24,7 +24,7 @@ from app.core.redis_client import cache_get, cache_set, is_redis_available, publ
 from app.db.mongo import invoices, organizations
 from app.engines.tesseract.extractor import extract_text_simple, extract_text_with_layout
 from app.utils.parser import parse_invoice_fields
-from app.pipelines.verification.runner import VerificationPipeline
+from app.agent import AgentOrchestrator
 
 
 
@@ -199,7 +199,7 @@ async def run_ocr_for_invoice(invoice_id: str) -> Dict[str, Any]:
             'lineItems': parsed.get('lineItems', [])
         }
         
-        pipeline = VerificationPipeline()
+        pipeline = AgentOrchestrator()
         pipeline_result = await pipeline.run({
             "invoice_id": invoice_id,
             "org_id": org_id,

@@ -10,6 +10,9 @@ MONGO_DB = os.getenv("MONGO_DB")
 IPFS_GATEWAY_BASE = os.getenv("IPFS_GATEWAY_BASE")
 CHAIN_RPC_URL = os.getenv("CHAIN_RPC_URL")
 SERVICE_URL=os.getenv("SERVICE_URL") 
+# Groq LLM Agent
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+
 # Redis Configuration
 REDIS_URL = os.getenv("REDIS_URL")
 
@@ -51,6 +54,9 @@ class Settings(BaseSettings):
     AWS_REGION: str = AWS_REGION
     MODEL_BUCKET_NAME: str = MODEL_BUCKET_NAME
     
+    # Groq LLM Agent
+    GROQ_API_KEY: str = GROQ_API_KEY
+
     # Anomaly Detection
     ANOMALY_MIN_INVOICES: int = ANOMALY_MIN_INVOICES
     ANOMALY_MATH_TOLERANCE: float = ANOMALY_MATH_TOLERANCE
