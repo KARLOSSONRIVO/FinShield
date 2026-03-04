@@ -3,38 +3,11 @@ import jwt from "jsonwebtoken";
 import Redis from "ioredis";
 import { JWT_SECRET, CORS_ORIGIN, REDIS_URI } from "../../config/env.js";
 import { blacklistHas } from "../redis/cache.service.js";
+import { SocketEvents, AI_CHANNEL } from "../../common/utils/socket.constants.js";
+
+export { SocketEvents };
 
 let io = null;
-
-// ─── Socket.IO Event Constants ──────────────────────────────
-export const SocketEvents = {
-    // Invoice pipeline
-    INVOICE_CREATED:        "invoice:created",
-    INVOICE_ANCHOR_SUCCESS: "invoice:anchor:success",
-    INVOICE_ANCHOR_FAILED:  "invoice:anchor:failed",
-    INVOICE_PROCESSING:     "invoice:processing",
-    INVOICE_AI_COMPLETE:    "invoice:ai:complete",
-    INVOICE_FLAGGED:        "invoice:flagged",
-
-    // List invalidation signals
-    INVOICE_LIST_INVALIDATE: "invoice:list:invalidate",
-    USER_LIST_INVALIDATE:    "user:list:invalidate",
-    ORG_LIST_INVALIDATE:     "org:list:invalidate",
-
-    // Auditor review
-    INVOICE_REVIEWED:       "invoice:reviewed",
-
-    // Audit logs
-    AUDIT_CREATED:          "audit:created",
-
-    // Assignments
-    ASSIGNMENT_CREATED:     "assignment:created",
-    ASSIGNMENT_UPDATED:     "assignment:updated",
-    ASSIGNMENT_DEACTIVATED: "assignment:deactivated",
-};
-
-// ─── Redis Pub/Sub Channel ──────────────────────────────────
-const AI_CHANNEL = "channel:invoice";
 
 /**
  * Initialize Socket.IO on the existing HTTP server.

@@ -1,8 +1,9 @@
 import { createHash } from "crypto";
 import { gzip } from "zlib";
 import { promisify } from "util";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, AWS_S3_BUCKET_NAME } from "../../../config/env.js";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_BUCKET_NAME } from "../../../config/env.js";
+import { getS3Client } from "../../../infrastructure/storage/s3.service.js";
 import * as AuditLogRepository from "../../repositories/auditLog.repositories.js";
 import { createAuditLog } from "../../../common/utils/audit.js";
 import { AuditActions } from "../../../common/utils/audit.constants.js";
@@ -11,21 +12,6 @@ const gzipAsync = promisify(gzip);
 
 const RETENTION_DAYS = 90;
 const BATCH_SIZE     = 1000;
-
-// ─── Lazy S3 client ──────────────────────────────────────────────────────────
-let s3Client = null;
-function getS3Client() {
-    if (!s3Client) {
-        s3Client = new S3Client({
-            region: AWS_REGION,
-            credentials: {
-                accessKeyId:     AWS_ACCESS_KEY_ID,
-                secretAccessKey: AWS_SECRET_ACCESS_KEY,
-            },
-        });
-    }
-    return s3Client;
-}
 
 /**
  * Run the nightly audit log archival pipeline.
