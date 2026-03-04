@@ -24,17 +24,22 @@ class TemporalChecker:
             
             today = datetime.now()
             
-            # Future date
+            # Future date — tiered deductions based on how far ahead
             days_future = (invoice_date - today).days
             if days_future > 7:
-                deductions += 0.5 if days_future > 30 else 0.2
+                if days_future > 90:
+                    deductions += 0.90   # >3 months: near certainty of fraud
+                elif days_future > 30:
+                    deductions += 0.75   # 1–3 months: very suspicious
+                else:
+                    deductions += 0.35   # 7–30 days: suspicious
                 issues.append(f"TEMPORAL_FUTURE: Invoice dated {days_future} days in future")
-            
-            # Old date
+
+            # Old date — only flag beyond 2 years (730 days)
             days_old = (today - invoice_date).days
-            if days_old > 180:
-                deductions += 0.3 if days_old > 365 else 0.1
-                issues.append(f"TEMPORAL_OLD: Invoice is {days_old} days old")
+            if days_old > 730:
+                deductions += 0.40
+                issues.append(f"TEMPORAL_OLD: Invoice is {days_old} days old (over 2 years)")
             
             # Billing period
             vendor = invoice_data.get('vendor', '') or invoice_data.get('issuedTo', '')

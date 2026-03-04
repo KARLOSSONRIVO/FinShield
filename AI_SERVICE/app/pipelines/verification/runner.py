@@ -34,9 +34,26 @@ class VerificationPipeline:
     """
     
     # Thresholds for overall verdict
-    SCORE_CLEAN_THRESHOLD = 0.80
+    SCORE_CLEAN_THRESHOLD = 0.85    # raised from 0.80 — harder to pass as clean
     SCORE_FLAGGED_THRESHOLD = 0.50
-    
+
+    # Hard score ceilings for critical flags — applied AFTER weighted average.
+    # If a flag substring matches, overall_score is capped at this value.
+    # This prevents clean verdicts even when other layers are fine.
+    CRITICAL_FLAG_CAPS = {
+        "DUPLICATE_EXACT":    0.30,  # Confirmed exact duplicate → fraudulent
+        "DUPLICATE_NUMBER":   0.35,  # Same invoice number + vendor → fraudulent
+        "DUPLICATE_SIMILAR":  0.55,  # Same vendor/amount/date → flagged high
+        "DUPLICATE_RECENT":   0.65,  # Close amount within 7 days → flagged medium
+        "TEMPORAL_FUTURE":    0.40,  # Future-dated invoice → always high risk
+        "PATTERN_ROUND":      0.75,  # Round/exact amount → always flagged
+        "CUSTOMER_UNKNOWN":   0.70,  # Unknown customer → always flagged
+        "Extremely high amount": 0.60,  # $1M+ invoice → high risk
+        "HIGH_TAX_RATE":      0.55,  # Abnormal tax rate → flagged high
+        "MATH_MISCALCULATION": 0.45, # Subtotal+tax ≠ total → high risk
+        "ROUND_NUMBER":       0.75,  # Anomaly round number → always flagged
+    }
+
     # Layer weights for overall score calculation
     # Fraud is most important (supervised ML trained on confirmed fraud data)
     # Anomaly is second (unsupervised ML, catches unknown patterns)
@@ -103,6 +120,9 @@ class VerificationPipeline:
             if result.verdict != LayerVerdict.SKIP:
                 weight = self.LAYER_WEIGHTS.get(result.layer_name, self.DEFAULT_WEIGHT)
                 active_scores.append((result.score, weight))
+
+                # Debug: show per-layer breakdown
+                print(f"  [{result.layer_name.upper():20}]  score={result.score:.4f}  verdict={result.verdict}  flags={result.flags}")
         
         # Calculate overall score (weighted average of active stages)
         # Weights are re-normalized when stages are skipped
@@ -111,6 +131,19 @@ class VerificationPipeline:
             overall_score = sum(s * w for s, w in active_scores) / total_weight
         else:
             overall_score = 1.0  # All stages skipped
+
+        # Apply hard caps for critical flags — cannot raise score, only lower it
+        overall_score = self._apply_critical_flag_caps(overall_score, all_flags)
+
+        print(f"\n{'='*60}")
+        print(f"[PIPELINE SCORE BREAKDOWN]")
+        for s, w in active_scores:
+            print(f"  score={s:.4f}  weight={w}")
+        print(f"  weighted avg (before caps) = {sum(s*w for s,w in active_scores)/sum(w for _,w in active_scores):.4f}")
+        print(f"  overall_score (after caps) = {overall_score:.4f}")
+        print(f"  aiRiskScore                = {(1 - overall_score)*100:.2f}")
+        print(f"  all_flags: {all_flags}")
+        print(f"{'='*60}\n")
         
         # Determine overall verdict based on score thresholds
         if overall_score >= self.SCORE_CLEAN_THRESHOLD:
@@ -135,14 +168,50 @@ class VerificationPipeline:
             summary=summary,
         )
     
+    def _apply_critical_flag_caps(self, score: float, flags: List[str]) -> float:
+        """Cap overall_score if any critical flag is present. Never raises the score."""
+        min_score = score
+
+        # Step 1: Apply individual hard caps
+        for flag in flags:
+            for pattern, cap in self.CRITICAL_FLAG_CAPS.items():
+                if pattern in flag:
+                    min_score = min(min_score, cap)
+
+        # Step 2: Compound penalty — each severe flag beyond the 2nd reduces score
+        # an additional 8% (max 40% total reduction). Punishes invoices with
+        # many simultaneous red flags.
+        SEVERE_PATTERNS = [
+            "TEMPORAL_FUTURE", "DUPLICATE_EXACT", "DUPLICATE_NUMBER",
+            "CUSTOMER_UNKNOWN", "PATTERN_ROUND", "ROUND_NUMBER",
+            "Extremely high amount", "Perfectly round",
+            "MATH_MISCALCULATION", "HIGH_TAX_RATE",
+        ]
+        severe_count = sum(
+            1 for flag in flags
+            if any(p in flag for p in SEVERE_PATTERNS)
+        )
+        if severe_count > 2:
+            extra = severe_count - 2
+            penalty = min(extra * 0.08, 0.40)   # 8% per extra flag, max 40%
+            min_score = min_score * (1.0 - penalty)
+            print(f"  [COMPOUND PENALTY] {severe_count} severe flags → -{penalty*100:.0f}% → capped at {min_score:.4f}")
+
+        return min_score
+
     def _calculate_risk_level(self, score: float, flags: List[str]) -> str:
         """Calculate risk level based on score and flags."""
-        # Check for critical flags - map to high
-        critical_flags = [f for f in flags if "CRITICAL" in f or "FRAUDULENT" in f]
-        if critical_flags:
-            return "high"
-        
-        if score >= 0.80:
+        # Specific severe flag patterns → always high risk
+        high_risk_patterns = [
+            "CRITICAL", "FRAUDULENT",
+            "DUPLICATE_EXACT", "DUPLICATE_NUMBER",
+            "TEMPORAL_FUTURE",
+        ]
+        for flag in flags:
+            if any(p in flag for p in high_risk_patterns):
+                return "high"
+
+        if score >= 0.85:
             return "low"
         elif score >= 0.50:
             return "medium"

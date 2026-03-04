@@ -2,7 +2,6 @@ import { Router } from "express";
 import { requireAuth } from "../common/middlewares/auth.middleware.js";
 import { enforceMustChangePassword } from "../common/middlewares/rbac.middleware.js";
 import { authenticatedLimiter, globalLimiter } from "../common/middlewares/rateLimit.middleware.js";
-
 import healthRoutes from "./health/health.route.js";
 import organizationRouter from "./organization/organization.route.js";
 import userRouter from "./User/user.route.js";

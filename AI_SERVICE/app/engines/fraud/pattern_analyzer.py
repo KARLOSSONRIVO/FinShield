@@ -21,9 +21,17 @@ class PatternAnalyzer:
             
             round_score = check_round_amount(total)
             if round_score < 1.0:
-                deductions += (1.0 - round_score) * 0.4
-                if total > 0 and total % 100 == 0:
-                    issues.append(f"PATTERN_ROUND: {'Very round' if total % 1000 == 0 else 'Round'} amount ${total:,.0f}")
+                deductions += (1.0 - round_score) * 0.7   # raised from 0.6
+                if total > 0 and total % 10 == 0:
+                    if total % 1_000_000 == 0 or total % 10_000 == 0:
+                        label = 'Critically round'
+                    elif total % 1_000 == 0:
+                        label = 'Very round'
+                    elif total % 100 == 0:
+                        label = 'Round'
+                    else:
+                        label = 'Slightly round'
+                    issues.append(f"PATTERN_ROUND: {label} amount ${total:,.2f}")
             
             number_score = check_invoice_number(invoice_number)
             if number_score < 1.0:
