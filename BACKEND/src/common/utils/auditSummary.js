@@ -69,6 +69,14 @@ export function buildAuditSummary(action, metadata = {}) {
         case AuditActions.ARCHIVE_ACCESSED:
             return `Archive file accessed by "${m.actorEmail || ""}" — key: ${m.archiveKey || ""}`;
 
+        // Policies
+        case AuditActions.POLICY_CREATED:
+            return `Policy "${m.title || ""}" created for org "${m.orgName || m.orgId || ""}" by ${m.email || "regulator"}`;
+        case AuditActions.POLICY_UPDATED:
+            return `Policy ${m.policyId || ""} updated by ${m.email || "regulator"} — fields: ${(m.changes || []).join(", ")}`;
+        case AuditActions.POLICY_DELETED:
+            return `Policy "${m.title || ""}" deleted from org "${m.orgId || ""}" by ${m.email || "regulator"}`;
+
         default:
             return `Action performed: ${action}`;
     }

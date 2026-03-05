@@ -43,8 +43,12 @@ export async function findByInvoiceNumberAndOrg(invoiceNumber, orgId) {
   });
 }
 
-export async function findAnchoredLedger({ page = 1, limit = 20, search, sortBy = "anchoredAt", order = "desc" }) {
+export async function findAnchoredLedger({ page = 1, limit = 20, search, sortBy = "anchoredAt", order = "desc", orgIds }) {
   const filter = { anchorStatus: "anchored", anchorTxHash: { $ne: null } };
+
+  if (orgIds && orgIds.length > 0) {
+    filter.orgId = { $in: orgIds };
+  }
 
   if (search) {
     filter.$or = [

@@ -39,6 +39,11 @@ export const AuditActions = {
     // ─── Archival ────────────────────────────────────────────────────────────
     ARCHIVE_EXECUTED:      "ARCHIVE_EXECUTED",
     ARCHIVE_ACCESSED:      "ARCHIVE_ACCESSED",
+
+    // ─── Policies ────────────────────────────────────────────────────────────
+    POLICY_CREATED:        "POLICY_CREATED",
+    POLICY_UPDATED:        "POLICY_UPDATED",
+    POLICY_DELETED:        "POLICY_DELETED",
 };
 
 export const ALL_AUDIT_ACTIONS = Object.values(AuditActions);

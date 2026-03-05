@@ -1,0 +1,237 @@
+paths:
+  /policy:
+    get:
+      summary: Get all global policies
+      description: |
+        Retrieve the full list of global compliance policies (T&C, NDAs, guidelines etc.).
+        Policies are shared across all companies — no org scoping.
+        Results are served from a 30-minute read-through Redis cache.
+      tags:
+        - Policies
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of all global policies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Policy"
+              example:
+                ok: true
+                data:
+                  - id: "507f1f77bcf86cd799439011"
+                    title: "Confidentiality Agreement (NDA)"
+                    content: "Employees must maintain strict confidentiality..."
+                    version: "1.0"
+                    createdByUserId: "507f1f77bcf86cd799439012"
+                    updatedByUserId: "507f1f77bcf86cd799439012"
+                    createdAt: "2026-03-05T11:02:34.461Z"
+                    updatedAt: "2026-03-05T11:02:34.461Z"
+        "401":
+          description: Unauthorized - Missing or invalid JWT
+        "403":
+          description: Forbidden - Requires REGULATOR, COMPANY_MANAGER, or COMPANY_USER role
+
+    post:
+      summary: Create a new global policy
+      description: |
+        Create a new compliance policy document. The policy is global and immediately
+        visible to all company roles. Invalidates the policy cache. Fires a `POLICY_CREATED`
+        audit log entry.
+      tags:
+        - Policies
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - content
+              properties:
+                title:
+                  type: string
+                  minLength: 3
+                  maxLength: 200
+                  example: "Confidentiality Agreement (NDA)"
+                content:
+                  type: string
+                  minLength: 10
+                  maxLength: 20000
+                  example: "Employees must maintain strict confidentiality regarding all company and client information..."
+                version:
+                  type: string
+                  maxLength: 20
+                  default: "1.0"
+                  example: "1.0"
+      responses:
+        "201":
+          description: Policy created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Policy created successfully"
+                  data:
+                    $ref: "#/components/schemas/Policy"
+        "400":
+          description: Validation error (missing or invalid fields)
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden - Requires REGULATOR role
+
+  /policy/{id}:
+    patch:
+      summary: Update a policy
+      description: |
+        Partially update an existing policy. All body fields are optional — only
+        provided fields are updated. Invalidates the policy cache. Fires a `POLICY_UPDATED`
+        audit log entry.
+      tags:
+        - Policies
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Policy MongoDB ObjectId
+          example: "507f1f77bcf86cd799439011"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  minLength: 3
+                  maxLength: 200
+                  example: "Updated Policy Title"
+                content:
+                  type: string
+                  minLength: 10
+                  maxLength: 20000
+                  example: "Updated policy content text."
+                version:
+                  type: string
+                  maxLength: 20
+                  example: "1.1"
+      responses:
+        "200":
+          description: Policy updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Policy updated successfully"
+                  data:
+                    $ref: "#/components/schemas/Policy"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden - Requires REGULATOR role
+        "404":
+          description: Policy not found
+
+    delete:
+      summary: Delete a policy
+      description: |
+        Permanently delete a policy document (hard delete). Invalidates the policy
+        cache. Fires a `POLICY_DELETED` audit log entry.
+      tags:
+        - Policies
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Policy MongoDB ObjectId
+          example: "507f1f77bcf86cd799439011"
+      responses:
+        "200":
+          description: Policy deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Policy deleted successfully"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden - Requires REGULATOR role
+        "404":
+          description: Policy not found
+
+components:
+  schemas:
+    Policy:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        title:
+          type: string
+          example: "Confidentiality Agreement (NDA)"
+        content:
+          type: string
+          example: "Employees must maintain strict confidentiality regarding all company and client information..."
+        version:
+          type: string
+          example: "1.0"
+        createdByUserId:
+          type: string
+          nullable: true
+          example: "507f1f77bcf86cd799439012"
+        updatedByUserId:
+          type: string
+          nullable: true
+          example: "507f1f77bcf86cd799439012"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-03-05T11:02:34.461Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-03-05T11:02:34.461Z"

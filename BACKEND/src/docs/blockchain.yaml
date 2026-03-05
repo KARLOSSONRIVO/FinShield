@@ -3,9 +3,14 @@ paths:
     get:
       summary: Get blockchain ledger
       description: |
-        Retrieve a paginated list of all blockchain-anchored invoices.
+        Retrieve a paginated list of blockchain-anchored invoices.
         Only invoices with `anchorStatus: "anchored"` and a non-null `anchorTxHash` are included.
         Supports search by invoice number or transaction hash, sorting, and pagination.
+
+        **Role-based scoping:**
+        - `SUPER_ADMIN` / `REGULATOR`: sees all anchored invoices across all companies.
+        - `AUDITOR`: sees only anchored invoices belonging to companies they are actively assigned to.
+          Assigned org IDs are resolved from cache key `aud:orgs:{userId}` (TTL 10 min).
       tags:
         - Blockchain
       security:
@@ -60,4 +65,4 @@ paths:
         "401":
           description: Unauthorized - Missing or invalid JWT
         "403":
-          description: Forbidden - Requires SUPER_ADMIN or REGULATOR role
+          description: Forbidden - Requires SUPER_ADMIN, REGULATOR, or AUDITOR role

@@ -14,12 +14,13 @@
 5. [Assignments](#5-assignments)
 6. [Invoices](#6-invoices)
 7. [Blockchain Ledger](#7-blockchain-ledger)
-8. [Sessions](#8-sessions)
-9. [WebSocket (Real-Time Events)](#9-websocket-real-time-events)
-10. [Pagination](#10-pagination)
-11. [Error Handling](#11-error-handling)
-12. [Role Permissions Matrix](#12-role-permissions-matrix)
-13. [Audit Logs](#13-audit-logs)
+8. [Policies](#8-policies)
+9. [Sessions](#9-sessions)
+10. [WebSocket (Real-Time Events)](#10-websocket-real-time-events)
+11. [Pagination](#11-pagination)
+12. [Error Handling](#12-error-handling)
+13. [Role Permissions Matrix](#13-role-permissions-matrix)
+14. [Audit Logs](#14-audit-logs)
 
 ---
 
@@ -998,13 +999,15 @@ PATCH /invoice/:id/review
 
 ### 7.1 Get Ledger (Paginated)
 
-Retrieve all blockchain-anchored invoices. Only invoices with a confirmed anchor transaction are included.
+Retrieve blockchain-anchored invoices. Only invoices with a confirmed anchor transaction are included.
 
 ```
 GET /blockchain/ledger
 ```
 
-**Roles:** `SUPER_ADMIN`, `REGULATOR`
+**Roles:** `SUPER_ADMIN`, `REGULATOR`, `AUDITOR`
+
+> **AUDITOR scoping:** Auditors only see ledger entries for companies they are actively assigned to. The backend resolves their assigned org IDs from cache key `aud:orgs:{userId}` and filters the query to `$in` those org IDs only. SUPER_ADMIN and REGULATOR see all entries.
 
 | Param    | Type    | Default      | Description                                |
 |----------|---------|--------------|--------------------------------------------|
@@ -1048,11 +1051,132 @@ GET /blockchain/ledger?page=1&limit=10&search=INV&sortBy=anchoredAt&order=desc
 
 ---
 
-## 8. Sessions
+## 8. Policies
+
+Policies are **global** — a single shared set of compliance documents (T&C, NDAs, guidelines) visible to all company roles. Only REGULATORs can create, update, or delete policies.
+
+### 8.1 Get All Policies
+
+Retrieve the full list of global policies.
+
+```
+GET /policy
+```
+
+**Roles:** `REGULATOR`, `COMPANY_MANAGER`, `COMPANY_USER`
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": [
+    {
+      "id": "507f1f77bcf86cd799439011",
+      "title": "Confidentiality Agreement (NDA)",
+      "content": "Employees must maintain strict confidentiality...",
+      "version": "1.0",
+      "createdByUserId": "507f1f77bcf86cd799439012",
+      "updatedByUserId": "507f1f77bcf86cd799439012",
+      "createdAt": "2026-03-05T11:02:34.461Z",
+      "updatedAt": "2026-03-05T11:02:34.461Z"
+    }
+  ]
+}
+```
+
+### 8.2 Create Policy
+
+```
+POST /policy
+```
+
+**Roles:** `REGULATOR`
+
+**Request Body:**
+
+```json
+{
+  "title": "Confidentiality Agreement (NDA)",
+  "content": "Employees must maintain strict confidentiality...",
+  "version": "1.0"
+}
+```
+
+| Field     | Type   | Required | Constraints          |
+|-----------|--------|----------|----------------------|
+| `title`   | string | Yes      | 3–200 characters      |
+| `content` | string | Yes      | 10–20,000 characters  |
+| `version` | string | No       | Max 20 chars, default `"1.0"` |
+
+**Response (201):**
+
+```json
+{
+  "ok": true,
+  "message": "Policy created successfully",
+  "data": { /* Policy object */ }
+}
+```
+
+### 8.3 Update Policy
+
+```
+PATCH /policy/:id
+```
+
+**Roles:** `REGULATOR`
+
+**Request Body** (all fields optional):
+
+```json
+{
+  "title": "Updated Title",
+  "content": "Updated content text.",
+  "version": "1.1"
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "message": "Policy updated successfully",
+  "data": { /* Updated policy object */ }
+}
+```
+
+### 8.4 Delete Policy
+
+```
+DELETE /policy/:id
+```
+
+**Roles:** `REGULATOR`
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "message": "Policy deleted successfully"
+}
+```
+
+**Error Codes:**
+
+| Status | Code               | Description                    |
+|--------|--------------------|--------------------------------|
+| `404`  | `POLICY_NOT_FOUND` | Policy with given ID not found |
+
+---
+
+## 9. Sessions
 
 Manage active login sessions for the authenticated user.
 
-### 8.1 List Active Sessions
+### 9.1 List Active Sessions
 
 ```
 GET /session
@@ -1075,7 +1199,7 @@ GET /session
 }
 ```
 
-### 8.2 Get Session Count
+### 9.2 Get Session Count
 
 ```
 GET /session/count
@@ -1092,7 +1216,7 @@ GET /session/count
 }
 ```
 
-### 8.3 Revoke All Sessions
+### 9.3 Revoke All Sessions
 
 Logout from all devices.
 
@@ -1109,7 +1233,7 @@ DELETE /session/all
 }
 ```
 
-### 8.4 Revoke a Specific Session
+### 9.4 Revoke a Specific Session
 
 ```
 DELETE /session/:sessionId
@@ -1126,11 +1250,11 @@ DELETE /session/:sessionId
 
 ---
 
-## 9. WebSocket (Real-Time Events)
+## 10. WebSocket (Real-Time Events)
 
 The API provides real-time push notifications via **Socket.IO** (WebSocket). Connected clients receive instant updates when invoices are uploaded, processed, flagged, or when assignments change — without polling.
 
-### 9.1 Connecting
+### 10.1 Connecting
 
 **URL:** `ws://localhost:5000` (same port as the REST API)
 
@@ -1150,7 +1274,7 @@ socket.on("connect_error", (err) => console.error("Auth failed:", err.message));
 
 **Authentication:** The server validates the JWT on handshake using the same `JWT_SECRET` and token blacklist as REST endpoints. Invalid, expired, or revoked tokens are rejected with a `connect_error`.
 
-### 9.2 Room Assignment (Automatic)
+### 10.2 Room Assignment (Automatic)
 
 Rooms are assigned **automatically** on connection based on the JWT payload — clients do not need to join rooms manually.
 
@@ -1162,7 +1286,7 @@ Rooms are assigned **automatically** on connection based on the JWT payload — 
 | `role:AUDITOR` | Auditors | Flagged invoice alerts |
 | `role:REGULATOR` | Regulators | Flagged invoice alerts |
 
-### 9.3 Events Reference
+### 10.3 Events Reference
 
 #### Invoice Pipeline Events
 
@@ -1197,7 +1321,7 @@ Rooms are assigned **automatically** on connection based on the JWT payload — 
 | `user:list:invalidate` | `role:SUPER_ADMIN` | — | A user was created or updated |
 | `org:list:invalidate` | `role:SUPER_ADMIN` | — | An organization was created |
 
-### 9.4 Listening for Events
+### 10.4 Listening for Events
 
 ```js
 // Invoice finished AI processing
@@ -1235,7 +1359,7 @@ socket.on("user:list:invalidate", () => {
 });
 ```
 
-### 9.5 Disconnecting
+### 10.5 Disconnecting
 
 ```js
 socket.disconnect();
@@ -1243,7 +1367,7 @@ socket.disconnect();
 
 The server automatically cleans up rooms when a client disconnects.
 
-### 9.6 Event Flow Diagram
+### 10.6 Event Flow Diagram
 
 ```
 ┌──────────────┐     upload      ┌──────────────┐  invoice:created  ┌──────────┐
@@ -1269,14 +1393,14 @@ The server automatically cleans up rooms when a client disconnects.
                                                                    Clients
 ```
 
-### 9.7 Notes
+### 10.7 Notes
 
 - **No polling needed**: Events push instantly when data changes. Use `*:list:invalidate` events as signals to refetch list data.
 - **Graceful degradation**: If the WebSocket connection drops, the REST API still works normally. Reconnect and the server re-assigns rooms from the JWT.
 - **AI Service bridge**: The AI Service (Python) does not use Socket.IO directly. It publishes events to Redis Pub/Sub (`channel:invoice`), and the Backend's Socket.IO layer subscribes and fans them to clients.
 - **Token expiry**: If the JWT expires while connected, the socket remains connected until the next reconnect attempt, which will fail authentication. Handle `connect_error` to redirect to login.
 
-### 9.8 Frontend Implementation Guide (Next.js)
+### 10.8 Frontend Implementation Guide (Next.js)
 
 Step-by-step guide for integrating WebSocket into the FinShield Next.js frontend.
 
@@ -1596,7 +1720,7 @@ FRONTEND/
 
 ---
 
-## 10. Pagination
+## 11. Pagination
 
 All list endpoints support a consistent pagination interface.
 
@@ -1650,7 +1774,7 @@ All paginated endpoints return:
 
 ---
 
-## 11. Error Handling
+## 12. Error Handling
 
 ### Standard Error Response
 
@@ -1698,7 +1822,7 @@ When request validation fails, the response includes field-level details:
 
 ---
 
-## 12. Role Permissions Matrix
+## 13. Role Permissions Matrix
 
 | Endpoint                              | SUPER_ADMIN | AUDITOR | REGULATOR | COMPANY_MANAGER | COMPANY_USER |
 |---------------------------------------|:-----------:|:-------:|:---------:|:---------------:|:------------:|
@@ -1730,7 +1854,11 @@ When request validation fails, the response includes field-level details:
 | `GET  /invoice/my-invoices`           | —           | —       | —         | —               | ✅           |
 | `GET  /invoice/:id`                   | ✅          | ✅⁴     | ✅        | ✅⁵             | ✅⁶          |
 | `PATCH /invoice/:id/review`           | —           | ✅⁴     | —         | —               | —            |
-| `GET  /blockchain/ledger`             | ✅          | —       | ✅        | —               | —            |
+| `GET  /blockchain/ledger`             | ✅          | ✅⁴     | ✅        | —               | —            |
+| `POST /policy`                        | —           | —       | ✅        | —               | —            |
+| `PATCH /policy/:id`                   | —           | —       | ✅        | —               | —            |
+| `DELETE /policy/:id`                  | —           | —       | ✅        | —               | —            |
+| `GET  /policy`                        | —           | —       | ✅        | ✅              | ✅           |
 | `GET  /session`                       | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `GET  /session/count`                 | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `DELETE /session/all`                 | ✅          | ✅      | ✅        | ✅              | ✅           |
@@ -1748,11 +1876,11 @@ When request validation fails, the response includes field-level details:
 
 ---
 
-## 13. Audit Logs
+## 14. Audit Logs
 
 Append-only log of every significant action taken in the system. Accessible only to `SUPER_ADMIN`. Logs older than 90 days are automatically archived to S3 and hard-deleted from MongoDB nightly at 2 AM.
 
-### 13.1 List Audit Logs
+### 14.1 List Audit Logs
 
 ```
 GET /audit-logs
@@ -1828,6 +1956,7 @@ GET /audit-logs?search=admin
 | Assignments | `ASSIGNMENT_CREATED`, `ASSIGNMENT_UPDATED`, `ASSIGNMENT_DELETED` |
 | Invoices | `INVOICE_UPLOADED`, `INVOICE_FLAGGED` |
 | Reviews | `REVIEW_SUBMITTED`, `REVIEW_UPDATED` |
+| Policies | `POLICY_CREATED`, `POLICY_UPDATED`, `POLICY_DELETED` |
 | Archival | `ARCHIVE_EXECUTED`, `ARCHIVE_ACCESSED` |
 
 > **Note:** `LOGIN_FAILED` is intentionally not logged.

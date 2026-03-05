@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export const ORG_TYPES = ["platform", "company"]
+export const ORG_TYPES = ["organization", "company"]
 export const ORG_STATUS = ["active", "inactive"]
 
 const OrganizationSchema = new mongoose.Schema({
