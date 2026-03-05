@@ -21,6 +21,7 @@ export const AuditActions = {
 
     // ─── Organization ────────────────────────────────────────────────────────
     ORG_CREATED:           "ORG_CREATED",
+    ORG_UPDATED:           "ORG_UPDATED",
     ORG_TEMPLATE_UPLOADED: "ORG_TEMPLATE_UPLOADED",
 
     // ─── Assignments ─────────────────────────────────────────────────────────

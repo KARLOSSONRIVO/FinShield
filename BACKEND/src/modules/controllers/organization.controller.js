@@ -34,3 +34,14 @@ export const getOneOrganization = asyncHandler(async (req, res) => {
     })
     res.json({ ok: true, data: org })
 })
+
+export const updateOrganization = asyncHandler(async (req, res) => {
+    const org = await OrganizationServices.updateOrganization({
+        actor: req.auth,
+        orgId: req.params.id,
+        payload: req.body,
+        ip: getClientIp(req),
+        userAgent: req.headers["user-agent"] ?? null,
+    })
+    res.json({ ok: true, message: "Organization updated successfully", data: org })
+})

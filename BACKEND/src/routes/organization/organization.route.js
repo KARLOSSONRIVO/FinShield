@@ -2,7 +2,7 @@ import { Router } from "express";
 import { uploadSingle } from "../../common/utils/multer.js";
 import { validate } from "../../common/middlewares/validate.middleware.js";
 import { allowRoles, requireSameOrgParam } from "../../common/middlewares/rbac.middleware.js";
-import { createOrgSchema } from "../../modules/validators/organization.validator.js";
+import { createOrgSchema, updateOrgSchema } from "../../modules/validators/organization.validator.js";
 import { validateOrgListQuery } from "../../modules/validators/pagination.validator.js";
 import * as OrganizationControllers from "../../modules/controllers/organization.controller.js";
 
@@ -18,5 +18,12 @@ organizationRouter.post('/createOrganization',
 organizationRouter.get('/listOrganizations', allowRoles("SUPER_ADMIN"), validateOrgListQuery, OrganizationControllers.listOrganizations)
 
 organizationRouter.get('/getOrganization/:id', requireSameOrgParam("id"), OrganizationControllers.getOneOrganization)
+
+organizationRouter.patch(
+    '/updateOrganization/:id',
+    allowRoles("SUPER_ADMIN"),
+    validate(updateOrgSchema),
+    OrganizationControllers.updateOrganization
+)
 
 export default organizationRouter

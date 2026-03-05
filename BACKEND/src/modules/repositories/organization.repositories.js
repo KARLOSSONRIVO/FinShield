@@ -32,6 +32,14 @@ export async function findManyPaginated({ filter = {}, page = 1, limit = 20, sea
     return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
+export async function updateById(id, updates) {
+    return Organization.findByIdAndUpdate(
+        id,
+        { $set: { ...updates, updatedAt: new Date() } },
+        { new: true, runValidators: true }
+    ).exec();
+}
+
 export async function updateOrganizationTemplate(orgId, templateData) {
     // templateData expects: { s3Key, fileName, uploadedAt }
     return Organization.findByIdAndUpdate(

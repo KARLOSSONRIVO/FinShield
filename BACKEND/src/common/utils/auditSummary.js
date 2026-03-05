@@ -40,6 +40,8 @@ export function buildAuditSummary(action, metadata = {}) {
         // Organizations
         case AuditActions.ORG_CREATED:
             return `Organization "${m.orgName || ""}" (${m.orgType || ""}) was created`;
+        case AuditActions.ORG_UPDATED:
+            return `Organization "${m.orgName || m.orgId || ""}" was updated — changed: ${(m.changes || []).join(", ")}`;
         case AuditActions.ORG_TEMPLATE_UPLOADED:
             return `Invoice template uploaded for organization "${m.orgName || m.orgId || ""}"`;
 

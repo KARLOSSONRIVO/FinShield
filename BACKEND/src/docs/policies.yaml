@@ -104,8 +104,13 @@ paths:
       summary: Update a policy
       description: |
         Partially update an existing policy. All body fields are optional — only
-        provided fields are updated. Invalidates the policy cache. Fires a `POLICY_UPDATED`
-        audit log entry.
+        provided fields are updated.
+
+        **Auto-versioning:** On every update the `version` field is automatically
+        incremented (e.g. `"1.0"` → `"1.1"`). To override, supply an explicit
+        `version` string in the request body.
+
+        Invalidates the `policy:global` cache. Fires a `POLICY_UPDATED` audit log entry.
       tags:
         - Policies
       security:
@@ -138,7 +143,8 @@ paths:
                 version:
                   type: string
                   maxLength: 20
-                  example: "1.1"
+                  description: "Override the auto-incremented version (e.g. \"2.0\"). If omitted, the minor version is bumped automatically."
+                  example: "2.0"
       responses:
         "200":
           description: Policy updated successfully

@@ -407,6 +407,55 @@ GET /organization/getOrganization/507f1f77bcf86cd799439011
 }
 ```
 
+### 3.4 Update Organization
+
+Partially update an organization's `name`, `type`, and/or `status`. At least one field is required.
+
+```
+PATCH /organization/updateOrganization/:id
+```
+
+**Roles:** `SUPER_ADMIN`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string (min 2) | New organization name |
+| `type` | string | `platform` or `company` |
+| `status` | string | `active` or `inactive` |
+
+**Example:**
+
+```json
+{
+  "name": "Acme Corp Renamed",
+  "status": "inactive"
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "message": "Organization updated successfully",
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "name": "Acme Corp Renamed",
+    "type": "company",
+    "status": "inactive",
+    "createdAt": "2026-02-22T12:00:00.000Z",
+    "updatedAt": "2026-03-05T09:00:00.000Z"
+  }
+}
+```
+
+**Errors:**
+
+| Code | Meaning |
+|------|---------|
+| `400` | No fields provided / validation failure |
+| `404 ORG_NOT_FOUND` | Organization does not exist |
+
 ---
 
 ## 4. Users
@@ -1127,13 +1176,20 @@ PATCH /policy/:id
 
 **Roles:** `REGULATOR`
 
+> **Auto-versioning:** Every successful update automatically bumps the minor version (`"1.0"` → `"1.1"` → `"1.2"`, etc.) unless you explicitly supply a `version` in the body, in which case your value is used as-is.
+
 **Request Body** (all fields optional):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` | string (3–200) | New policy title |
+| `content` | string (10–20000) | New policy content |
+| `version` | string | Override auto-increment (e.g. `"2.0"`) |
 
 ```json
 {
   "title": "Updated Title",
-  "content": "Updated content text.",
-  "version": "1.1"
+  "content": "Updated content text."
 }
 ```
 
@@ -1143,7 +1199,16 @@ PATCH /policy/:id
 {
   "ok": true,
   "message": "Policy updated successfully",
-  "data": { /* Updated policy object */ }
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "title": "Updated Title",
+    "content": "Updated content text.",
+    "version": "1.1",
+    "createdByUserId": "507f1f77bcf86cd799439010",
+    "updatedByUserId": "507f1f77bcf86cd799439010",
+    "createdAt": "2026-03-01T09:00:00.000Z",
+    "updatedAt": "2026-03-05T11:00:00.000Z"
+  }
 }
 ```
 
@@ -1839,6 +1904,7 @@ When request validation fails, the response includes field-level details:
 | `POST /organization/createOrganization` | ✅        | —       | —         | —               | —            |
 | `GET  /organization/listOrganizations` | ✅         | —       | —         | —               | —            |
 | `GET  /organization/getOrganization/:id` | ✅       | —       | —         | ✅¹             | —            |
+| `PATCH /organization/updateOrganization/:id` | ✅  | —       | —         | —               | —            |
 | `POST /user/createUser`               | ✅          | —       | —         | ✅²             | —            |
 | `GET  /user/listUsers`                | ✅          | —       | —         | ✅³             | —            |
 | `GET  /user/listEmployees`            | —           | —       | —         | ✅              | —            |
@@ -1952,7 +2018,7 @@ GET /audit-logs?search=admin
 | Authentication | `LOGIN_SUCCESS`, `ACCOUNT_LOCKED`, `LOGOUT` |
 | MFA | `MFA_ENABLED`, `MFA_DISABLED` |
 | User Management | `USER_CREATED`, `USER_UPDATED`, `USER_DISABLED`, `USER_ENABLED`, `PASSWORD_RESET_FORCED` |
-| Organization | `ORG_CREATED`, `ORG_TEMPLATE_UPLOADED` |
+| Organization | `ORG_CREATED`, `ORG_UPDATED`, `ORG_TEMPLATE_UPLOADED` |
 | Assignments | `ASSIGNMENT_CREATED`, `ASSIGNMENT_UPDATED`, `ASSIGNMENT_DELETED` |
 | Invoices | `INVOICE_UPLOADED`, `INVOICE_FLAGGED` |
 | Reviews | `REVIEW_SUBMITTED`, `REVIEW_UPDATED` |
