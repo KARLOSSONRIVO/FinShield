@@ -1106,13 +1106,25 @@ Policies are **global** — a single shared set of compliance documents (T&C, ND
 
 ### 8.1 Get All Policies
 
-Retrieve the full list of global policies.
+Retrieve the full list of global policies. Optionally filter by title.
 
 ```
 GET /policy
 ```
 
 **Roles:** `REGULATOR`, `COMPANY_MANAGER`, `COMPANY_USER`
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `search` | string | Filter by title (case-insensitive, partial match) |
+
+**Examples:**
+
+```
+GET /policy
+GET /policy?search=privacy
+GET /policy?search=nda
+```
 
 **Response (200):**
 

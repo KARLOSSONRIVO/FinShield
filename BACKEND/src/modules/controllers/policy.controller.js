@@ -45,6 +45,8 @@ export const deletePolicy = asyncHandler(async (req, res) => {
 
 // GET /policy  → REGULATOR, COMPANY_MANAGER, COMPANY_USER
 export const getPolicies = asyncHandler(async (req, res) => {
-    const data = await PolicyService.getPolicies();
+    const data = await PolicyService.getPolicies({
+        search: req.query.search ?? undefined,
+    });
     res.json({ ok: true, data });
 });

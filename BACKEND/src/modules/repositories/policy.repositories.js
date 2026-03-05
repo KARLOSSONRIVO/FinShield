@@ -2,9 +2,14 @@ import Policy from "../models/policy.model.js";
 
 /**
  * Get all policies (global — shared across all companies).
+ * Optionally filters by title (case-insensitive regex).
  */
-export async function findAll() {
-    return Policy.find({}).sort({ createdAt: -1 }).lean();
+export async function findAll({ search } = {}) {
+    const filter = {};
+    if (search) {
+        filter.title = { $regex: search, $options: "i" };
+    }
+    return Policy.find(filter).sort({ createdAt: -1 }).lean();
 }
 
 /**

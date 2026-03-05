@@ -5,11 +5,23 @@ paths:
       description: |
         Retrieve the full list of global compliance policies (T&C, NDAs, guidelines etc.).
         Policies are shared across all companies — no org scoping.
+
+        Optionally filter by title using the `search` query parameter (case-insensitive partial match).
+
         Results are served from a 30-minute read-through Redis cache.
+        Cache key is `policy:global` for unfiltered requests and `policy:search:{term}` for filtered ones.
       tags:
         - Policies
       security:
         - bearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          required: false
+          description: Filter policies by title (case-insensitive partial match). Example: `?search=privacy`
+          example: privacy
       responses:
         "200":
           description: List of all global policies
