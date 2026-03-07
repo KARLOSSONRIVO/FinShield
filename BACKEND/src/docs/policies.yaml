@@ -20,7 +20,7 @@ paths:
           schema:
             type: string
           required: false
-          description: Filter policies by title (case-insensitive partial match). Example: `?search=privacy`
+          description: "Filter policies by title (case-insensitive partial match). Example: ?search=privacy"
           example: privacy
       responses:
         "200":
