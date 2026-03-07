@@ -39,7 +39,7 @@ router.use(requireAuth);
 router.use(authenticatedLimiter);
 
 // Enforce password change for all authenticated routes (except change-password)
-router.use(enforceMustChangePassword({ exceptPaths: ["/auth/change-password"] }))
+router.use(enforceMustChangePassword({ exceptPaths: ["/auth/change-password", { method: "GET", path: "/policy" }] }))
 
 router.use("/organization", organizationRouter)
 router.use("/user", userRouter);

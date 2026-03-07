@@ -22,8 +22,12 @@ export function allowPortals(...portals) {
       if (!req.auth) return next(new AppError("Unauthorized", 401, "UNAUTHORIZED"))
   
       if (req.auth.mustChangePassword) {
-        const current = req.baseUrl + req.path // ex: /api/auth/me
-        const allowed = exceptPaths.includes(current)
+        const current = (req.baseUrl + req.path).replace(/\/$/, '') || '/'
+        const allowed = exceptPaths.some(p => {
+          if (typeof p === 'string') return current === p || current.startsWith(p + '/')
+          // { method, path } — exact path + method match
+          return req.method === p.method && current === p.path
+        })
         if (!allowed) {
           return next(new AppError("Password change required", 403, "MUST_CHANGE_PASSWORD"))
         }
