@@ -17,7 +17,7 @@ from app.engines.fraud.temporal_checker import TemporalChecker
 from app.engines.fraud.feature_extractor import FraudFeatureExtractor
 from app.engines.fraud.model_loader import get_fraud_model
 
-from .ml import predict_fraud_score
+from .ml import predict_fraud_score, explain_fraud_ml
 
 logger = logging.getLogger(__name__)
 
@@ -174,7 +174,7 @@ class FraudDetectionLayer(BaseLayer):
                 
                 # Add flag if ML detects high fraud risk
                 if fraud_proba > 0.7:
-                    issues.append(f"ML_HIGH_FRAUD_RISK: {fraud_proba*100:.1f}% fraud probability")
+                    issues.append(f"ML fraud signal: {explain_fraud_ml(features, fraud_proba)}")
                     
             except Exception as e:
                 logger.error(f"ML prediction failed: {e}")

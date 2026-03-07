@@ -21,6 +21,8 @@ The **Anomaly Detection Layer** is the second stage in our 3-layer verification 
 1. **Rule-Based Checks (60%)** - Universal mathematical and logical validation
 2. **ML Model (40%)** - Organization-specific pattern detection using Isolation Forest
 
+> **Note on prompt weights**: The agent prompt weights the anomaly layer at **35%** of the overall score (layout 10%, fraud 55%). The 60/40 split above is the *internal* anomaly layer weighting between rules and ML.
+
 **Purpose**: Detect invoices that deviate from normal patterns, even if they pass basic validation.
 
 **Location**: `app/pipelines/verification/stages/anomaly.py`
@@ -46,12 +48,15 @@ OCR Extraction (text, amounts, dates)
     └─ ML Model (If Available)
         ├─ Extract 9 Features
         ├─ Load Org-Specific Model from S3
-        └─ Predict Anomaly Score
+        ├─ Predict Anomaly Score
+        └─ explain_ml_anomaly() → plain-English flag text
     ↓
 Combined Score (60% rules + 40% ML)
     ↓
-Verdict: PASS | WARN | FAIL
+Verdict: PASS (score≥0.75) | WARN (score≥0.50) | FAIL (score<0.50)
 ```
+
+> **PASS threshold**: 0.75 | **WARN threshold**: 0.50 (layout layer uses different thresholds: 0.70/0.45)
 
 ---
 
@@ -74,7 +79,9 @@ Verdict: PASS | WARN | FAIL
 
 - Learns what's "normal" for each organization
 - Compares new invoices against historical patterns
-- Flags invoices that deviate from expected behavior
+- Flags invoices that deviate from expected behavior (when `ml_score < 0.5`)
+- `explain_ml_anomaly(features, ml_score)` in `ml.py` produces a plain-English reason string describing what triggered the flag (e.g. "invoice amount ($X) differs from this organisation's usual invoice amounts", "unusually high tax rate", "weekend submission with unusually long gap since last invoice")
+- The LLM receives only `{"model_used": bool}` in `details` — raw check scores are **not** passed to the LLM. All ML explanations live in the `flags` list text only.
 
 ---
 

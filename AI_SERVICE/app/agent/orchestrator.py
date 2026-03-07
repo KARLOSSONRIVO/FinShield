@@ -18,6 +18,7 @@ Usage (same as VerificationPipeline):
 """
 import json
 import logging
+import re
 from typing import Dict, Any, List, Optional
 
 import groq
@@ -66,9 +67,21 @@ class AgentOrchestrator:
         """
         self._registry.bind_context(context)
 
+        # Inject today's date into the system prompt so the LLM never
+        # confuses historical dates with future dates regardless of its
+        # training data cutoff.
+        from datetime import datetime as _dt
+        today_str = _dt.now().strftime("%Y-%m-%d")
+        system_content = (
+            f"TODAY'S DATE: {today_str}\n"
+            f"Any invoice date on or before {today_str} is a PAST date — "
+            f"do NOT flag it as a future date under any circumstances.\n"
+            f"TEMPORAL_FUTURE only applies when invoice_date > {today_str}.\n\n"
+        ) + SYSTEM_PROMPT
+
         # ── Build conversation ────────────────────────────────────────────────
         messages: List[Dict[str, Any]] = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": system_content},
             {"role": "user",   "content": self._invoice_summary(context)},
         ]
 
@@ -106,13 +119,27 @@ class AgentOrchestrator:
 
             # ── Final verdict (no more tool calls) ───────────────────────────
             raw = message.content or ""
+
+            # Qwen3 wraps reasoning in <think>…</think> before the JSON.
+            # Strip those blocks first so the JSON parser sees clean output.
+            clean_raw = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL).strip()
+
+            # Also handle markdown code fences (```json … ```).
+            code_match = re.search(r"```(?:json)?\s*([\s\S]*?)```", clean_raw)
+            if code_match:
+                clean_raw = code_match.group(1).strip()
+
             try:
-                verdict = json.loads(raw)
+                verdict = json.loads(clean_raw)
             except json.JSONDecodeError:
-                # Attempt to extract JSON from surrounding prose
-                start = raw.find("{")
-                end   = raw.rfind("}") + 1
-                verdict = json.loads(raw[start:end]) if start != -1 else {}
+                # Last resort: extract outermost JSON object from prose.
+                start = clean_raw.find("{")
+                end   = clean_raw.rfind("}") + 1
+                try:
+                    verdict = json.loads(clean_raw[start:end]) if start != -1 else {}
+                except json.JSONDecodeError:
+                    logger.warning("[Agent] Could not parse LLM verdict JSON — using empty verdict.")
+                    verdict = {}
 
             return self._build_result(verdict, messages)
 
@@ -127,12 +154,21 @@ class AgentOrchestrator:
         Build a brief invoice summary for the LLM's first user message.
         This gives the model enough metadata to reason about before calling tools.
         """
+        from datetime import datetime
+        today_str = datetime.now().strftime("%Y-%m-%d")
+
         fields = context.get("parsed_fields", {})
+        issued_to = (
+            fields.get("issuedTo")
+            or fields.get("customerName")
+            or fields.get("vendorName")
+            or "N/A"
+        )
         return (
+            f"Today's date  : {today_str}\n\n"
             "Please verify the following invoice.\n\n"
             f"Invoice number : {fields.get('invoiceNumber', 'N/A')}\n"
-            f"Vendor         : {fields.get('vendorName',    'N/A')}\n"
-            f"Customer       : {fields.get('customerName',  'N/A')}\n"
+            f"Customer       : {issued_to}\n"
             f"Invoice date   : {fields.get('invoiceDate',   'N/A')}\n"
             f"Total amount   : {fields.get('totalAmount',   'N/A')}\n\n"
             "Call check_layout, check_anomaly, and check_fraud, then return your verdict as JSON."
@@ -150,6 +186,23 @@ class AgentOrchestrator:
         all_flags       = list (verdict.get("all_flags",       []))
         summary         = str  (verdict.get("summary",         ""))
         layer_scores    = dict (verdict.get("layer_scores",    {}))
+
+        # Guard: LLM sometimes returns an empty summary string.
+        # Build a meaningful one from the verdict data instead of storing "".
+        if not summary.strip():
+            if overall_verdict == "clean":
+                summary = (
+                    "Invoice passed all verification checks — math is correct, "
+                    "date is valid, no duplicate detected, and all fields are consistent."
+                )
+            elif all_flags:
+                readable = [
+                    f.split(":", 1)[1].strip() if ":" in f else f
+                    for f in all_flags[:3]
+                ]
+                summary = f"Invoice flagged for review — {', '.join(readable)}."
+            else:
+                summary = "Invoice flagged for review — requires manual verification."
 
         # Reconstruct layer_results list from tool messages so callers get
         # the same detailed breakdown that VerificationPipeline provides.

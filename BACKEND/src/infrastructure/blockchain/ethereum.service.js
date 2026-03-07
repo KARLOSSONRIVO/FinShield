@@ -78,11 +78,11 @@ export async function anchorInvoice({ invoiceMongoId, ipfsCid, sha256Hex }) {
     const block = await web3.eth.getBlock("pending");
     const baseFeePerGas = BigInt(block.baseFeePerGas); // Ensure it's BigInt
 
-    // Priority fee (tip) – safe default
-    const maxPriorityFeePerGas = BigInt(web3.utils.toWei("2", "gwei")); // Ensure it's BigInt
+    // Priority fee (tip) – Polygon Amoy enforces a minimum of 25 Gwei
+    const maxPriorityFeePerGas = BigInt(web3.utils.toWei("30", "gwei"));
 
-    // Max fee = base fee * 2 + tip
-    const maxFeePerGas = baseFeePerGas * 2n + maxPriorityFeePerGas; // Arithmetic between BigInt values
+    // Max fee = base fee * 2 + tip (ensures acceptance across fee spikes)
+    const maxFeePerGas = baseFeePerGas * 2n + maxPriorityFeePerGas;
 
     // Convert nonce to string to avoid BigInt mixing issues
     const nonceStr = nonce.toString();

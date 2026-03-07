@@ -1114,6 +1114,8 @@ GET /policy
 
 **Roles:** `REGULATOR`, `COMPANY_MANAGER`, `COMPANY_USER`
 
+> **`mustChangePassword` exception:** This is the only endpoint accessible to users whose account has `mustChangePassword: true`. All other protected routes return `403 MUST_CHANGE_PASSWORD` until the password is changed via `POST /auth/change-password`.
+
 | Param | Type | Description |
 |-------|------|-------------|
 | `search` | string | Filter by title (case-insensitive, partial match) |

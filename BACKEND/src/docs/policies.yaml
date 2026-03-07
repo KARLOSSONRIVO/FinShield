@@ -10,6 +10,10 @@ paths:
 
         Results are served from a 30-minute read-through Redis cache.
         Cache key is `policy:global` for unfiltered requests and `policy:search:{term}` for filtered ones.
+
+        **Note:** This endpoint is exempt from the `mustChangePassword` enforcement — users with a
+        forced password-change flag can still access `GET /policy` to read compliance documents
+        before completing their password change.
       tags:
         - Policies
       security:

@@ -99,9 +99,9 @@ class CustomerValidator:
             if total_invoices >= 3:
                 return 0.6, f"CUSTOMER_UNVERIFIED: Customer '{customer_name}' has {total_invoices} invoices but not reviewed"
             
-            # New customer - flag for review
-            logger.warning(f"New/unknown customer: '{customer_name}'")
-            return 0.3, f"CUSTOMER_UNKNOWN: Unknown customer '{customer_name}' - no history found"
+            # New customer - soft flag only; new customers are routine
+            logger.info(f"New customer (no history): '{customer_name}'")
+            return 0.65, f"CUSTOMER_UNKNOWN: New customer '{customer_name}' - no prior invoice history"
             
         except Exception as e:
             logger.error(f"Error in customer validation: {e}")

@@ -17,10 +17,10 @@ class LayoutDetectionLayer(BaseLayer):
     
     layer_name = "layout_detection"
     
-    # Thresholds for scoring (kept for verdict determination)
-    # Higher threshold to catch subtle template differences
-    SCORE_PASS_THRESHOLD = 0.95  # Must be very close match to pass
-    SCORE_WARN_THRESHOLD = 0.85  # Moderate similarity gets warning
+    # Thresholds for scoring
+    # Layout mismatches are informational — only hard structural failures should warn/fail.
+    SCORE_PASS_THRESHOLD = 0.70  # Minor positional differences still pass
+    SCORE_WARN_THRESHOLD = 0.45  # Only meaningful structural gaps trigger a warning
     
     def __init__(self):
         super().__init__()

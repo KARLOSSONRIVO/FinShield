@@ -15,7 +15,7 @@ from app.engines.anomaly.feature_extractor import FeatureExtractor
 from app.engines.anomaly.line_item_parser import LineItemParser
 
 from .rules import check_line_item_totals, check_date_validity, check_amount_sanity, check_round_numbers
-from .ml import predict_anomaly_score
+from .ml import predict_anomaly_score, explain_ml_anomaly
 
 logger = logging.getLogger(__name__)
 
@@ -128,14 +128,15 @@ class AnomalyDetectionLayer(BaseLayer):
                 
                 # Get anomaly score from model
                 ml_score = predict_anomaly_score(model, features)
-                checks['ml_anomaly'] = ml_score
-                
+                # Do NOT put ml_score or raw check scores in details — the LLM
+                # would enumerate them individually. The explanation lives in flags.
+
                 # Combine scores
                 final_score = (rule_score * self.WEIGHT_RULES) + (ml_score * self.WEIGHT_ML)
                 logger.info(f"Combined score (rules {rule_score:.3f} + ML {ml_score:.3f}): {final_score:.3f}")
                 
                 if ml_score < 0.5:
-                    issues.append(f"ML model flagged invoice as anomalous (score: {ml_score:.2f})")
+                    issues.append(f"ML anomaly: {explain_ml_anomaly(features, ml_score)}")
                 
             except Exception as e:
                 logger.error(f"Error in ML prediction: {e}")
@@ -157,6 +158,9 @@ class AnomalyDetectionLayer(BaseLayer):
         return self._create_result(
             verdict=verdict,
             score=final_score,
-            details=checks,
+            # Only expose the verdict summary counts, not raw check scores.
+            # Raw scores (line_items, date, amount, round_number, ml_anomaly)
+            # cause the LLM to invent its own enumeration instead of using flags.
+            details={"model_used": checks.get("ml_status") != "no_model"},
             flags=issues if issues else None
         )
