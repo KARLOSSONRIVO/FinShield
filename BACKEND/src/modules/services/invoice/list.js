@@ -12,7 +12,7 @@ import { CachePrefix, CacheTTL } from "../../../common/utils/cache.constants.js"
  * - COMPANY_USER: only their own uploaded invoices
  */
 export async function listInvoices({ actor, query }) {
-    const { page, limit, search, sortBy, order, orgId } = query;
+    const { page, limit, search, sortBy, order, orgId, reviewDecision } = query;
     const filter = {};
 
     switch (actor.role) {
@@ -51,6 +51,8 @@ export async function listInvoices({ actor, query }) {
             filter.orgId = actor.orgId;
             break;
     }
+
+    if (reviewDecision) filter.reviewDecision = reviewDecision;
 
     // Build cache key from role scope + query params
     const queryHash = buildQueryHash({ role: actor.role, sub: actor.sub, orgId: actor.orgId, filter, page, limit, search, sortBy, order });
