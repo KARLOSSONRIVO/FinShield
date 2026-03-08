@@ -1,0 +1,5 @@
+# Ignore local credentials and generated reports
+.env
+reports/*.html
+reports/*.json
+reports/*.pdf

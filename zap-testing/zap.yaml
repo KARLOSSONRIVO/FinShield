@@ -1,0 +1,116 @@
+---
+# ============================================================
+#  FinShield API — OWASP ZAP Automation Framework Plan
+#  Tests: OWASP Top 10 (A01–A10)
+#  Runs via: run-zap.ps1 (Windows) or run-zap.sh (Linux/Mac)
+# ============================================================
+
+env:
+  contexts:
+    - name: "FinShield API"
+      urls:
+        - "${TARGET_URL}"
+      includePaths:
+        - "${TARGET_URL}/.*"
+      excludePaths:
+        # Exclude Swagger UI to avoid scanning documentation noise
+        - "${TARGET_URL}/api-docs.*"
+
+  parameters:
+    failOnError: false
+    failOnWarning: false
+    progressToStdout: true
+
+  vars:
+    TARGET_URL: "${TARGET_URL}"
+
+jobs:
+
+  # ── Step 1: Import full OpenAPI/Swagger specification ──────────────────────
+  # ZAP discovers every endpoint, method, and parameter from the live spec.
+  # Covers: A05 Security Misconfiguration (unintentionally exposed routes)
+  - type: openapi
+    parameters:
+      apiUrl: "${TARGET_URL}/api-docs/json"
+      targetUrl: "${TARGET_URL}"
+      context: "FinShield API"
+
+  # ── Step 2: Inject JWT Bearer token on all outgoing requests ───────────────
+  # The token is obtained at runtime by run-zap.ps1 before launching this plan,
+  # so ZAP scans as an authenticated admin user.
+  # Covers: A01 Broken Access Control (tests guarded endpoints directly)
+  - type: replacer
+    parameters:
+      deleteAllRules: false
+    rules:
+      - description: "Inject SUPER_ADMIN Bearer Token"
+        url: ""
+        matchType: "req_header"
+        matchString: "Authorization"
+        matchRegex: false
+        replacementString: "Bearer ${ZAP_BEARER_TOKEN}"
+        initiators: []
+
+  # ── Step 3: Configure passive scan rules ───────────────────────────────────
+  # Turn off rules that don't apply to REST APIs (e.g. CSRF tokens).
+  - type: passiveScan-config
+    parameters:
+      enableTags: false
+      disableAllRules: false
+    rules:
+      - id: 10202  # Anti-CSRF Tokens — not applicable for stateless JWT APIs
+        threshold: "OFF"
+      - id: 10043  # User Controllable JavaScript Event Handler — front-end only
+        threshold: "OFF"
+
+  # ── Step 4: Spider the API ─────────────────────────────────────────────────
+  # Walk every path discovered from the OpenAPI import.
+  # delayInMs slows requests to stay under the rate limiter.
+  - type: spider
+    parameters:
+      context: "FinShield API"
+      maxDuration: 5       # minutes
+      maxDepth: 10
+      acceptCookies: false
+      delayInMs: 500       # 500 ms between requests — avoids 429 rate limit
+
+  # ── Step 5: Wait for passive scan to finish ────────────────────────────────
+  # Passive scan runs in the background during spidering, analysing:
+  #   A02 Cryptographic Failures  — checks for sensitive data in plain text
+  #   A05 Security Misconfiguration — missing security headers (CSP, HSTS, etc.)
+  #   A07 Auth & Session Failures — weak tokens, missing auth on endpoints
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 10      # minutes
+
+  # ── Step 6: Active Scan (attack mode) ─────────────────────────────────────
+  # ZAP actively fires attack payloads against every discovered endpoint.
+  # OWASP Top 10 coverage:
+  #   A01 Broken Access Control    — forceful browsing, IDOR, path traversal
+  #   A03 Injection                — SQLi, XSS, NoSQL, Command, LDAP injection
+  #   A04 Insecure Design          — parameter tampering
+  #   A06 Vulnerable Components    — detects known CVE patterns in responses
+  #   A08 Software/Data Integrity  — CORS misconfiguration
+  #   A10 SSRF                     — server-side request forgery probes
+  - type: activeScan
+    parameters:
+      context: "FinShield API"
+      maxScanDurationInMins: 30
+      threadPerHost: 1     # single thread — prevents burst requests hitting rate limit
+      delayInMs: 200       # 200 ms between attack payloads
+
+  # ── Step 7: Reports ────────────────────────────────────────────────────────
+  - type: report
+    parameters:
+      template: "traditional-html-plus"   # full detail with req/res bodies
+      reportDir: "/zap/results"
+      reportFile: "finshield-zap-report"
+      reportTitle: "FinShield API — ZAP Security Report"
+      reportDescription: "OWASP Top 10 active + passive scan results"
+      displayReport: false
+
+  - type: report
+    parameters:
+      template: "traditional-json"
+      reportDir: "/zap/results"
+      reportFile: "finshield-zap-report"
