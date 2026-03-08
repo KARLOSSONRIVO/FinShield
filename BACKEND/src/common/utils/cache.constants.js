@@ -16,6 +16,7 @@ export const CachePrefix = {
     ASSIGN_LIST:    "asgn:list:",   // asgn:list:{hash}
     ASSIGN_DETAIL:  "asgn:det:",    // asgn:det:{id}
     POLICY:         "policy:",      // policy:{orgId}
+    TERMS:          "terms:",       // terms:global / terms:search:{term}
 };
 
 // ─── Default TTLs (seconds) ────────────────────────────────
@@ -36,4 +37,5 @@ export const CacheTTL = {
     ASSIGN_LIST:    60,       // 60 sec
     ASSIGN_DETAIL:  300,      // 5 min
     POLICY:         1800,     // 30 min
+    TERMS:          1800,     // 30 min
 };

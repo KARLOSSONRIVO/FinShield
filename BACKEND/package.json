@@ -9,6 +9,7 @@
     "seed:super-admin": "node src/seeders/create-super-admin.seeder.js",
     "seed:full-system": "node src/seeders/full-system.seeder.js",
     "seed:hamish-policies": "node src/seeders/hamish-policies.seeder.js",
+    "seed:terms": "node src/seeders/finshield-terms.seeder.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

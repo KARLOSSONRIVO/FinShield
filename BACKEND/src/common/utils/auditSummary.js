@@ -79,6 +79,14 @@ export function buildAuditSummary(action, metadata = {}) {
         case AuditActions.POLICY_DELETED:
             return `Policy "${m.title || ""}" deleted from org "${m.orgId || ""}" by ${m.email || "regulator"}`;
 
+        // Terms and Conditions
+        case AuditActions.TERMS_CREATED:
+            return `Terms and Conditions "${m.title || ""}" created by ${m.email || "regulator"}`;
+        case AuditActions.TERMS_UPDATED:
+            return `Terms and Conditions ${m.termsId || ""} updated by ${m.email || "regulator"} — fields: ${(m.changes || []).join(", ")}`;
+        case AuditActions.TERMS_DELETED:
+            return `Terms and Conditions "${m.title || ""}" deleted by ${m.email || "regulator"}`;
+
         default:
             return `Action performed: ${action}`;
     }

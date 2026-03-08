@@ -15,12 +15,13 @@
 6. [Invoices](#6-invoices)
 7. [Blockchain Ledger](#7-blockchain-ledger)
 8. [Policies](#8-policies)
-9. [Sessions](#9-sessions)
-10. [WebSocket (Real-Time Events)](#10-websocket-real-time-events)
-11. [Pagination](#11-pagination)
-12. [Error Handling](#12-error-handling)
-13. [Role Permissions Matrix](#13-role-permissions-matrix)
-14. [Audit Logs](#14-audit-logs)
+9. [Terms and Conditions](#9-terms-and-conditions)
+10. [Sessions](#10-sessions)
+11. [WebSocket (Real-Time Events)](#11-websocket-real-time-events)
+12. [Pagination](#12-pagination)
+13. [Error Handling](#13-error-handling)
+14. [Role Permissions Matrix](#14-role-permissions-matrix)
+15. [Audit Logs](#15-audit-logs)
 
 ---
 
@@ -1114,8 +1115,6 @@ GET /policy
 
 **Roles:** `REGULATOR`, `COMPANY_MANAGER`, `COMPANY_USER`
 
-> **`mustChangePassword` exception:** This is the only endpoint accessible to users whose account has `mustChangePassword: true`. All other protected routes return `403 MUST_CHANGE_PASSWORD` until the password is changed via `POST /auth/change-password`.
-
 | Param | Type | Description |
 |-------|------|-------------|
 | `search` | string | Filter by title (case-insensitive, partial match) |
@@ -1251,11 +1250,162 @@ DELETE /policy/:id
 
 ---
 
-## 9. Sessions
+## 9. Terms and Conditions
+
+Terms and Conditions are **global** — a single shared set of legal documents visible to all company roles. Only `REGULATOR` and `SUPER_ADMIN` can create, update, or delete Terms and Conditions.
+
+### 9.1 Get All Terms and Conditions
+
+Retrieve the full list of global Terms and Conditions. Optionally filter by title.
+
+```
+GET /terms
+```
+
+**Roles:** `REGULATOR`, `COMPANY_MANAGER`, `AUDITOR`, `COMPANY_USER`
+
+> **`mustChangePassword` exception:** This is the only endpoint accessible to users whose account has `mustChangePassword: true`. All other protected routes return `403 MUST_CHANGE_PASSWORD` until the password is changed via `POST /auth/change-password`.
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `search` | string | Filter by title (case-insensitive, partial match) |
+
+**Examples:**
+
+```
+GET /terms
+GET /terms?search=privacy
+GET /terms?search=liability
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": [
+    {
+      "id": "507f1f77bcf86cd799439011",
+      "title": "General Terms and Conditions",
+      "content": "By using this service, you agree to the following terms...",
+      "version": "1.0",
+      "createdByUserId": "507f1f77bcf86cd799439012",
+      "updatedByUserId": "507f1f77bcf86cd799439012",
+      "createdAt": "2026-03-05T11:02:34.461Z",
+      "updatedAt": "2026-03-05T11:02:34.461Z"
+    }
+  ]
+}
+```
+
+### 9.2 Create Terms and Conditions
+
+```
+POST /terms
+```
+
+**Roles:** `REGULATOR`, `SUPER_ADMIN`
+
+**Request Body:**
+
+```json
+{
+  "title": "General Terms and Conditions",
+  "content": "By using this service, you agree to the following terms and conditions...",
+  "version": "1.0"
+}
+```
+
+| Field     | Type   | Required | Constraints          |
+|-----------|--------|----------|----------------------|
+| `title`   | string | Yes      | 3–200 characters      |
+| `content` | string | Yes      | 10–20,000 characters  |
+| `version` | string | No       | Max 20 chars, default `"1.0"` |
+
+**Response (201):**
+
+```json
+{
+  "ok": true,
+  "message": "Terms and Conditions created successfully",
+  "data": { /* TermsItem object */ }
+}
+```
+
+### 9.3 Update Terms and Conditions
+
+```
+PATCH /terms/:id
+```
+
+**Roles:** `REGULATOR`, `SUPER_ADMIN`
+
+> **Auto-versioning:** Every successful update automatically bumps the minor version (`"1.0"` → `"1.1"` → `"1.2"`, etc.) unless you explicitly supply a `version` in the body, in which case your value is used as-is.
+
+**Request Body** (all fields optional):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` | string (3–200) | New title |
+| `content` | string (10–20000) | New content |
+| `version` | string | Override auto-increment (e.g. `"2.0"`) |
+
+```json
+{
+  "title": "Updated Title",
+  "content": "Updated content text."
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "message": "Terms and Conditions updated successfully",
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "title": "Updated Title",
+    "content": "Updated content text.",
+    "version": "1.1",
+    "createdByUserId": "507f1f77bcf86cd799439010",
+    "updatedByUserId": "507f1f77bcf86cd799439010",
+    "createdAt": "2026-03-01T09:00:00.000Z",
+    "updatedAt": "2026-03-05T11:00:00.000Z"
+  }
+}
+```
+
+### 9.4 Delete Terms and Conditions
+
+```
+DELETE /terms/:id
+```
+
+**Roles:** `REGULATOR`, `SUPER_ADMIN`
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "message": "Terms and Conditions deleted successfully"
+}
+```
+
+**Error Codes:**
+
+| Status | Code                  | Description                                    |
+|--------|-----------------------|------------------------------------------------|
+| `404`  | `TERMS_NOT_FOUND`     | Terms and Conditions with given ID not found   |
+
+---
+
+## 10. Sessions
 
 Manage active login sessions for the authenticated user.
 
-### 9.1 List Active Sessions
+### 10.1 List Active Sessions
 
 ```
 GET /session
@@ -1278,7 +1428,7 @@ GET /session
 }
 ```
 
-### 9.2 Get Session Count
+### 10.2 Get Session Count
 
 ```
 GET /session/count
@@ -1295,7 +1445,7 @@ GET /session/count
 }
 ```
 
-### 9.3 Revoke All Sessions
+### 10.3 Revoke All Sessions
 
 Logout from all devices.
 
@@ -1329,11 +1479,11 @@ DELETE /session/:sessionId
 
 ---
 
-## 10. WebSocket (Real-Time Events)
+## 11. WebSocket (Real-Time Events)
 
 The API provides real-time push notifications via **Socket.IO** (WebSocket). Connected clients receive instant updates when invoices are uploaded, processed, flagged, or when assignments change — without polling.
 
-### 10.1 Connecting
+### 11.1 Connecting
 
 **URL:** `ws://localhost:5000` (same port as the REST API)
 
@@ -1353,7 +1503,7 @@ socket.on("connect_error", (err) => console.error("Auth failed:", err.message));
 
 **Authentication:** The server validates the JWT on handshake using the same `JWT_SECRET` and token blacklist as REST endpoints. Invalid, expired, or revoked tokens are rejected with a `connect_error`.
 
-### 10.2 Room Assignment (Automatic)
+### 11.2 Room Assignment (Automatic)
 
 Rooms are assigned **automatically** on connection based on the JWT payload — clients do not need to join rooms manually.
 
@@ -1365,7 +1515,7 @@ Rooms are assigned **automatically** on connection based on the JWT payload — 
 | `role:AUDITOR` | Auditors | Flagged invoice alerts |
 | `role:REGULATOR` | Regulators | Flagged invoice alerts |
 
-### 10.3 Events Reference
+### 11.3 Events Reference
 
 #### Invoice Pipeline Events
 
@@ -1400,7 +1550,7 @@ Rooms are assigned **automatically** on connection based on the JWT payload — 
 | `user:list:invalidate` | `role:SUPER_ADMIN` | — | A user was created or updated |
 | `org:list:invalidate` | `role:SUPER_ADMIN` | — | An organization was created |
 
-### 10.4 Listening for Events
+### 11.4 Listening for Events
 
 ```js
 // Invoice finished AI processing
@@ -1438,7 +1588,7 @@ socket.on("user:list:invalidate", () => {
 });
 ```
 
-### 10.5 Disconnecting
+### 11.5 Disconnecting
 
 ```js
 socket.disconnect();
@@ -1446,7 +1596,7 @@ socket.disconnect();
 
 The server automatically cleans up rooms when a client disconnects.
 
-### 10.6 Event Flow Diagram
+### 11.6 Event Flow Diagram
 
 ```
 ┌──────────────┐     upload      ┌──────────────┐  invoice:created  ┌──────────┐
@@ -1472,14 +1622,14 @@ The server automatically cleans up rooms when a client disconnects.
                                                                    Clients
 ```
 
-### 10.7 Notes
+### 11.7 Notes
 
 - **No polling needed**: Events push instantly when data changes. Use `*:list:invalidate` events as signals to refetch list data.
 - **Graceful degradation**: If the WebSocket connection drops, the REST API still works normally. Reconnect and the server re-assigns rooms from the JWT.
 - **AI Service bridge**: The AI Service (Python) does not use Socket.IO directly. It publishes events to Redis Pub/Sub (`channel:invoice`), and the Backend's Socket.IO layer subscribes and fans them to clients.
 - **Token expiry**: If the JWT expires while connected, the socket remains connected until the next reconnect attempt, which will fail authentication. Handle `connect_error` to redirect to login.
 
-### 10.8 Frontend Implementation Guide (Next.js)
+### 11.8 Frontend Implementation Guide (Next.js)
 
 Step-by-step guide for integrating WebSocket into the FinShield Next.js frontend.
 
@@ -1799,7 +1949,7 @@ FRONTEND/
 
 ---
 
-## 11. Pagination
+## 12. Pagination
 
 All list endpoints support a consistent pagination interface.
 
@@ -1853,7 +2003,7 @@ All paginated endpoints return:
 
 ---
 
-## 12. Error Handling
+## 13. Error Handling
 
 ### Standard Error Response
 
@@ -1901,7 +2051,7 @@ When request validation fails, the response includes field-level details:
 
 ---
 
-## 13. Role Permissions Matrix
+## 14. Role Permissions Matrix
 
 | Endpoint                              | SUPER_ADMIN | AUDITOR | REGULATOR | COMPANY_MANAGER | COMPANY_USER |
 |---------------------------------------|:-----------:|:-------:|:---------:|:---------------:|:------------:|
@@ -1939,6 +2089,10 @@ When request validation fails, the response includes field-level details:
 | `PATCH /policy/:id`                   | —           | —       | ✅        | —               | —            |
 | `DELETE /policy/:id`                  | —           | —       | ✅        | —               | —            |
 | `GET  /policy`                        | —           | —       | ✅        | ✅              | ✅           |
+| `POST /terms`                         | ✅          | —       | ✅        | —               | —            |
+| `PATCH /terms/:id`                    | ✅          | —       | ✅        | —               | —            |
+| `DELETE /terms/:id`                   | ✅          | —       | ✅        | —               | —            |
+| `GET  /terms`                         | —           | ✅      | ✅        | ✅              | ✅           |
 | `GET  /session`                       | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `GET  /session/count`                 | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `DELETE /session/all`                 | ✅          | ✅      | ✅        | ✅              | ✅           |
@@ -1956,11 +2110,11 @@ When request validation fails, the response includes field-level details:
 
 ---
 
-## 14. Audit Logs
+## 15. Audit Logs
 
 Append-only log of every significant action taken in the system. Accessible only to `SUPER_ADMIN`. Logs older than 90 days are automatically archived to S3 and hard-deleted from MongoDB nightly at 2 AM.
 
-### 14.1 List Audit Logs
+### 15.1 List Audit Logs
 
 ```
 GET /audit-logs
@@ -2037,6 +2191,7 @@ GET /audit-logs?search=admin
 | Invoices | `INVOICE_UPLOADED`, `INVOICE_FLAGGED` |
 | Reviews | `REVIEW_SUBMITTED`, `REVIEW_UPDATED` |
 | Policies | `POLICY_CREATED`, `POLICY_UPDATED`, `POLICY_DELETED` |
+| Terms and Conditions | `TERMS_CREATED`, `TERMS_UPDATED`, `TERMS_DELETED` |
 | Archival | `ARCHIVE_EXECUTED`, `ARCHIVE_ACCESSED` |
 
 > **Note:** `LOGIN_FAILED` is intentionally not logged.
@@ -2051,4 +2206,4 @@ GET /audit-logs?search=admin
 
 ### Real-Time Push
 
-Every audit log write emits `audit:created` via WebSocket to the `role:SUPER_ADMIN` room. See [Section 9 — WebSocket Events](#9-websocket-real-time-events).
+Every audit log write emits `audit:created` via WebSocket to the `role:SUPER_ADMIN` room. See [Section 11 — WebSocket Events](#11-websocket-real-time-events).

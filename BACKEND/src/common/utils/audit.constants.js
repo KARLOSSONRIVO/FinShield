@@ -45,6 +45,11 @@ export const AuditActions = {
     POLICY_CREATED:        "POLICY_CREATED",
     POLICY_UPDATED:        "POLICY_UPDATED",
     POLICY_DELETED:        "POLICY_DELETED",
+
+    // ─── Terms and Conditions ────────────────────────────────────────────────
+    TERMS_CREATED:         "TERMS_CREATED",
+    TERMS_UPDATED:         "TERMS_UPDATED",
+    TERMS_DELETED:         "TERMS_DELETED",
 };
 
 export const ALL_AUDIT_ACTIONS = Object.values(AuditActions);

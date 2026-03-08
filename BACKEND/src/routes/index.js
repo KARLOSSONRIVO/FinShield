@@ -12,6 +12,7 @@ import invoiceRouter from "./invoice/invoice.route.js";
 import blockchainRouter from "./blockchain/blockchain.route.js";
 import auditLogRouter from "./auditLog/auditLog.route.js";
 import policyRouter from "./policy/policy.route.js";
+import termsRouter from "./termsAndConditions/termsAndConditions.route.js";
 import docsRouter from "./docs/docs.route.js";
 
 
@@ -39,7 +40,7 @@ router.use(requireAuth);
 router.use(authenticatedLimiter);
 
 // Enforce password change for all authenticated routes (except change-password)
-router.use(enforceMustChangePassword({ exceptPaths: ["/auth/change-password", { method: "GET", path: "/policy" }] }))
+router.use(enforceMustChangePassword({ exceptPaths: ["/auth/change-password", { method: "GET", path: "/terms" }] }))
 
 router.use("/organization", organizationRouter)
 router.use("/user", userRouter);
@@ -48,4 +49,5 @@ router.use("/invoice", invoiceRouter)
 router.use("/blockchain", blockchainRouter)
 router.use("/audit-logs", auditLogRouter)
 router.use("/policy", policyRouter)
+router.use("/terms", termsRouter)
 export default router;
