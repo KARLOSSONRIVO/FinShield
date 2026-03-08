@@ -40,7 +40,7 @@ policyRouter.delete(
 // Get all global policies
 policyRouter.get(
     "/",
-    allowRoles("REGULATOR", "COMPANY_MANAGER", "COMPANY_USER"),
+    allowRoles("REGULATOR", "COMPANY_MANAGER", "COMPANY_USER","AUDITOR"),
     PolicyController.getPolicies
 );
 
