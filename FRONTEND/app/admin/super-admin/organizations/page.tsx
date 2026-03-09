@@ -28,8 +28,6 @@ export default function OrganizationsPage() {
     setNewOrgName,
     newOrgType,
     setNewOrgType,
-    newOrgEmployeeCount,
-    setNewOrgEmployeeCount,
     newOrgStatus,
     setNewOrgStatus,
     handleCreateOrg,
@@ -69,8 +67,6 @@ export default function OrganizationsPage() {
         setNewOrgName={setNewOrgName}
         newOrgType={newOrgType}
         setNewOrgType={setNewOrgType}
-        newOrgEmployeeCount={newOrgEmployeeCount}
-        setNewOrgEmployeeCount={setNewOrgEmployeeCount}
         newOrgStatus={newOrgStatus}
         setNewOrgStatus={setNewOrgStatus}
         onCreateOrg={handleCreateOrg}
@@ -80,7 +76,7 @@ export default function OrganizationsPage() {
         <SearchInput
           value={search || ""}
           onChange={setSearch}
-          placeholder="Search Organizations..."
+          placeholder="Search by organization name..."
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -90,13 +86,13 @@ export default function OrganizationsPage() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Sort By Date Created</DropdownMenuLabel>
+            <DropdownMenuLabel>Sort By</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'createdAt' || sortConfig?.direction === 'desc') requestSort('createdAt') }}>
-              <span className={sortConfig?.key === 'createdAt' && sortConfig.direction === 'asc' ? "font-bold text-primary" : ""}>Oldest First</span>
+            <DropdownMenuItem onClick={() => requestSort('createdAt', 'desc')}>
+              <span className={sortConfig?.key === 'createdAt' && sortConfig?.direction === 'desc' ? "font-bold text-primary" : ""}>Date Created (New - Old)</span>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'createdAt' || sortConfig?.direction === 'asc') requestSort('createdAt') }}>
-              <span className={sortConfig?.key === 'createdAt' && sortConfig.direction === 'desc' ? "font-bold text-primary" : ""}>Newest First</span>
+            <DropdownMenuItem onClick={() => requestSort('createdAt', 'asc')}>
+              <span className={sortConfig?.key === 'createdAt' && sortConfig?.direction === 'asc' ? "font-bold text-primary" : ""}>Date Created (Old - New)</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -108,7 +104,6 @@ export default function OrganizationsPage() {
         <OrganizationTable
           organizations={organizations}
           onEdit={handleEditOrg}
-          onDelete={handleDeleteOrg}
           pagination={pagination}
           onPageChange={setPage}
           sortBy={sortConfig?.key}

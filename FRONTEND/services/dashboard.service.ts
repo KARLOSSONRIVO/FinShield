@@ -1,4 +1,4 @@
-import { InvoiceService } from "./invoice.service"
+﻿import { InvoiceService } from "./invoice.service"
 
 export interface DashboardStats {
     totalRevenue: number
@@ -8,7 +8,7 @@ export interface DashboardStats {
     totalUsers?: number
     totalCompanies?: number
     pendingReviews?: number
-    fraudulentCount?: number
+    flaggedCount?: number
     companiesCount?: number
     verifiedOnChain?: number
     totalValue?: number
@@ -54,11 +54,15 @@ export const DashboardService = {
     },
 
     /**
-     * Get recent audit logs
+     * Get recent audit logs — returns the 5 most recent entries
      */
     getRecentLogs: async () => {
-        await new Promise(resolve => setTimeout(resolve, 400))
-        return []
+        const { AuditService } = await import("./audit.service")
+        const response = await AuditService.getLogs({ limit: 6, order: "desc" }) as any
+        // Handle raw array or paginated response
+        if (Array.isArray(response)) return response.slice(0, 6)
+        if (Array.isArray(response?.data)) return response.data.slice(0, 6)
+        return response?.data?.items?.slice(0, 6) ?? response?.items?.slice(0, 6) ?? []
     },
 
     getCompanyStats: async (): Promise<DashboardStats> => {
@@ -93,7 +97,7 @@ export const DashboardService = {
             companiesCount: 0,
             verifiedOnChain: invoices.filter(i => i.blockchain_txHash).length,
             totalValue: invoices.reduce((sum, inv) => sum + (inv.totals_total ?? 0), 0),
-            fraudulentCount: invoices.filter(i => i.status === "fraudulent").length
+            flaggedCount: invoices.filter(i => i.status === "flagged").length
         }
     }
 }

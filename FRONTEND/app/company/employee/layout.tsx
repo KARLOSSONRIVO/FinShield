@@ -10,8 +10,9 @@ import {
     FileText,
     Upload,
     AlertTriangle,
+    ScrollText,
 } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/hooks/global/use-auth"
 
 const employeeLinks: NavLink[] = [
     { href: "/company/employee", label: "Dashboard", icon: LayoutDashboard },

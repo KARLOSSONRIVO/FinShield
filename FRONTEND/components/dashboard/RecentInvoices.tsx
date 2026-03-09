@@ -7,27 +7,28 @@ import type { ListInvoice } from "@/lib/types"
 
 interface RecentInvoicesProps {
     invoices: ListInvoice[]
+    title?: string
+    description?: string
 }
 
 function getStatusColor(status: string) {
     switch (status) {
-        case "verified": return "bg-emerald-600 text-white"
-        case "flagged": return "bg-yellow-500 text-black"
-        case "fraudulent": return "bg-red-600 text-white"
+        case "clean": return "bg-emerald-600 text-white"
+        case "flagged": return "bg-red-600 text-white"
         case "anchored": return "bg-blue-500 text-white"
         default: return "bg-gray-400 text-white"
     }
 }
 
-export function RecentInvoices({ invoices }: RecentInvoicesProps) {
+export function RecentInvoices({ invoices, title = "Recent Invoices", description = "Latest invoice submissions" }: RecentInvoicesProps) {
     return (
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                     <FileText className="h-5 w-5" />
-                    Recent Invoices
+                    {title}
                 </CardTitle>
-                <CardDescription>Latest invoice submissions</CardDescription>
+                <CardDescription>{description}</CardDescription>
             </CardHeader>
             <CardContent>
                 {invoices.length === 0 ? (
@@ -35,7 +36,7 @@ export function RecentInvoices({ invoices }: RecentInvoicesProps) {
                         No invoices found.
                     </p>
                 ) : (
-                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                    <div className="space-y-4">
                         {invoices.map((invoice) => {
                             const id = invoice.id || (invoice as any)._id
                             return (
@@ -46,19 +47,32 @@ export function RecentInvoices({ invoices }: RecentInvoicesProps) {
                                         </div>
                                         <div>
                                             <p className="font-bold text-base">{invoice.invoiceNumber || "—"}</p>
-                                            <p className="text-xs font-medium text-muted-foreground">{invoice.company || "—"}</p>
+                                            <p className="text-xs font-medium text-muted-foreground">{invoice.companyName || "—"}</p>
                                         </div>
                                     </div>
                                     <div className="text-right space-y-1">
                                         <p className="text-xs font-medium text-muted-foreground">
-                                            {invoice.date ? new Date(invoice.date).toLocaleDateString() : "—"}
+                                            {(() => {
+                                                const dateStr = (invoice as any).blockchain?.anchoredAt || (invoice as any).anchoredAt || invoice.date || (invoice as any).createdAt
+                                                return dateStr ? new Date(dateStr).toLocaleDateString() : "—"
+                                            })()}
                                         </p>
                                         {invoice.amount != null && (
                                             <p className="text-sm font-bold">${invoice.amount.toLocaleString()}</p>
                                         )}
-                                        <Badge className={`${getStatusColor(invoice.status)} rounded-md px-2 py-0 text-[10px] font-bold capitalize`}>
-                                            {invoice.status}
-                                        </Badge>
+                                        <div className="flex items-center justify-end gap-2">
+                                            {invoice.aiVerdict?.riskScore !== undefined && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className={invoice.status === 'flagged' ? "bg-red-50 text-red-600 border-red-200 rounded-md px-2 py-0 text-[10px] font-bold" : "bg-emerald-50 text-emerald-600 border-emerald-200 rounded-md px-2 py-0 text-[10px] font-bold"}
+                                                >
+                                                    Risk: {invoice.aiVerdict.riskScore}%
+                                                </Badge>
+                                            )}
+                                            <Badge className={`${getStatusColor(invoice.status)} rounded-md px-2 py-0 text-[10px] font-bold capitalize`}>
+                                                {invoice.status}
+                                            </Badge>
+                                        </div>
                                     </div>
                                 </div>
                             )

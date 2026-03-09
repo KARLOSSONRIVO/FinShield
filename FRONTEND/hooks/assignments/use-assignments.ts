@@ -13,7 +13,7 @@ export interface RealAssignment {
     id: string;
     companyOrgId: string;
     auditorUserId: string;
-    status: "active" | "inactive";
+    status: "ACTIVE" | "INACTIVE";
     notes?: string;
     assignedAt?: string;
     assignedByUserId?: string;
@@ -77,7 +77,13 @@ export function useAssignments({ initialLimit = 10 } = {}) {
     const { data, isLoading: isLoadingAssignments, isError } = useQuery({
         queryKey: ["assignments", queryParams],
         queryFn: async () => {
-            const response = await AssignmentService.listAssignments(queryParams)
+            const allowedSortKeys = ["createdAt", "assignedAt", "status"]
+            const fetchParams = {
+                ...queryParams,
+                sortBy: queryParams.sortBy && allowedSortKeys.includes(queryParams.sortBy) ? queryParams.sortBy : undefined
+            }
+
+            const response = await AssignmentService.listAssignments(fetchParams)
 
             // Handle both unified PaginatedResponse or legacy array fallback
             // @ts-ignore
@@ -100,8 +106,7 @@ export function useAssignments({ initialLimit = 10 } = {}) {
         mutationFn: async () => {
             return await AssignmentService.createAssignment({
                 auditorUserId: newAssignment.auditorUserId,
-                companyOrgId: newAssignment.companyOrgId,
-                status: newAssignment.status
+                companyOrgId: newAssignment.companyOrgId
             })
         },
         onSuccess: () => {
@@ -116,8 +121,10 @@ export function useAssignments({ initialLimit = 10 } = {}) {
     })
 
     const updateAssignmentMutation = useMutation({
-        mutationFn: async ({ id, data }: { id: string, data: { status?: "active" | "inactive" | "ACTIVE" | "INACTIVE", notes?: string } }) => {
-            return await AssignmentService.updateAssignment(id, data)
+        mutationFn: async ({ id, data }: { id: string, data: { status?: "ACTIVE" | "INACTIVE" } }) => {
+            // API expects lowercase 'active'/'inactive' on write, even though it returns uppercase
+            const payload = { status: data.status!.toLowerCase() as "active" | "inactive" }
+            return await AssignmentService.updateAssignment(id, payload)
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["assignments"] })
@@ -179,8 +186,8 @@ export function useAssignments({ initialLimit = 10 } = {}) {
         handleCreateAssignment: () => createAssignmentMutation.mutate(),
         isCreating: createAssignmentMutation.isPending,
 
-        handleUpdateAssignment: (id: string, data: { status?: "active" | "inactive" | "ACTIVE" | "INACTIVE", notes?: string }) =>
-            updateAssignmentMutation.mutate({ id, data }),
+        handleUpdateAssignment: (id: string, status: "ACTIVE" | "INACTIVE") =>
+            updateAssignmentMutation.mutate({ id, data: { status } }),
 
         handleDeleteAssignment,
         isDeleting: deleteAssignmentMutation.isPending

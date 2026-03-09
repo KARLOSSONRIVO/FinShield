@@ -1,38 +1,65 @@
 "use client"
 
+import { useQuery } from "@tanstack/react-query"
+import { InvoiceService } from "@/services/invoice.service"
+
 export function useManagerReports() {
-    const companyInvoices: any[] = []
+    const { data: companyInvoices = [], isLoading } = useQuery({
+        queryKey: ["invoices", "manager-all"],
+        queryFn: async () => {
+            const res = await InvoiceService.list({ limit: 100 })
+            return res.data?.items || []
+        }
+    })
 
-    const totalValue = companyInvoices.reduce((sum, inv) => sum + (inv.totals_total ?? 0), 0)
+    const totalValue = companyInvoices.reduce((sum, inv) => sum + (Number(inv.amount || inv.totalAmount) || 0), 0)
 
-    const verifiedValue = companyInvoices
-        .filter((i) => i.status === "verified")
-        .reduce((sum, inv) => sum + (inv.totals_total ?? 0), 0)
+    const cleanValue = companyInvoices
+        .filter((i) =>
+            String(i.reviewDecision) === "approved" ||
+            (String(i.reviewDecision) !== "rejected" && (i.aiVerdict?.verdict === "clean" || (!i.aiVerdict?.verdict && String(i.status) !== "flagged" && String(i.status) !== "rejected")))
+        )
+        .reduce((sum, inv) => sum + (Number(inv.amount || inv.totalAmount) || 0), 0)
 
     const flaggedValue = companyInvoices
-        .filter((i) => i.status === "flagged" || i.ai_verdict === "flagged")
-        .reduce((sum, inv) => sum + (inv.totals_total ?? 0), 0)
-
-    const fraudulentValue = companyInvoices
-        .filter((i) => i.status === "fraudulent")
-        .reduce((sum, inv) => sum + (inv.totals_total ?? 0), 0)
+        .filter((i) =>
+            String(i.reviewDecision) === "rejected" ||
+            (String(i.reviewDecision) !== "approved" && (String(i.status) === "flagged" || i.aiVerdict?.verdict === "flagged" || String(i.status) === "rejected"))
+        )
+        .reduce((sum, inv) => sum + (Number(inv.amount || inv.totalAmount) || 0), 0)
 
     const statusCounts = {
-        verified: companyInvoices.filter((i) => i.status === "verified").length,
-        pending: companyInvoices.filter((i) => i.status === "pending").length,
-        flagged: companyInvoices.filter((i) => i.status === "flagged").length,
-        fraudulent: companyInvoices.filter((i) => i.status === "fraudulent").length,
+        approved: companyInvoices.filter((i) =>
+            String(i.status) === "approved" ||
+            String(i.reviewDecision) === "approved"
+        ).length,
+        rejected: companyInvoices.filter((i) =>
+            String(i.status) === "rejected" ||
+            String(i.reviewDecision) === "rejected"
+        ).length,
+        pending: companyInvoices.filter((i) =>
+            String(i.status) !== "approved" &&
+            String(i.reviewDecision) !== "approved" &&
+            String(i.status) !== "rejected" &&
+            String(i.reviewDecision) !== "rejected"
+        ).length,
     }
 
     const averageRiskScore = companyInvoices.length > 0
-        ? companyInvoices.reduce((sum, inv) => sum + (inv.ai_riskScore ?? 0), 0) / companyInvoices.length
+        ? companyInvoices.reduce((sum, inv) => sum + (Number(inv.aiVerdict?.riskScore) || 0), 0) / companyInvoices.length
         : 0
 
-    const cleanCount = companyInvoices.filter((i) => i.ai_verdict === "clean").length
-    const aiFlaggedCount = companyInvoices.filter((i) => i.ai_verdict === "flagged").length
+    const cleanCount = companyInvoices.filter((i) => i.aiVerdict?.verdict === "clean").length
+    const aiFlaggedCount = companyInvoices.filter((i) => i.aiVerdict?.verdict === "flagged").length
+
+    const fraudCount = companyInvoices.filter((i) =>
+        (String(i.status) === "flagged" || i.aiVerdict?.verdict === "flagged") &&
+        String(i.reviewDecision) !== "approved" &&
+        String(i.reviewDecision) !== "rejected"
+    ).length
 
     const fraudRate = companyInvoices.length > 0
-        ? (statusCounts.fraudulent / companyInvoices.length) * 100
+        ? (fraudCount / companyInvoices.length) * 100
         : 0
 
     return {
@@ -40,9 +67,8 @@ export function useManagerReports() {
         totalCount: companyInvoices.length,
         metrics: {
             totalValue,
-            verifiedValue,
+            cleanValue,
             flaggedValue,
-            fraudulentValue
         },
         statusCounts,
         riskMetrics: {
@@ -50,7 +76,8 @@ export function useManagerReports() {
             cleanCount,
             aiFlaggedCount,
             fraudRate,
-            fraudCount: statusCounts.fraudulent
-        }
+            fraudCount
+        },
+        isLoading
     }
 }

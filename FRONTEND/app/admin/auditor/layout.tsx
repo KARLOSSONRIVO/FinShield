@@ -11,7 +11,7 @@ import {
     AlertTriangle,
     Link2,
 } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/hooks/global/use-auth"
 
 const auditorLinks: NavLink[] = [
     { href: "/admin/auditor", label: "Dashboard", icon: LayoutDashboard },
@@ -35,6 +35,7 @@ export default function AuditorLayout({
         if (path.includes("/invoices")) return "Invoice Auditing"
         if (path.includes("/flagged")) return "Flagged Queue"
         if (path.includes("/blockchain")) return "Blockchain Ledger"
+        if (path.includes("/settings")) return "Profile Management"
         return "FinShield Auditor"
     }
 
@@ -61,8 +62,7 @@ export default function AuditorLayout({
                 <div className="sticky top-0 z-40">
                     <TopBar
                         title={title}
-                        userName={user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "Auditor User"}
-                        organizationName="Auditor Role"
+                        userName={user?.username}
                         profileLink="/admin/auditor/settings"
                         notifications={[
                             { title: "New Assignment", time: "1h ago", message: "You have been assigned to review Company 100." },
@@ -73,7 +73,7 @@ export default function AuditorLayout({
                 </div>
 
                 {/* Main Content */}
-                <main className="flex-1 w-full max-w-[100vw] overflow-x-hidden p-4 md:p-6 space-y-4">
+                <main className="flex-1 w-full max-w-[100vw] p-4 md:p-6 space-y-4">
                     {children}
                 </main>
             </div>

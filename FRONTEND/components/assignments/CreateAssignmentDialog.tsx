@@ -66,7 +66,7 @@ export function CreateAssignmentDialog({
               </SelectTrigger>
               <SelectContent className="border border-black rounded-lg">
                 {companies.map((company) => (
-                  <SelectItem key={company._id} value={company._id}>
+                  <SelectItem key={company.id ?? company._id ?? ''} value={company.id ?? company._id ?? ''}>
                     {company.name}
                   </SelectItem>
                 ))}
@@ -91,24 +91,6 @@ export function CreateAssignmentDialog({
                     {auditor.firstName} {auditor.lastName} ({(auditor as any).username})
                   </SelectItem>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="status" className="font-bold text-base">Status</Label>
-            <Select
-              value={newAssignment.status}
-              onValueChange={(value) =>
-                setNewAssignment({ ...newAssignment, status: value })
-              }
-            >
-              <SelectTrigger id="status" className="border border-black rounded-lg h-11 w-full">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent className="border border-black rounded-lg">
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
           </div>

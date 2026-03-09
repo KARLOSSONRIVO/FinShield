@@ -40,6 +40,9 @@ export default function AuditorFlaggedPage() {
         invoices={invoices}
         mode="auditor"
         baseUrl="/admin/auditor/invoices"
+        sortBy={sortConfig?.key}
+        order={sortConfig?.direction}
+        onSort={requestSort}
       />
 
       {/* Pagination Controls */}

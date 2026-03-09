@@ -45,14 +45,26 @@ export function ViewOrganizationDialog({
                         <div>
                             <label className="text-sm font-medium text-muted-foreground">Status</label>
                             <div className="mt-1">
-                                <Badge variant="outline" className={organization.status === 'ACTIVE' ? "bg-emerald-600 text-white border-0" : "bg-red-600 text-white border-0"}>
-                                    {organization.status}
+                                <Badge
+                                    variant="outline"
+                                    className={organization?.status?.toUpperCase() === 'ACTIVE'
+                                        ? "bg-emerald-600 text-white border-0"
+                                        : "bg-red-600 text-white border-0"
+                                    }
+                                >
+                                    {organization.status || "N/A"}
                                 </Badge>
                             </div>
                         </div>
                         <div className="col-span-2">
-                            <label className="text-sm font-medium text-muted-foreground">Organization ID</label>
-                            <p className="text-sm font-mono bg-muted p-2 rounded-md mt-1">{organization.id}</p>
+                            <label className="text-sm font-medium text-muted-foreground">Date Created</label>
+                            <p className="text-sm font-medium mt-1">
+                                {organization.createdAt ? new Date(organization.createdAt).toLocaleDateString(undefined, {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                }) : "N/A"}
+                            </p>
                         </div>
                     </div>
                 </div>

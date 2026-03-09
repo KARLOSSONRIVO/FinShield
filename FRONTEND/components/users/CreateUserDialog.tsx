@@ -127,7 +127,7 @@ export function CreateUserDialog({
                             <SelectContent className="border border-black rounded-lg">
                                 {organizations
                                     .map((org) => (
-                                        <SelectItem key={org._id} value={org._id}>
+                                        <SelectItem key={org.id || org._id || ""} value={org.id || org._id || ""}>
                                             {org.name}
                                         </SelectItem>
                                     ))}

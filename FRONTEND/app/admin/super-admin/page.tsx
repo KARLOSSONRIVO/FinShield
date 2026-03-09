@@ -1,6 +1,6 @@
 "use client"
 
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/hooks/global/use-auth"
 import { StatsCard } from "@/components/dashboard/StatsCard"
 import { Building2, FileText, AlertTriangle, CheckCircle } from "lucide-react"
 
@@ -11,6 +11,8 @@ import { DashboardContentSkeleton } from "@/components/skeletons/dashboard-conte
 
 export default function SuperAdminDashboard() {
   const { user } = useAuth()
+  const shouldFetch = !user?.mustChangePassword
+
   const {
     companiesCount,
     totalUsers,
@@ -19,8 +21,12 @@ export default function SuperAdminDashboard() {
     flaggedCount,
     recentLogs,
     recentInvoices,
-    loading // Destructure loading
-  } = useSuperAdminDashboard()
+    loading
+  } = useSuperAdminDashboard({ enabled: shouldFetch })
+
+  if (!shouldFetch) {
+    return null
+  }
 
   return (
     <>

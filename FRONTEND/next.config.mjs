@@ -1,16 +1,27 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'date-fns', 'recharts'],
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
   images: {
     unoptimized: true,
   },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production" ? true : false,
+  },
+  poweredByHeader: false,
   async headers() {
     return [
       {
         source: '/:path*',
         headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src 'self' http: https: ws: wss:; object-src 'self' data: https:; frame-src 'self' https:; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
+          },
           {
             key: 'X-DNS-Prefetch-Control',
             value: 'on'

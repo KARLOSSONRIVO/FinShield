@@ -1,84 +1,89 @@
 "use client"
 
-import { Card, CardContent } from "@/components/ui/card"
-import { AlertTriangle, TrendingUp, XCircle, Clock } from "lucide-react"
-import { StatsCard } from "@/components/dashboard/StatsCard"
-import { AlertCardList } from "@/components/alerts/AlertCardList"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
+import { InvoiceTable } from "@/components/invoices/InvoiceTable"
+import { useFlaggedQueue } from "@/hooks/flagged/use-flagged-queue"
+import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 
-
-export default function ManagerAlertsPage() {
-  // Mock data filtering
-  const companyInvoices: any[] = []
-  const flaggedInvoices: any[] = []
-  const fraudulentInvoices: any[] = []
-  const pendingInvoices: any[] = []
-  const highRiskInvoices: any[] = []
+export default function ManagerFlaggedPage() {
+  const {
+    search,
+    setSearch,
+    statusFilter,
+    setStatusFilter,
+    invoices,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    sortConfig,
+    requestSort,
+    isLoading
+  } = useFlaggedQueue()
 
   return (
-    <div className="space-y-6">
+    <div className="bg-transparent space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Alerts</h2>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Flagged Invoices Queue
+        </h1>
       </div>
 
-      {/* Stats Logic matched to screenshot: Flagged Invoices Section */}
-      <div className="space-y-2">
+      <InvoiceFilter
+        search={search || ""}
+        onSearchChange={setSearch}
+        sortConfig={sortConfig as any}
+        onSortChange={requestSort}
+      />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatsCard
-            title="Flagged Items"
-            value={flaggedInvoices.length}
-            icon={AlertTriangle}
-            iconClassName="text-amber-500"
-            className="border-l-4 border-l-amber-500"
+      {isLoading ? (
+        <InvoiceTableSkeleton />
+      ) : (
+        <>
+          <InvoiceTable
+            invoices={invoices as any[]}
+            mode="manager"
+            baseUrl="/company/manager/invoices"
+            sortBy={sortConfig?.key as any}
+            order={sortConfig?.direction}
+            onSort={requestSort}
           />
-          <StatsCard
-            title="Fraudulent Items"
-            value={fraudulentInvoices.length}
-            icon={XCircle}
-            iconClassName="text-red-500"
-            className="border-l-4 border-l-red-500"
-          />
-          <StatsCard
-            title="High-Risk"
-            value={highRiskInvoices.length}
-            icon={TrendingUp}
-            iconClassName="text-blue-500"
-            className="border-l-4 border-l-blue-500"
-          />
-          <StatsCard
-            title="Pending"
-            value={pendingInvoices.length}
-            icon={Clock}
-            iconClassName="text-gray-500"
-            className="border-l-4 border-l-gray-500"
-          />
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AlertCardList
-          title="AI Fraud Flagged"
-          description="Invoices flagged by AI"
-          invoices={fraudulentInvoices}
-          type="fraudulent"
-        />
-        <AlertCardList
-          title="AI Fraud Flagged"
-          description="Invoices flagged by AI"
-          invoices={flaggedInvoices}
-          type="flagged"
-        />
-      </div>
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="mt-8 flex items-center justify-center gap-2">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-500 disabled:opacity-50"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
 
-      {/* Pending Review Full Width */}
-      <div className="w-full">
-        <AlertCardList
-          title="Pending Review"
-          description="Invoices waiting for auditor review"
-          invoices={pendingInvoices}
-          type="pending"
-        />
-      </div>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${currentPage === page
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "text-gray-600 hover:bg-gray-100"
+                    }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-500 disabled:opacity-50"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }

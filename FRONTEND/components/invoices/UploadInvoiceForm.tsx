@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Upload, FileText, CheckCircle, X, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCreateInvoice } from "@/hooks/invoices/use-create-invoice"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/hooks/global/use-auth"
 
 export function UploadInvoiceForm() {
     const [isDragging, setIsDragging] = useState(false)

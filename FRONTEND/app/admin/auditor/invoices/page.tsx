@@ -1,15 +1,29 @@
 "use client"
 
-import { ChevronLeft, ChevronRight } from "lucide-react"
-
+import { useContext, useCallback } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 import { useAuditorInvoices } from "@/hooks/invoices/use-auditor-invoices"
 import { DataPagination } from "@/components/common/DataPagination"
-import type { Invoice } from "@/lib/types"
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
+import { SocketContext } from "@/providers/socket-provider"
+import { useSocketEvent } from "@/hooks/global/use-socket-event"
+import { SocketEvents } from "@/lib/socket-events"
 
 export default function AuditorInvoicesPage() {
+  const queryClient = useQueryClient()
+  const socketCtx = useContext(SocketContext)
+
+  // Auto-refresh list when AI finishes or a new invoice arrives
+  const invalidateList = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["invoices"] })
+  }, [queryClient])
+
+  useSocketEvent(socketCtx!, SocketEvents.INVOICE_AI_COMPLETE, invalidateList)
+  useSocketEvent(socketCtx!, SocketEvents.INVOICE_CREATED, invalidateList)
+  useSocketEvent(socketCtx!, SocketEvents.INVOICE_LIST_INVALIDATE, invalidateList)
+
   const {
     search,
     setSearch,
@@ -20,7 +34,7 @@ export default function AuditorInvoicesPage() {
     setPage,
     sortConfig,
     requestSort,
-    isLoading // Destructure isLoading
+    isLoading
   } = useAuditorInvoices()
 
   return (

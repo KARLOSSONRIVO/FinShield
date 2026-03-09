@@ -10,12 +10,12 @@ interface CreateUserRequest {
 }
 
 export const UserService = {
-    listUsers: async (params?: PaginationQuery & { orgId?: string }): Promise<PaginatedResponse<User>> => {
+    listUsers: async (params?: PaginationQuery & { orgId?: string, sortBy?: 'createdAt' | 'username' | 'email' | 'role' | 'lastLoginAt' }): Promise<PaginatedResponse<User>> => {
         const { data } = await apiClient.get<PaginatedResponse<User>>("/user/listUsers", { params })
         return data
     },
 
-    listEmployees: async (params?: PaginationQuery): Promise<PaginatedResponse<User>> => {
+    listEmployees: async (params?: PaginationQuery & { sortBy?: 'createdAt' | 'username' | 'email' }): Promise<PaginatedResponse<User>> => {
         const { data } = await apiClient.get<PaginatedResponse<User>>("/user/listEmployees", { params })
         return data
     },

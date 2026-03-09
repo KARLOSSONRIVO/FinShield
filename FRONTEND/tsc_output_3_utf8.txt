@@ -1,3 +1,0 @@
-﻿components/dashboard/EmployeeRecentInvoices.tsx(44,85): error TS18047: 'invoice.totals_total' is possibly 'null'.
-hooks/auditor/flagged/use-auditor-flagged-queue.ts(54,13): error TS18048: 'i.ai_riskScore' is possibly 'undefined'.
-hooks/company-manager/dashboard/use-manager-dashboard.ts(9,67): error TS18047: 'inv.totals_total' is possibly 'null'.

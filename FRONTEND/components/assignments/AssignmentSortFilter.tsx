@@ -20,9 +20,6 @@ interface AssignmentSortFilterProps {
 }
 
 export function AssignmentSortFilter({ sortConfig, onSortChange }: AssignmentSortFilterProps) {
-    const isSortedByAssignedAt = sortConfig?.key === "assignedAt"
-    const isSortedByStatus = sortConfig?.key === "status"
-
     const handleSort = (key: AssignmentSortKey, direction: SortDirection) => {
         onSortChange({ key, direction })
     }
@@ -37,27 +34,25 @@ export function AssignmentSortFilter({ sortConfig, onSortChange }: AssignmentSor
             </PopoverTrigger>
             <PopoverContent className="w-56 p-0" align="end">
                 <div className="py-2">
-                    <div className="px-3 py-2 text-sm font-medium text-foreground">Sort By Date Assigned</div>
-                    <div className="px-1">
+                    <div className="px-3 py-2 text-sm font-medium text-foreground border-b mb-1 pb-2">Sort By</div>
+                    <div className="px-1 flex flex-col gap-1">
                         <button
                             onClick={() => handleSort("assignedAt", "desc")}
                             className={cn(
                                 "w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors flex items-center justify-between",
-                                isSortedByAssignedAt && sortConfig.direction === "desc" && "text-emerald-600 font-medium bg-emerald-50"
+                                sortConfig?.key === "assignedAt" && sortConfig?.direction === "desc" && "text-emerald-600 font-medium bg-emerald-50"
                             )}
                         >
-                            Newest First
-                            {isSortedByAssignedAt && sortConfig.direction === "desc" && <ChevronDown className="h-4 w-4" />}
+                            Assigned Date (New - Old)
                         </button>
                         <button
                             onClick={() => handleSort("assignedAt", "asc")}
                             className={cn(
                                 "w-full text-left px-2 py-1.5 text-sm rounded-md hover:bg-muted transition-colors flex items-center justify-between",
-                                isSortedByAssignedAt && sortConfig.direction === "asc" && "text-emerald-600 font-medium bg-emerald-50"
+                                sortConfig?.key === "assignedAt" && sortConfig?.direction === "asc" && "text-emerald-600 font-medium bg-emerald-50"
                             )}
                         >
-                            Oldest First
-                            {isSortedByAssignedAt && sortConfig.direction === "asc" && <ChevronUp className="h-4 w-4" />}
+                            Assigned Date (Old - New)
                         </button>
                     </div>
                 </div>

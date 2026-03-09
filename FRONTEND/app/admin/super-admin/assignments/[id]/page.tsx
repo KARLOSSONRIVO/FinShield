@@ -35,32 +35,25 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { useState, useMemo } from "react"
-import { mockAssignments, mockUsers, mockOrganizations } from "@/lib/mock-data"
+import { useState } from "react"
 import { CompanyAssignment } from "@/lib/types"
+import { useAssignments } from "@/hooks/assignments/use-assignments"
+import { useUsers } from "@/hooks/users/use-super-admin-users"
+import { useOrganizations } from "@/hooks/organizations/use-organizations"
 
 export default function AssignmentDetailPage() {
     const params = useParams()
     const username = params.id as string
 
+    // API Hooks
+    const { assignments, handleCreateAssignment } = useAssignments({ initialLimit: 100 })
+    const { users } = useUsers({ initialLimit: 100 })
+    const { organizations } = useOrganizations({ initialLimit: 100 })
+
     // Find auditor
-    const auditor = mockUsers.find(u => u.username === username)
+    const auditor = users.find(u => u.username === username || u.id === username || u._id === username)
     const auditorName = auditor ? auditor.username : username
 
-    // State for local assignments (to simulate adding new ones)
-    const [localAssignments, setLocalAssignments] = useState<CompanyAssignment[]>(() => {
-        // Filter initial assignments for this auditor
-        return mockAssignments.filter(a => {
-            // Match by auditor ID if we had a way to map username -> ID reliably, 
-            // or just cheat for the mockup if IDs don't match usernames perfectly.
-            // Converting username to ID for mock data consistency:
-            // mockUsers has "user-auditor-1" with username "auditor1"
-            if (!auditor) return false
-            return a.auditorUserId === auditor._id
-        }).sort((a, b) => new Date(b.assignedAt).getTime() - new Date(a.assignedAt).getTime())
-    })
-
-    // Add Assignment State
     const [isAddOpen, setIsAddOpen] = useState(false)
     const [newAssignmentData, setNewAssignmentData] = useState<{
         companyName: string
@@ -72,28 +65,20 @@ export default function AssignmentDetailPage() {
         dueDate: undefined
     })
 
-    // View Assignment State
     const [viewAssignment, setViewAssignment] = useState<CompanyAssignment | null>(null)
     const [isViewOpen, setIsViewOpen] = useState(false)
 
-    // Handlers
-    const handleAddAssignment = () => {
+    const handleAddAssignment = async () => {
         if (!newAssignmentData.companyName || !newAssignmentData.taskName || !newAssignmentData.dueDate) return
 
-        const company = mockOrganizations.find(o => o.name === newAssignmentData.companyName)
-        const newAssign: CompanyAssignment = {
-            _id: `new-${Date.now()}`,
-            companyOrgId: company ? company._id : "unknown",
-            auditorUserId: auditor ? auditor._id : "unknown",
-            status: "active",
-            assignedByUserId: "current-user",
-            assignedAt: new Date(),
-            taskName: newAssignmentData.taskName,
-            dueDate: newAssignmentData.dueDate,
-            // notes: undefined // Explicitly no notes
-        }
+        const company = organizations.find(o => o.name === newAssignmentData.companyName)
 
-        setLocalAssignments([newAssign, ...localAssignments])
+        await handleCreateAssignment({
+            companyOrgId: company ? company._id || company.id : "",
+            auditorUserId: auditor ? auditor._id || auditor.id || "" : "",
+            notes: newAssignmentData.taskName // API doesn't have taskName natively, shoving to notes
+        })
+
         setIsAddOpen(false)
         setNewAssignmentData({ companyName: "", taskName: "", dueDate: undefined })
     }
@@ -103,13 +88,13 @@ export default function AssignmentDetailPage() {
         setIsViewOpen(true)
     }
 
-    // Tabs logic
-    const activeAssignments = localAssignments.filter(a => a.status === 'active')
-    const inactiveAssignments = localAssignments.filter(a => a.status === 'inactive')
+    // Filter assignments for this auditor
+    const auditorAssignments = assignments.filter(a => a.auditorUserId === auditor?._id || a.auditorUserId === auditor?.id) as CompanyAssignment[]
+    const activeAssignments = auditorAssignments.filter(a => a.status === 'ACTIVE' || a.status === 'active')
+    const inactiveAssignments = auditorAssignments.filter(a => a.status === 'INACTIVE' || a.status === 'inactive')
 
-    // Helper to get company name
     const getCompanyName = (orgId: string) => {
-        const org = mockOrganizations.find(o => o._id === orgId)
+        const org = organizations.find(o => o._id === orgId || o.id === orgId)
         return org ? org.name : "Unknown Company"
     }
 

@@ -216,8 +216,12 @@
 
   .no-scrollbar {
     -ms-overflow-style: none;
-    /* IE and Edge */
     scrollbar-width: none;
-    /* Firefox */
   }
+}
+
+/* Override radio indicator colour inside the review decision form */
+.review-radio [data-state="checked"] {
+  border-color: var(--foreground) !important;
+  color: var(--foreground) !important;
 }

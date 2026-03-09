@@ -14,8 +14,9 @@ import {
     Link2,
     ScrollText,
     UserPlus,
+    Shield,
 } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/hooks/global/use-auth"
 
 const superAdminLinks: NavLink[] = [
     { href: "/admin/super-admin", label: "Dashboard", icon: LayoutDashboard },
@@ -26,6 +27,8 @@ const superAdminLinks: NavLink[] = [
     { href: "/admin/super-admin/flagged", label: "Flagged Queue", icon: AlertTriangle },
     { href: "/admin/super-admin/blockchain", label: "Blockchain Ledger", icon: Link2 },
     { href: "/admin/super-admin/audit-logs", label: "Audit Logs", icon: ScrollText },
+    { href: "/admin/super-admin/policy", label: "Policy", icon: Shield },
+    { href: "/admin/super-admin/terms", label: "Terms", icon: ScrollText },
 ]
 
 export default function SuperAdminLayout({
@@ -47,6 +50,8 @@ export default function SuperAdminLayout({
         if (path.includes("/flagged")) return "Flagged Queue"
         if (path.includes("/blockchain")) return "Blockchain Ledger"
         if (path.includes("/audit-logs")) return "Audit Logs"
+        if (path.includes("/policy")) return "Policy Management"
+        if (path.includes("/terms")) return "Terms Management"
         return "FinShield Admin"
     }
 
@@ -83,7 +88,7 @@ export default function SuperAdminLayout({
                 </div>
 
                 {/* Main Content */}
-                <main className="flex-1 w-full max-w-[100vw] overflow-x-hidden p-4 md:p-6 space-y-4">
+                <main className="flex-1 w-full max-w-[100vw] p-4 md:p-6 space-y-4">
                     {children}
                 </main>
             </div>

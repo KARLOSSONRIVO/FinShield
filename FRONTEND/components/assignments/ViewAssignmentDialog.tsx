@@ -55,7 +55,7 @@ export function ViewAssignmentDialog({
 
                         <div className="col-span-2">
                             <label className="text-sm font-medium text-muted-foreground">Notes</label>
-                            <div className="bg-muted p-3 rounded-md mt-1 text-sm italic">
+                            <div className="bg-muted p-3 rounded-md mt-1 text-sm italic max-h-32 overflow-y-auto">
                                 {assignment.notes || "No notes provided."}
                             </div>
                         </div>

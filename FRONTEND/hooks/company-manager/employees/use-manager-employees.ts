@@ -14,7 +14,6 @@ export function useManagerEmployees() {
     const queryClient = useQueryClient()
     const [search, setSearch] = useState("")
     const [isCreateOpen, setIsCreateOpen] = useState(false)
-    const [disableUserId, setDisableUserId] = useState<string | null>(null)
     const [disableReason, setDisableReason] = useState("")
     const [newUser, setNewUser] = useState({ email: "", username: "", role: "COMPANY_USER", orgId: "" })
     const [createError, setCreateError] = useState<string | null>(null)
@@ -23,6 +22,7 @@ export function useManagerEmployees() {
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 10
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: "createdAt", direction: "desc" })
+    const [localStatusSort, setLocalStatusSort] = useState<"asc" | "desc" | null>(null)
 
     // Build query params
     const queryParams = {
@@ -37,21 +37,28 @@ export function useManagerEmployees() {
         queryFn: () => UserService.listEmployees(queryParams)
     })
 
-    const users = response?.data?.items || []
+    let users = response?.data?.items || []
+    if (localStatusSort) {
+        users = [...users].sort((a: any, b: any) => {
+            // Active vs Disabled (ACTIVE is "active", INACTIVE is "disabled" or something similar)
+            const sA = a.status || ""
+            const sB = b.status || ""
+            return localStatusSort === "asc" ? sA.localeCompare(sB) : sB.localeCompare(sA)
+        })
+    }
     const totalPages = response?.data?.pagination?.totalPages || 1
 
-    const requestSort = (key: any) => {
+    const requestSort = (key: any, forceDirection?: "asc" | "desc") => {
         // Translate table header keys if necessary, or just use the mapped keys
         let validKey: "username" | "email" | "createdAt" = "createdAt"
         if (key === "username" || key === "email" || key === "createdAt") {
             validKey = key
-        } else if (key === "status") {
-            // The API doesn't formally support "status" sorting per Swagger, but fallback to createdAt
-            validKey = "createdAt"
         }
 
         let direction: "asc" | "desc" = "asc"
-        if (sortConfig && sortConfig.key === validKey && sortConfig.direction === "asc") {
+        if (forceDirection) {
+            direction = forceDirection
+        } else if (sortConfig && sortConfig.key === validKey && sortConfig.direction === "asc") {
             direction = "desc"
         }
         setSortConfig({ key: validKey, direction })
@@ -82,20 +89,20 @@ export function useManagerEmployees() {
         createMutation.mutate()
     }
 
-    const disableMutation = useMutation({
-        mutationFn: (userId: string) => UserService.updateUserStatus(userId, "disabled"),
+    const updateStatusMutation = useMutation({
+        mutationFn: ({ id, status, reason }: { id: string; status: "ACTIVE" | "INACTIVE"; reason?: string }) =>
+            UserService.updateUserStatus(id, status === "INACTIVE" ? "disabled" : "active", reason || undefined),
         onSuccess: () => {
-            toast.success(`Employee disabled successfully`)
-            setDisableUserId(null)
+            toast.success(`Employee status updated successfully`)
             queryClient.invalidateQueries({ queryKey: ["manager-employees"] })
         },
         onError: (err: any) => {
-            toast.error(err.response?.data?.message || "Failed to disable employee")
+            toast.error(err.response?.data?.message || "Failed to update employee status")
         }
     })
 
-    const handleDisableUser = (userId: string) => {
-        disableMutation.mutate(userId)
+    const handleUpdateStatus = (id: string, status: "ACTIVE" | "INACTIVE", reason?: string) => {
+        updateStatusMutation.mutate({ id, status, reason })
     }
 
     return {
@@ -103,24 +110,19 @@ export function useManagerEmployees() {
         setSearch,
         isCreateOpen,
         setIsCreateOpen,
-        disableUserId,
-        setDisableUserId, // Expose setter
-        disableReason,
-        setDisableReason,
         newUser,
         setNewUser,
-        createError,
-        setCreateError,
-
         users,
         handleCreateUser,
-        handleDisableUser,
+        handleUpdateStatus,
 
         currentPage,
         totalPages,
         setCurrentPage,
         sortConfig,
         requestSort,
+        localStatusSort,
+        setLocalStatusSort,
         isLoading
     }
 }

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
@@ -49,14 +49,14 @@ export function RiskAnalysis({
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-bold text-foreground">Average Risk Score</span>
                             <span className="font-bold">
-                                {(averageRiskScore * 100).toFixed(0)}%
+                                {averageRiskScore.toFixed(0)}%
                             </span>
                         </div>
                         <div className="w-full bg-secondary rounded-full h-3 border border-black/5">
                             <div
                                 className="bg-gradient-to-r from-yellow-400 to-emerald-500 h-3 rounded-full"
                                 style={{
-                                    width: `${averageRiskScore * 100}%`,
+                                    width: `${averageRiskScore}%`,
                                 }}
                             />
                         </div>
@@ -83,7 +83,7 @@ export function RiskAnalysis({
                             {fraudRate.toFixed(1)}%
                         </p>
                         <p className="text-[10px] opacity-80 mt-1">
-                            {fraudCount} fraudulent out of {totalInvoices} invoices
+                            {fraudCount} flagged out of {totalInvoices} invoices
                         </p>
                     </div>
                 </div>

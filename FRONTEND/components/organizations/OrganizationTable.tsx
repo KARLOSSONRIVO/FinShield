@@ -15,23 +15,30 @@ import { DataPagination } from "../common/DataPagination"
 import { useState } from "react"
 import { ViewOrganizationDialog } from "./ViewOrganizationDialog"
 import { EditOrganizationDialog } from "./EditOrganizationDialog"
-import { DeleteOrganizationDialog } from "./DeleteOrganizationDialog"
 
 interface OrganizationTableProps {
     organizations: any[]
     onEdit: (org: Organization) => void
-    onDelete: (id: string) => void
     pagination?: PaginationDetails
     onPageChange?: (page: number) => void
     sortBy?: string
     order?: "asc" | "desc"
     onSort?: (field: string) => void
+    isUpdating?: boolean
 }
 
-export function OrganizationTable({ organizations, onEdit, onDelete, pagination, onPageChange, sortBy, order, onSort }: OrganizationTableProps) {
+export function OrganizationTable({
+    organizations,
+    onEdit,
+    pagination,
+    onPageChange,
+    sortBy,
+    order,
+    onSort,
+    isUpdating = false
+}: OrganizationTableProps) {
     const [viewOrg, setViewOrg] = useState<Organization | null>(null)
     const [editOrg, setEditOrg] = useState<Organization | null>(null)
-    const [deleteOrg, setDeleteOrg] = useState<Organization | null>(null)
 
     return (
         <>
@@ -58,11 +65,10 @@ export function OrganizationTable({ organizations, onEdit, onDelete, pagination,
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {/* DEBUG INFO REMOVED to fix render error */}
                         {organizations.length === 0 ? (
                             <TableRow>
                                 <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                                    No organizations found. (Length: {organizations.length})
+                                    No organizations found.
                                 </TableCell>
                             </TableRow>
                         ) : (
@@ -92,6 +98,7 @@ export function OrganizationTable({ organizations, onEdit, onDelete, pagination,
                                                 size="sm"
                                                 className="bg-[#3b5998] hover:bg-[#3b5998]/90 text-white font-bold h-8 px-4 rounded-md text-xs"
                                                 onClick={() => setViewOrg(org)}
+                                                disabled={isUpdating}
                                             >
                                                 View
                                             </Button>
@@ -99,15 +106,9 @@ export function OrganizationTable({ organizations, onEdit, onDelete, pagination,
                                                 size="sm"
                                                 className="bg-[#f59e0b] hover:bg-[#f59e0b]/90 text-white font-bold h-8 px-4 rounded-md text-xs"
                                                 onClick={() => setEditOrg(org)}
+                                                disabled={isUpdating}
                                             >
                                                 Edit
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                className="bg-[#ef4444] hover:bg-[#ef4444]/90 text-white font-bold h-8 px-4 rounded-md text-xs"
-                                                onClick={() => setDeleteOrg(org)}
-                                            >
-                                                Delete
                                             </Button>
                                         </div>
                                     </TableCell>
@@ -129,17 +130,7 @@ export function OrganizationTable({ organizations, onEdit, onDelete, pagination,
                 onOpenChange={(open) => !open && setEditOrg(null)}
                 organization={editOrg}
                 onSave={onEdit}
-            />
-
-            <DeleteOrganizationDialog
-                open={!!deleteOrg}
-                onOpenChange={(open) => !open && setDeleteOrg(null)}
-                organization={deleteOrg}
-                onConfirm={() => {
-                    const id = deleteOrg?._id || (deleteOrg as any)?.id;
-                    if (id) onDelete(id);
-                    setDeleteOrg(null);
-                }}
+                isLoading={isUpdating}
             />
 
             {pagination && onPageChange && (

@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils"
 import { PaginationDetails } from "@/lib/types"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 interface DataPaginationProps {
     pagination?: PaginationDetails
@@ -11,18 +12,17 @@ export function DataPagination({ pagination, onPageChange }: DataPaginationProps
 
     const { page: currentPage, totalPages } = pagination
 
-    // Generate page numbers to show
     const getPageNumbers = () => {
         const pages: (number | string)[] = []
         if (totalPages <= 7) {
             for (let i = 1; i <= totalPages; i++) pages.push(i)
         } else {
-            if (currentPage <= 3) {
-                pages.push(1, 2, 3, 4, '...', totalPages)
-            } else if (currentPage >= totalPages - 2) {
-                pages.push(1, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages)
+            if (currentPage <= 4) {
+                pages.push(1, 2, 3, 4, 5, '...', totalPages)
+            } else if (currentPage >= totalPages - 3) {
+                pages.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages)
             } else {
-                pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages)
+                pages.push(1, '...', currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2, '...', totalPages)
             }
         }
         return pages
@@ -34,11 +34,11 @@ export function DataPagination({ pagination, onPageChange }: DataPaginationProps
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage <= 1}
                 className={cn(
-                    "hover:text-foreground transition-colors px-2",
+                    "hover:text-foreground transition-colors p-2 rounded hover:bg-muted/50",
                     currentPage <= 1 && "opacity-50 cursor-not-allowed pointer-events-none"
                 )}
             >
-                &lt;&lt; Prev
+                <ChevronLeft className="h-4 w-4" />
             </button>
 
             {getPageNumbers().map((p, i) => {
@@ -68,11 +68,11 @@ export function DataPagination({ pagination, onPageChange }: DataPaginationProps
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage >= totalPages}
                 className={cn(
-                    "hover:text-foreground transition-colors px-2",
+                    "hover:text-foreground transition-colors p-2 rounded hover:bg-muted/50",
                     currentPage >= totalPages && "opacity-50 cursor-not-allowed pointer-events-none"
                 )}
             >
-                Next &gt;&gt;
+                <ChevronRight className="h-4 w-4" />
             </button>
         </div>
     )

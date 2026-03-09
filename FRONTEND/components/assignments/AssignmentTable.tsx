@@ -8,10 +8,19 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Building2, Pencil, Trash2, ChevronUp, ChevronDown } from "lucide-react"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { Building2, Trash2, ChevronUp, ChevronDown } from "lucide-react"
 import { RealAssignment } from "@/hooks/assignments/use-assignments"
 import { DeleteAssignmentDialog } from "./DeleteAssignmentDialog"
-import { EditAssignmentDialog } from "./EditAssignmentDialog"
 import { useAssignments } from "@/hooks/assignments/use-assignments"
 import { PaginationDetails } from "@/lib/types"
 import { DataPagination } from "../common/DataPagination"
@@ -19,7 +28,7 @@ import { DataPagination } from "../common/DataPagination"
 interface AssignmentTableProps {
     assignments: RealAssignment[]
     onDelete: (id: string) => void
-    onUpdate: (id: string, data: { status?: "active" | "inactive"; notes?: string }) => void
+    onUpdate: (id: string, status: "ACTIVE" | "INACTIVE") => void
     companies: Organization[]
     auditors: User[]
     pagination?: PaginationDetails
@@ -62,7 +71,7 @@ type User = components["schemas"]["User"]
 export interface RealAssignmentTableProps {
     assignments: RealAssignment[]
     onDelete: (id: string) => void
-    onUpdate: (id: string, data: { status?: "active" | "inactive"; notes?: string }) => void
+    onUpdate: (id: string, status: "ACTIVE" | "INACTIVE") => void
     companies: Organization[]
     auditors: User[]
     pagination?: PaginationDetails
@@ -74,7 +83,7 @@ export interface RealAssignmentTableProps {
 
 export function AssignmentTableContent({ assignments, onDelete, onUpdate, companies = [], auditors = [], pagination, onPageChange, sortBy, order, onSort }: RealAssignmentTableProps & { companies?: any[], auditors?: any[] }) {
     const [assignmentToDelete, setAssignmentToDelete] = useState<string | null>(null)
-    const [assignmentToEdit, setAssignmentToEdit] = useState<RealAssignment | null>(null)
+    const [pendingStatusChange, setPendingStatusChange] = useState<{ id: string; newStatus: "ACTIVE" | "INACTIVE"; companyName: string } | null>(null)
 
     const getCompanyName = (orgId: string) => companies.find((c: any) => c.id === orgId || c._id === orgId)?.name || "Unknown Company"
     const getAuditorName = (userId: string) => {
@@ -131,7 +140,7 @@ export function AssignmentTableContent({ assignments, onDelete, onUpdate, compan
                                         {row.auditor?.username || getAuditorName(row.auditorUserId)}
                                     </TableCell>
                                     <TableCell className="px-6 text-center">
-                                        <div className={`${row.status === 'active' ? 'bg-emerald-600' : 'bg-gray-500'} text-white px-3 py-1.5 rounded-md text-[10px] font-bold w-fit mx-auto uppercase tracking-wider`}>
+                                        <div className={`${row.status?.toUpperCase() === 'ACTIVE' ? 'bg-emerald-600' : 'bg-red-600'} text-white px-3 py-1.5 rounded-md text-[10px] font-bold w-fit mx-auto uppercase tracking-wider`}>
                                             {row.status}
                                         </div>
                                     </TableCell>
@@ -143,17 +152,34 @@ export function AssignmentTableContent({ assignments, onDelete, onUpdate, compan
                                     </TableCell>
                                     <TableCell className="px-6 text-center">
                                         <div className="flex items-center justify-center gap-2">
+                                            {row.status?.toUpperCase() === 'ACTIVE' ? (
+                                                <Button
+                                                    size="sm"
+                                                    className="bg-[#ff4d4f] hover:bg-[#ff4d4f]/90 text-white font-bold h-8 px-4 rounded-md text-xs shadow-none"
+                                                    onClick={() => setPendingStatusChange({
+                                                        id: row.id,
+                                                        newStatus: 'INACTIVE',
+                                                        companyName: row.company?.name || getCompanyName(row.companyOrgId)
+                                                    })}
+                                                >
+                                                    Disable
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    size="sm"
+                                                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-8 px-4 rounded-md text-xs shadow-none"
+                                                    onClick={() => setPendingStatusChange({
+                                                        id: row.id,
+                                                        newStatus: 'ACTIVE',
+                                                        companyName: row.company?.name || getCompanyName(row.companyOrgId)
+                                                    })}
+                                                >
+                                                    Enable
+                                                </Button>
+                                            )}
                                             <Button
                                                 size="sm"
-                                                className="bg-[#3b5998] hover:bg-[#3b5998]/90 text-white font-bold h-8 px-4 rounded-md text-xs shadow-none gap-2"
-                                                onClick={() => setAssignmentToEdit(row)}
-                                            >
-                                                <Pencil className="h-3 w-3" />
-                                                Edit
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                className="bg-[#ff4d4f] hover:bg-[#ff4d4f]/90 text-white font-bold h-8 px-4 rounded-md text-xs shadow-none gap-2"
+                                                className="bg-red-600 hover:bg-red-700 text-white font-bold h-8 px-4 rounded-md text-xs shadow-none gap-2"
                                                 onClick={() => setAssignmentToDelete(row.id)}
                                             >
                                                 <Trash2 className="h-3 w-3" />
@@ -179,15 +205,30 @@ export function AssignmentTableContent({ assignments, onDelete, onUpdate, compan
                 }}
             />
 
-            <EditAssignmentDialog
-                open={!!assignmentToEdit}
-                onOpenChange={(open) => !open && setAssignmentToEdit(null)}
-                assignment={assignmentToEdit}
-                onUpdate={onUpdate}
-                // Pass lookups to Dialog if needed for display, but Dialog is simple edit
-                companyName={assignmentToEdit ? (assignmentToEdit.company?.name || getCompanyName(assignmentToEdit.companyOrgId)) : ""}
-                auditorName={assignmentToEdit ? (assignmentToEdit.auditor?.username || getAuditorName(assignmentToEdit.auditorUserId)) : ""}
-            />
+            <AlertDialog open={!!pendingStatusChange} onOpenChange={(open) => !open && setPendingStatusChange(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Change Assignment Status</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to {pendingStatusChange?.newStatus === 'ACTIVE' ? 'enable' : 'disable'} the auditor assignment for <strong>{pendingStatusChange?.companyName}</strong>?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (pendingStatusChange) {
+                                    onUpdate(pendingStatusChange.id, pendingStatusChange.newStatus)
+                                    setPendingStatusChange(null)
+                                }
+                            }}
+                            className={pendingStatusChange?.newStatus === 'ACTIVE' ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}
+                        >
+                            Confirm
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
 
             {pagination && onPageChange && (
                 <DataPagination pagination={pagination} onPageChange={onPageChange} />

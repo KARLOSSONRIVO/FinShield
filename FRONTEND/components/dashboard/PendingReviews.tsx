@@ -1,10 +1,7 @@
-"use client"
+'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Clock, ArrowRight } from "lucide-react"
-import Link from "next/link"
-import { InvoiceStatusBadge } from "@/components/common/StatusBadge"
+import { Clock } from "lucide-react"
 import type { Invoice } from "@/lib/types"
 
 interface PendingReviewsProps {
@@ -12,6 +9,22 @@ interface PendingReviewsProps {
 }
 
 export function PendingReviews({ invoices }: PendingReviewsProps) {
+    // Filter only invoices with status 'pending' (case-insensitive)
+    const pendingInvoices = invoices.filter(inv =>
+        inv.status?.toLowerCase() === 'pending'
+    )
+
+    const formatDate = (dateValue: string | Date | undefined): string => {
+        if (!dateValue) return 'N/A'
+        try {
+            return new Date(dateValue).toLocaleDateString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric'
+            })
+        } catch {
+            return 'Invalid date'
+        }
+    }
+
     return (
         <Card className="h-full">
             <CardHeader>
@@ -27,19 +40,29 @@ export function PendingReviews({ invoices }: PendingReviewsProps) {
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    {invoices.slice(0, 5).map((invoice) => (
-                        <div key={invoice._id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-                            <div>
-                                <p className="font-bold">{invoice.companyName}</p>
-                                <p className="text-xs text-muted-foreground">{invoice.invoiceNo} • {invoice.invoiceDate ? new Date(invoice.invoiceDate).toLocaleDateString() : 'N/A'}</p>
+                    {pendingInvoices.slice(0, 7).map((invoice) => {
+                        const invoiceNumber = invoice.invoiceNumber || invoice.invoiceNo || 'N/A'
+                        const companyName = invoice.companyName || 'Unknown Company'
+                        const date = formatDate(invoice.date || invoice.invoiceDate)
+
+                        return (
+                            <div key={invoice.id || invoice._id} className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
+                                <div>
+                                    <p className="font-bold">{invoiceNumber}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {companyName} • {date}
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-bold text-sm text-muted-foreground">PENDING</p>
+                                    <p className="text-xs font-medium">
+                                        ${(invoice.amount || invoice.totalAmount || invoice.totals_total || 0).toLocaleString()}
+                                    </p>
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <p className="font-bold text-sm text-orange-600">Pending</p>
-                                <p className="text-xs font-medium">${invoice.totals_total?.toLocaleString() ?? '0.00'}</p>
-                            </div>
-                        </div>
-                    ))}
-                    {invoices.length === 0 && (
+                        )
+                    })}
+                    {pendingInvoices.length === 0 && (
                         <p className="text-center text-muted-foreground py-4">No pending reviews.</p>
                     )}
                 </div>

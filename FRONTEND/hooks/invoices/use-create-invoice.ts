@@ -16,16 +16,11 @@ export function useCreateInvoice() {
             })
         },
         onError: (error: any) => {
-            console.error("Upload failed:", error.response?.data ?? error)
-
             // Drill through all possible error shapes the API may return
             const data = error.response?.data
-            const message =
-                data?.error?.message ||   // { error: { message: "..." } }
-                data?.message ||           // { message: "..." }
-                data?.error ||             // { error: "string" }
-                error.message ||
-                "Unknown error"
+            const message = typeof data?.message === 'string'
+                ? data.message
+                : (typeof data?.error === 'string' ? data.error : "Failed to upload invoice")
 
             const details = data?.error?.details
                 ? ` — ${JSON.stringify(data.error.details)}`

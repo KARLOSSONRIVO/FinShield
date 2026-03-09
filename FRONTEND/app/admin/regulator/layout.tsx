@@ -10,14 +10,18 @@ import {
     FileText,
     Link2,
     ScrollText,
+    Shield,
+    AlertTriangle,
 } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/hooks/global/use-auth"
 
 const regulatorLinks: NavLink[] = [
     { href: "/admin/regulator", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/regulator/invoices", label: "Invoices", icon: FileText },
-    { href: "/admin/regulator/blockchain", label: "Ledger", icon: Link2 },
-    { href: "/admin/regulator/audit-logs", label: "Audit Logs", icon: ScrollText },
+    { href: "/admin/regulator/flagged", label: "Flagged Invoices", icon: AlertTriangle },
+    { href: "/admin/regulator/policy", label: "Policy", icon: Shield },
+    { href: "/admin/regulator/blockchain", label: "Blockchain Ledger", icon: Link2 },
+    { href: "/admin/regulator/terms", label: "Terms", icon: ScrollText },
 ]
 
 export default function RegulatorLayout({
@@ -32,6 +36,10 @@ export default function RegulatorLayout({
     // Determine title based on path
     const getPageTitle = (path: string) => {
         if (path === "/admin/regulator") return "Regulator Dashboard"
+        if (path === "/admin/regulator/policy") return "Policy Management"
+        if (path === "/admin/regulator/invoices") return "Invoice Management"
+        if (path === "/admin/regulator/blockchain") return "Blockchain Ledger"
+        if (path === "/admin/regulator/terms") return "Terms Management"
         return "FinShield Regulator"
     }
 
@@ -44,7 +52,7 @@ export default function RegulatorLayout({
                 links={regulatorLinks}
                 collapsed={collapsed}
                 setCollapsed={setCollapsed}
-                title="Regulator"
+                title="FinShield"
             />
 
             {/* Main content wrapper */}
@@ -69,7 +77,7 @@ export default function RegulatorLayout({
                 </div>
 
                 {/* Main Content */}
-                <main className="flex-1 w-full max-w-[100vw] overflow-x-hidden p-4 md:p-6 space-y-4">
+                <main className="flex-1 w-full max-w-[100vw] p-4 md:p-6 space-y-4">
                     {children}
                 </main>
             </div>

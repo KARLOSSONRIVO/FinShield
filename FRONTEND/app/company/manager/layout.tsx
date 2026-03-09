@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useState } from "react"
 import { AppSidebar, NavLink } from "@/components/layout/AppSidebar"
@@ -14,14 +14,14 @@ import {
     AlertTriangle,
     ScrollText
 } from "lucide-react"
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/hooks/global/use-auth"
 
 const managerLinks: NavLink[] = [
     { href: "/company/manager", label: "Dashboard", icon: LayoutDashboard },
     { href: "/company/manager/upload", label: "Upload Invoice", icon: Upload },
     { href: "/company/manager/employees", label: "Employees", icon: Users },
     { href: "/company/manager/invoices", label: "Company Invoices", icon: FileText },
-    { href: "/company/manager/alerts", label: "Alerts", icon: AlertTriangle },
+    { href: "/company/manager/alerts", label: "Flagged Queue", icon: AlertTriangle },
     { href: "/company/manager/reports", label: "Reports", icon: BarChart3 },
 ]
 
@@ -41,7 +41,7 @@ export default function CompanyManagerLayout({
         if (path.includes("/upload")) return "Uploading Invoice"
         if (path.includes("/employees")) return "Employees"
         if (path.includes("/invoices")) return "Company Invoices"
-        if (path.includes("/alerts")) return "Alerts"
+        if (path.includes("/alerts")) return "Flagged Invoice Management"
         if (path.includes("/reports")) return "Reports"
         return "Company Manager"
     }
@@ -69,11 +69,11 @@ export default function CompanyManagerLayout({
                 <div className="sticky top-0 z-40">
                     <TopBar
                         title={title}
-                        userName={user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "Company Manager"}
+                        userName={user?.username || "Company Manager"}
                         organizationName="Company Manager" // Or fetch org name
                         profileLink="/company/manager/settings"
                         notifications={[
-                            { title: "Invoice Flagged", time: "10m ago", message: "INV-004 has been flagged as Fraudulent." },
+                            { title: "Invoice Flagged", time: "10m ago", message: "INV-004 has been flagged as Flagged." },
                             { title: "Review Complete", time: "1h ago", message: "INV-003 verified successfully." }
                         ]}
                     />

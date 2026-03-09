@@ -32,7 +32,7 @@ export function useManagerUploadInvoice() {
         mutationFn: async () => {
             if (!file) throw new Error("No file selected")
             // Pass values if backend supported them, currently ignored
-            return await InvoiceService.upload({ file })
+            return await InvoiceService.upload(file)
         },
         onSuccess: (data) => {
             console.log("Upload success:", data)
@@ -45,8 +45,8 @@ export function useManagerUploadInvoice() {
             }, 3000)
         },
         onError: (error: any) => {
-            console.error("Upload failed", error)
-            toast.error("Upload failed: " + (error.response?.data?.message || error.message))
+            const msg = error.response?.data?.message || "Failed to upload invoice"
+            toast.error(msg)
         }
     })
 

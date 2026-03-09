@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { BrowserProvider, Eip1193Provider } from "ethers"
+import { toast } from "sonner"
 
 export interface MetaMaskState {
     account: string | null
@@ -55,7 +56,12 @@ export function useMetaMask() {
                 }))
             }
         } catch (error: any) {
-            console.error("Error reading metamask state:", error)
+            // Silently ignore background read errors to prevent spam, just clear state
+            setState((prev) => ({
+                ...prev,
+                account: null,
+                isConnected: false,
+            }))
         }
     }, [])
 
@@ -138,10 +144,11 @@ export function useMetaMask() {
                         ],
                     })
                 } catch (addError) {
-                    console.error("Error adding Sepolia network:", addError)
+                    toast.error("Failed to add Sepolia network to MetaMask.")
                 }
+            } else {
+                toast.error("Failed to switch to Sepolia network.")
             }
-            console.error("Error switching to Sepolia network:", error)
         }
     }
 

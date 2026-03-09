@@ -7,19 +7,18 @@ interface ManagerEmployeeTableProps {
     users: User[]
     sortConfig: any
     onSort: (key: any) => void
-    onDisableUser: (userId: string) => void
+    onUpdateStatus: (userId: string, status: "ACTIVE" | "INACTIVE", reason?: string) => void
 }
 
-export function ManagerEmployeeTable(props: ManagerEmployeeTableProps) {
+export function ManagerEmployeeTable({ users, sortConfig, onSort, onUpdateStatus }: ManagerEmployeeTableProps) {
     return (
         <UserTable
-            {...props}
+            users={users}
+            sortBy={sortConfig?.key}
+            order={sortConfig?.direction}
+            onSort={onSort}
             hideRoleAndOrg={true}
-            onUpdateStatus={(userId, status) => {
-                if (status === "SUSPENDED") {
-                    props.onDisableUser(userId)
-                }
-            }}
+            onUpdateStatus={onUpdateStatus}
         />
     )
 }

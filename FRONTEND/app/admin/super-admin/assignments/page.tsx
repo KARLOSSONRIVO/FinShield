@@ -57,7 +57,7 @@ export default function AssignmentsPage() {
         <SearchInput
           value={search || ""}
           onChange={setSearch}
-          placeholder="Search Assignments..."
+          placeholder="Search assignments..."
         />
         <AssignmentSortFilter
           sortConfig={sortConfig as any}

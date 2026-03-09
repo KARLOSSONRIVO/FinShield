@@ -1,22 +1,23 @@
 "use client"
 
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 import { Organization } from "@/services/organization.service"
+import { AlertTriangle } from "lucide-react"
 
 interface DeleteOrganizationDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     organization: Organization | null
-    onConfirm: (id: string) => void
+    onConfirm: () => void
+    isLoading?: boolean
 }
 
 export function DeleteOrganizationDialog({
@@ -24,30 +25,41 @@ export function DeleteOrganizationDialog({
     onOpenChange,
     organization,
     onConfirm,
+    isLoading = false,
 }: DeleteOrganizationDialogProps) {
     if (!organization) return null
 
     return (
-        <AlertDialog open={open} onOpenChange={onOpenChange}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        This action cannot be undone. This will permanently delete
-                        <span className="font-bold text-foreground"> {organization.name} </span>
-                        and remove their data from our servers.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                        onClick={() => organization.id && onConfirm(organization.id)}
-                        className="bg-destructive hover:bg-destructive/90"
-                    >
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-[400px]">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2 text-red-600">
+                        <AlertTriangle className="h-5 w-5" />
                         Delete Organization
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+                    </DialogTitle>
+                    <DialogDescription className="pt-2">
+                        Are you sure you want to delete <span className="font-bold">{organization.name}</span>?
+                        This action cannot be undone.
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="gap-2 sm:gap-0">
+                    <Button
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                        disabled={isLoading}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="destructive"
+                        onClick={onConfirm}
+                        disabled={isLoading}
+                        className="bg-red-600 hover:bg-red-700"
+                    >
+                        {isLoading ? "Deleting..." : "Delete Organization"}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     )
 }

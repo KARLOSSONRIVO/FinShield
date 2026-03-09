@@ -1,3 +1,4 @@
+// app/company/employee/invoices/page.tsx
 "use client"
 
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
@@ -6,14 +7,16 @@ import { DataPagination } from "@/components/common/DataPagination"
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 
+// Make sure it's a function component with proper export
 export default function EmployeeInvoicesPage() {
   const {
     search, setSearch,
-    statusFilter, setStatusFilter,
     invoices, pagination, setPage,
     sortConfig, requestSort,
     isLoading
   } = useEmployeeInvoices()
+
+  console.log('EmployeeInvoicesPage rendering', { invoices }); // Debug log
 
   return (
     <div className="space-y-6">
@@ -24,8 +27,6 @@ export default function EmployeeInvoicesPage() {
       <InvoiceFilter
         search={search || ""}
         onSearchChange={setSearch}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
         sortConfig={sortConfig}
         onSortChange={requestSort}
       />
@@ -34,7 +35,7 @@ export default function EmployeeInvoicesPage() {
         <InvoiceTableSkeleton />
       ) : (
         <InvoiceTable
-          invoices={invoices}
+          invoices={invoices || []}
           mode="employee"
           baseUrl="/company/employee/invoices"
           sortBy={sortConfig?.key}

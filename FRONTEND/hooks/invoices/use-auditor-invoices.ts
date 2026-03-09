@@ -1,44 +1,35 @@
-"use client"
+﻿"use client"
 
-import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
-import type { Invoice } from "@/lib/types"
 import { InvoiceService } from "@/services/invoice.service"
 import { useUrlPagination } from "@/hooks/common/use-url-pagination"
 
-export type InvoiceStatusFilter = "all" | "pending" | "verified" | "flagged" | "fraudulent"
-
 export type SortConfig = {
-    key: keyof Invoice
+    key: "createdAt" | "invoiceNumber" | "invoiceDate" | "totalAmount" | "reviewDecision" | "organizationId"
     direction: 'asc' | 'desc'
 }
 
-export function useAuditorInvoices({ initialLimit = 5 } = {}) {
-    // 1. URL State Hook
+export function useAuditorInvoices({ initialLimit = 7 } = {}) {
     const {
         page, limit, search, sortBy, order, queryParams,
-        setPage, setSearch, setSort, setFilter
+        setPage, setSearch, setSort
     } = useUrlPagination(initialLimit)
 
-    // Pull status filter from URL or default to "all"
-    const statusFilter = ((queryParams as any).statusFilter as InvoiceStatusFilter) || "all"
-
-    // 2. Data Fetching
     const { data, isLoading, isError } = useQuery({
-        // Include statusFilter in queryKey and params so React Query refetches when it changes
-        queryKey: ["invoices", queryParams, statusFilter],
+        queryKey: ["invoices", "auditor", queryParams],
         queryFn: async () => {
-            // Let the backend handle pagination and filtering if possible.
             const apiParams: Record<string, any> = { ...queryParams }
-            if (statusFilter !== "all") {
-                apiParams.status = statusFilter
-            }
-            delete apiParams.statusFilter // clean up frontend-only params before sending
 
-            const response = await InvoiceService.list(apiParams)
+            const allowedSortKeys = ["createdAt", "invoiceNumber", "invoiceDate", "totalAmount", "reviewDecision", "organizationId"]
+            const fetchParams = {
+                ...apiParams,
+                sortBy: apiParams.sortBy && allowedSortKeys.includes(apiParams.sortBy) ? apiParams.sortBy : undefined
+            }
+
+            const response = await InvoiceService.list(fetchParams)
             return {
                 items: response.data.items || [],
-                pagination: response.data.pagination || { total: 0, page: 1, limit: 5, totalPages: 1 }
+                pagination: response.data.pagination || { total: 0, page: 1, limit: initialLimit, totalPages: 1 }
             }
         }
     })
@@ -54,11 +45,7 @@ export function useAuditorInvoices({ initialLimit = 5 } = {}) {
         search,
         setSearch,
         setPage,
-        sortConfig: sortBy ? { key: sortBy, direction: order || 'desc' } : null,
+        sortConfig: sortBy ? { key: sortBy as SortConfig['key'], direction: order || 'desc' } : null,
         requestSort: setSort,
-
-        // Filters
-        statusFilter,
-        setStatusFilter: (val: string) => setFilter('statusFilter', val),
     }
 }

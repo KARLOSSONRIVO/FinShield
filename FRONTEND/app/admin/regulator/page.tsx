@@ -1,27 +1,29 @@
-"use client"
+﻿"use client"
 
-
-
-
+import { useAuth } from "@/hooks/global/use-auth"
 import { RegulatorStats } from "@/components/dashboard/RegulatorStats"
 import { RecentInvoices } from "@/components/dashboard/RecentInvoices"
-import { RecentActivity } from "@/components/dashboard/RecentActivity"
-import { Eye } from "lucide-react"
+import { BlockchainRecentInvoices } from "@/components/dashboard/BlockchainRecentInvoices"
 import { useRegulatorDashboard } from "@/hooks/dashboard/use-regulator-dashboard"
-
 import { DashboardContentSkeleton } from "@/components/skeletons/dashboard-content-skeleton"
 
 export default function RegulatorDashboard() {
+  const { user } = useAuth()
+  const shouldFetch = !user?.mustChangePassword
+
   const {
     companiesCount,
     verifiedOnChain,
     totalValue,
-    fraudulentCount,
-    recentLogs,
+    flaggedCount,
     recentInvoices,
     totalInvoices,
-    isLoading // Destructure isLoading
-  } = useRegulatorDashboard()
+    isLoading
+  } = useRegulatorDashboard({ enabled: shouldFetch })
+
+  if (!shouldFetch) {
+    return null
+  }
 
   return (
     <>
@@ -35,20 +37,14 @@ export default function RegulatorDashboard() {
         <DashboardContentSkeleton />
       ) : (
         <>
-          <RegulatorStats
-            companiesCount={companiesCount}
-            totalInvoices={totalInvoices}
-            totalValue={totalValue}
-            verifiedOnChain={verifiedOnChain}
-            fraudulentCount={fraudulentCount}
-          />
+          <RegulatorStats />
 
           <div className="grid grid-cols-1 lg:grid-cols-8 gap-6">
-            <div className="lg:col-span-5">
+            <div className="lg:col-span-4">
               <RecentInvoices invoices={recentInvoices} />
             </div>
-            <div className="lg:col-span-3">
-              <RecentActivity logs={recentLogs} title="System Activity" icon={Eye} />
+            <div className="lg:col-span-4">
+              <BlockchainRecentInvoices />
             </div>
           </div>
         </>

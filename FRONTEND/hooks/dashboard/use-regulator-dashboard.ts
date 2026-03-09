@@ -1,38 +1,60 @@
-import { useQuery } from "@tanstack/react-query"
+﻿import { useQuery } from "@tanstack/react-query"
 import { DashboardService } from "@/services/dashboard.service"
 import { InvoiceService } from "@/services/invoice.service"
 
-export function useRegulatorDashboard() {
+interface UseRegulatorDashboardOptions {
+    enabled?: boolean;
+}
 
-    const { data: stats } = useQuery({
+export function useRegulatorDashboard({ enabled = true }: UseRegulatorDashboardOptions = {}) {
+    const { data: stats, isLoading: statsLoading } = useQuery({
         queryKey: ["regulator-stats"],
-        queryFn: DashboardService.getRegulatorStats
+        queryFn: DashboardService.getRegulatorStats,
+        enabled
     })
 
-    const { data: logs = [] } = useQuery({
-        queryKey: ["recent-logs"],
-        queryFn: DashboardService.getRecentLogs
-    })
-
-    const { data: invoices = [] } = useQuery({
+    const { data: invoices = [], isLoading: invoicesLoading } = useQuery({
         queryKey: ["invoices"],
         queryFn: async () => {
-            const response = await InvoiceService.getAll()
-            return response.data.items
-        }
+            const response = await InvoiceService.list()
+            return response.data?.items || []
+        },
+        enabled
     })
 
+    // Count unique companies based on company name or orgId
+    const companiesSet = new Set<string>()
+    invoices.forEach((inv: any) => {
+        if (inv.companyName) companiesSet.add(inv.companyName)
+    })
+
+    // Calculate total value
+    const totalValue = invoices.reduce((sum: number, inv: any) => sum + (Number(inv.amount || inv.totalAmount) || 0), 0)
+
+    // Calculate flagged invoices (pending or rejected review, or flagged by AI)
+    const flaggedCount = invoices.filter((inv: any) =>
+        inv.status === "flagged" ||
+        inv.aiVerdict?.verdict === "flagged"
+    ).length
+
+    // Calculate verified on chain
+    const verifiedOnChain = invoices.filter((inv: any) =>
+        inv.status === "anchored" ||
+        inv.blockchain?.txHash ||
+        inv.blockchain?.anchoredAt ||
+        inv.blockchain_txHash ||
+        (typeof inv.blockchain === 'string' && inv.blockchain.length > 0)
+    ).length
+
     const recentInvoices = invoices.slice(-5).reverse()
-    const recentLogs = logs // Already sliced by service
 
     return {
-        companiesCount: stats?.companiesCount || 0,
-        verifiedOnChain: stats?.verifiedOnChain || 0,
-        totalValue: stats?.totalValue || 0,
-        fraudulentCount: stats?.fraudulentCount || 0,
-        recentLogs,
+        companiesCount: companiesSet.size,
+        verifiedOnChain,
+        totalValue,
+        flaggedCount,
         recentInvoices,
-        totalInvoices: stats?.activeInvoices || 0,
-        isLoading: !stats || !logs || !invoices // Simplified
+        totalInvoices: invoices.length,
+        isLoading: statsLoading || invoicesLoading
     }
 }

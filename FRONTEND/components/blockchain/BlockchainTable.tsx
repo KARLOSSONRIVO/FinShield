@@ -24,7 +24,13 @@ export function BlockchainTable({ invoices, sortBy, order, onSort }: BlockchainT
             <Table>
                 <TableHeader>
                     <TableRow className="hover:bg-transparent border-b border-border/50">
-                        <TableHead className="px-6 py-4 text-foreground font-bold text-base">Invoice No.</TableHead>
+                        <TableHead className="px-6 py-4">
+                            <div
+                                className="flex items-center justify-start gap-2 cursor-pointer font-bold text-base text-foreground"
+                            >
+                                Invoice No.
+                            </div>
+                        </TableHead>
                         <TableHead className="px-6 py-4 text-foreground font-bold text-base">Company</TableHead>
                         <TableHead className="px-6 py-4 text-foreground font-bold text-base">Transaction Hash</TableHead>
                         <TableHead className="px-6 py-4">
@@ -71,6 +77,6 @@ export function BlockchainTable({ invoices, sortBy, order, onSort }: BlockchainT
                     )}
                 </TableBody>
             </Table>
-        </div>
+        </div >
     )
 }

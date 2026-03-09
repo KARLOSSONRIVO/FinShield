@@ -33,7 +33,9 @@ export default function ManagerEmployeesPage() {
     newUser,
     setNewUser,
     handleCreateUser,
-    setDisableUserId,
+    handleUpdateStatus,
+    localStatusSort,
+    setLocalStatusSort,
     isLoading // Destructure isLoading
   } = useManagerEmployees()
 
@@ -78,23 +80,13 @@ export default function ManagerEmployeesPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Sort By Name</DropdownMenuLabel>
+              <DropdownMenuLabel>Sort By</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => requestSort('username')}>
-                <span className={sortConfig?.key === 'username' && sortConfig.direction === 'asc' ? "font-bold text-primary" : ""}>Ascending (A-Z)</span>
+              <DropdownMenuItem onClick={() => requestSort('createdAt', 'desc')}>
+                <span className={sortConfig?.key === 'createdAt' && sortConfig?.direction === 'desc' ? "font-bold text-primary" : ""}>Date Created (New - Old)</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'username' || sortConfig?.direction === 'asc') requestSort('username') }}>
-                <span className={sortConfig?.key === 'username' && sortConfig.direction === 'desc' ? "font-bold text-primary" : ""}>Descending (Z-A)</span>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Sort By Status</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => requestSort('status')}>
-                <span className={sortConfig?.key === 'status' && sortConfig.direction === 'asc' ? "font-bold text-primary" : ""}>Active First</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { if (sortConfig?.key !== 'status' || sortConfig?.direction === 'asc') requestSort('status') }}>
-                <span className={sortConfig?.key === 'status' && sortConfig.direction === 'desc' ? "font-bold text-primary" : ""}>Inactive First</span>
+              <DropdownMenuItem onClick={() => requestSort('createdAt', 'asc')}>
+                <span className={sortConfig?.key === 'createdAt' && sortConfig?.direction === 'asc' ? "font-bold text-primary" : ""}>Date Created (Old - New)</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -108,7 +100,7 @@ export default function ManagerEmployeesPage() {
           users={users}
           sortConfig={sortConfig}
           onSort={requestSort}
-          onDisableUser={(id) => setDisableUserId(id)}
+          onUpdateStatus={handleUpdateStatus}
         />
       )}
 

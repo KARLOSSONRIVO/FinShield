@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -101,7 +101,7 @@ export function InvoiceDetails({ invoice }: { invoice: any }) {
                     <div>
                         <p className="text-xs font-bold text-muted-foreground mb-1">Transaction Hash</p>
                         <div className="bg-muted p-2 rounded border border-border text-xs font-mono text-muted-foreground truncate">
-                            {(verdict === 'flagged' || verdict === 'fraudulent' || verdict === 'fraud')
+                            {(verdict === 'flagged' || verdict === 'flagged' || verdict === 'fraud')
                                 ? "None"
                                 : "0x1234567890abcdef1234567890abcdef12345678"
                             }
@@ -111,14 +111,14 @@ export function InvoiceDetails({ invoice }: { invoice: any }) {
                         <p className="text-xs font-bold text-muted-foreground mb-1">Anchored At</p>
                         <div className="flex items-center gap-2 mb-3">
                             <span className="font-bold text-sm">
-                                {(verdict === 'flagged' || verdict === 'fraudulent' || verdict === 'fraud')
+                                {(verdict === 'flagged' || verdict === 'flagged' || verdict === 'fraud')
                                     ? "-/-/-, --:--:00 AM"
                                     : "12/2/2024, 10:30:00 AM"
                                 }
                             </span>
                         </div>
 
-                        {(verdict === 'flagged' || verdict === 'fraudulent' || verdict === 'fraud') ? (
+                        {(verdict === 'flagged' || verdict === 'flagged' || verdict === 'fraud') ? (
                             <Badge className="bg-red-600 hover:bg-red-700 border-none text-white px-3 flex items-center gap-1 w-fit">
                                 <ShieldAlert className="h-3 w-3" />
                                 Unverified on Blockchain
@@ -151,8 +151,8 @@ export function InvoiceDetails({ invoice }: { invoice: any }) {
                                 <Label htmlFor="r1" className="text-xs font-medium text-emerald-700">Verified - Invoice is legitimate and risk-free</Label>
                             </div>
                             <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="fraudulent" id="r2" className="text-red-600 border-red-600" />
-                                <Label htmlFor="r2" className="text-xs font-medium text-red-700">Fraudulent - Invoice is fraudulent and misleading</Label>
+                                <RadioGroupItem value="flagged" id="r2" className="text-red-600 border-red-600" />
+                                <Label htmlFor="r2" className="text-xs font-medium text-red-700">Flagged - Invoice is flagged and misleading</Label>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="clarification" id="r3" className="text-foreground border-black" />
@@ -218,10 +218,7 @@ function VerdictBadge({ verdict }: { verdict: string }) {
         return <Badge className="bg-emerald-600 hover:bg-emerald-700 border-none text-white px-3">Clean</Badge>
     }
     if (v === "flagged") {
-        return <Badge className="bg-amber-400 hover:bg-amber-500 border-none text-foreground px-3">Flagged</Badge>
-    }
-    if (v === "fraudulent") {
-        return <Badge variant="destructive" className="px-3">Fraudulent</Badge>
+        return <Badge variant="destructive" className="px-3">Flagged</Badge>
     }
     return <Badge variant="outline">{verdict}</Badge>
 }

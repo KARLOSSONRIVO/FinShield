@@ -3,7 +3,7 @@
 import { Plus, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { UserTable } from "@/components/users/UserTable"
-import { useUsers } from "@/hooks/users/use-users"
+import { useUsers } from "@/hooks/users/use-super-admin-users"
 import { CreateUserDialog } from "@/components/users/CreateUserDialog"
 import {
   DropdownMenu,
@@ -36,10 +36,8 @@ export default function PlatformUsersPage() {
     handleUpdateStatus,
     userTypeFilter,
     setUserTypeFilter,
-    roleFilter,
-    setRoleFilter,
-    isLoading // Destructure isLoading
-  } = useUsers()
+    isLoading
+  } = useUsers({ initialLimit: 5 })
 
   return (
     <div className="space-y-6">
@@ -69,7 +67,7 @@ export default function PlatformUsersPage() {
           <SearchInput
             value={search || ""}
             onChange={setSearch}
-            placeholder="Search Users..."
+            placeholder="Search by username or email..."
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -78,31 +76,17 @@ export default function PlatformUsersPage() {
                 Filter & Sort
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 h-80 overflow-y-auto">
-              <DropdownMenuLabel>Filter By Role</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setRoleFilter("")}>
-                <span className={roleFilter === null || roleFilter === "" ? "font-bold text-emerald-600" : ""}>All Roles</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRoleFilter('AUDITOR')}>
-                <span className={roleFilter === 'AUDITOR' ? "font-bold text-emerald-600" : ""}>Auditor</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRoleFilter('REGULATOR')}>
-                <span className={roleFilter === 'REGULATOR' ? "font-bold text-emerald-600" : ""}>Regulator</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setRoleFilter('COMPANY_MANAGER')}>
-                <span className={roleFilter === 'COMPANY_MANAGER' ? "font-bold text-emerald-600" : ""}>Company Manager</span>
-              </DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-56">
 
               <DropdownMenuSeparator />
-              <DropdownMenuLabel>Sort By Field</DropdownMenuLabel>
+              <DropdownMenuLabel>Sort By</DropdownMenuLabel>
               <DropdownMenuSeparator />
 
               <DropdownMenuItem onClick={() => requestSort('createdAt', 'desc')}>
-                <span className={sortConfig?.key === 'createdAt' && sortConfig.direction === 'desc' ? "font-bold text-emerald-600" : ""}>Date Created (New-Old)</span>
+                <span className={sortConfig?.key === 'createdAt' && sortConfig?.direction === 'desc' ? "font-bold text-primary" : ""}>Date Created (New - Old)</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => requestSort('createdAt', 'asc')}>
-                <span className={sortConfig?.key === 'createdAt' && sortConfig.direction === 'asc' ? "font-bold text-emerald-600" : ""}>Date Created (Old-New)</span>
+                <span className={sortConfig?.key === 'createdAt' && sortConfig?.direction === 'asc' ? "font-bold text-primary" : ""}>Date Created (Old - New)</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -113,7 +97,7 @@ export default function PlatformUsersPage() {
         <UserTableSkeleton />
       ) : (
         <UserTable
-          users={users}
+          users={users.filter(u => u.role !== 'COMPANY_USER')}
           onUpdateStatus={handleUpdateStatus}
           pagination={pagination}
           onPageChange={setPage}
@@ -121,11 +105,12 @@ export default function PlatformUsersPage() {
           order={sortConfig?.direction as "asc" | "desc" | undefined}
           onSort={(field) => requestSort(field)}
           renderSubComponent={(user) => {
-            if (user.role === 'COMPANY_MANAGER' && user.orgId) {
-              return <CompanyEmployeesTable orgId={user.orgId} managerId={user._id} />
+            if (user.role === 'COMPANY_MANAGER' && user.employees) {
+              return <CompanyEmployeesTable employees={user.employees} />
             }
             return null
           }}
+
         />
       )}
     </div>

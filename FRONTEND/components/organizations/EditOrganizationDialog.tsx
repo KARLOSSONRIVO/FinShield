@@ -36,16 +36,15 @@ export function EditOrganizationDialog({
     isLoading = false,
 }: EditOrganizationDialogProps) {
     const [name, setName] = useState("")
-    const [status, setStatus] = useState<OrganizationStatus | string>("ACTIVE")
+    const [status, setStatus] = useState<OrganizationStatus>("ACTIVE")
+    const [type, setType] = useState("COMPANY")
 
     // Reset form when organization changes
     useEffect(() => {
         if (organization) {
             setName(organization.name || "")
-            setStatus(organization.status)
-        } else {
-            // Reset to a default if organization becomes null
-            setStatus("ACTIVE")
+            setStatus(organization.status || "ACTIVE")
+            setType(organization.type || "COMPANY")
         }
     }, [organization])
 
@@ -54,7 +53,8 @@ export function EditOrganizationDialog({
         onSave({
             ...organization,
             name,
-            status: status as OrganizationStatus
+            status: status as OrganizationStatus,
+            type: type as "COMPANY" | "AUDITOR" | "REGULATOR"
         })
         onOpenChange(false)
     }
@@ -67,37 +67,69 @@ export function EditOrganizationDialog({
                 <DialogHeader>
                     <DialogTitle>Edit Organization</DialogTitle>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="name" className="text-right">
+                <div className="flex flex-col gap-4 py-4 px-2">
+                    <div className="flex flex-col gap-2">
+                        <Label htmlFor="name" className="text-left font-bold">
                             Name
                         </Label>
                         <Input
                             id="name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="col-span-3"
+                            className="w-full"
+                            disabled={isLoading}
                         />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="status" className="text-right">
+                    <div className="flex flex-col gap-2">
+                        <Label htmlFor="type" className="text-left font-bold">
+                            Type
+                        </Label>
+                        <Select
+                            value={type}
+                            onValueChange={setType}
+                            disabled={isLoading}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="COMPANY">Company</SelectItem>
+                                <SelectItem value="ORGANIZATION">Organization</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <Label htmlFor="status" className="text-left font-bold mt-2">
                             Status
                         </Label>
-                        <Select value={status} onValueChange={(val) => setStatus(val as OrganizationStatus)}>
-                            <SelectTrigger className="col-span-3">
+                        <Select
+                            value={status}
+                            onValueChange={(val) => setStatus(val as OrganizationStatus)}
+                            disabled={isLoading}
+                        >
+                            <SelectTrigger className="w-full">
                                 <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="ACTIVE">Active</SelectItem>
                                 <SelectItem value="INACTIVE">Inactive</SelectItem>
-                                <SelectItem value="SUSPENDED">Suspended</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                 </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Cancel</Button>
-                    <Button onClick={handleSave} disabled={isLoading} className="bg-emerald-600 hover:bg-emerald-700">
+                <DialogFooter className="px-2 pb-2 mt-4 space-x-2">
+                    <Button
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                        disabled={isLoading}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        onClick={handleSave}
+                        disabled={isLoading}
+                        className="bg-emerald-600 hover:bg-emerald-700 !text-white font-bold"
+                    >
                         {isLoading ? "Saving..." : "Save Changes"}
                     </Button>
                 </DialogFooter>

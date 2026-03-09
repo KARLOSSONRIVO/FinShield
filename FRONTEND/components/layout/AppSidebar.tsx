@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useState } from "react"
 import { cn } from "@/lib/utils"
 import {
     LayoutDashboard,
@@ -18,6 +19,17 @@ import {
     Shield,
     LucideIcon
 } from "lucide-react"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { useAuth } from "@/hooks/global/use-auth"
 
 export interface NavLink {
     href: string
@@ -29,11 +41,13 @@ interface AppSidebarProps {
     links: NavLink[]
     collapsed: boolean
     setCollapsed: (collapsed: boolean) => void
-    title?: string // Optional role title if needed
+    title?: string
 }
 
 export function AppSidebar({ links, collapsed, setCollapsed, title = "FinShield" }: AppSidebarProps) {
     const pathname = usePathname()
+    const { logout } = useAuth()
+    const [showLogoutDialog, setShowLogoutDialog] = useState(false)
 
     return (
         <>
@@ -53,14 +67,16 @@ export function AppSidebar({ links, collapsed, setCollapsed, title = "FinShield"
                 )}
             >
                 {/* Header / Logo Area */}
-                <div className="h-20 flex shrink-0 items-center pl-[30px] pr-4 border-b border-border relative">
+                <div className="h-20 flex shrink-0 items-center pl-[20px] pr-4 border-b border-border relative">
                     <div className={cn(
                         "flex items-center transition-opacity duration-700 ease-in-out",
                         collapsed ? "opacity-0 pointer-events-none" : "opacity-100"
                     )}>
-                        <div className="flex shrink-0 items-center justify-center bg-emerald-600 rounded-lg h-9 w-9 shadow-sm">
-                            <Shield className="h-5 w-5 text-white" fill="none" strokeWidth={2.5} />
-                        </div>
+                        <img
+                            src="/assets/image/FinShield.svg"
+                            alt="FinShield Logo"
+                            className="h-9 w-auto object-contain"
+                        />
                         <div className="overflow-hidden whitespace-nowrap ml-3">
                             <span className="font-bold text-xl tracking-tight text-sidebar-foreground truncate">{title}</span>
                         </div>
@@ -116,25 +132,50 @@ export function AppSidebar({ links, collapsed, setCollapsed, title = "FinShield"
                     })}
                 </nav>
 
-                {/* Footer / Sign Out */}
+                {/* Footer / Sign Out (Commented out per user request) */}
+                {/* 
                 <div className="p-4 border-t border-border mt-auto">
-                    <Link href="/">
-                        <div className={cn(
-                            "flex items-center gap-4 w-full pl-[22px] pr-4 py-3.5 rounded-xl text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all duration-700 ease-in-out cursor-pointer whitespace-nowrap overflow-hidden relative justify-start",
-                        )}>
-                            <div className="flex items-center justify-center shrink-0 w-5">
-                                <LogOut className="h-5 w-5 shrink-0 transition-colors duration-700 ease-in-out text-sidebar-foreground" strokeWidth={2.5} />
-                            </div>
-                            <span className={cn(
-                                "font-semibold transition-all duration-700 ease-in-out",
-                                collapsed ? "opacity-0" : "opacity-100"
-                            )}>
-                                Sign out
-                            </span>
+                    <button
+                        onClick={() => setShowLogoutDialog(true)}
+                        className={cn(
+                            "flex items-center gap-4 w-full pl-[22px] pr-4 py-3.5 rounded-xl text-sm font-medium text-sidebar-foreground hover:bg-red-500/10 hover:text-red-500 transition-all duration-700 ease-in-out cursor-pointer whitespace-nowrap overflow-hidden relative justify-start group",
+                        )}
+                    >
+                        <div className="flex items-center justify-center shrink-0 w-5">
+                            <LogOut className="h-5 w-5 shrink-0 transition-colors duration-700 ease-in-out group-hover:text-red-500" strokeWidth={2.5} />
                         </div>
-                    </Link>
+                        <span className={cn(
+                            "font-semibold transition-all duration-700 ease-in-out",
+                            collapsed ? "opacity-0" : "opacity-100"
+                        )}>
+                            Sign out
+                        </span>
+                    </button>
                 </div>
+                */}
             </aside>
+
+            {/* Confirm Sign Out Dialog */}
+            <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Sign out?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            You will be logged out of your account and redirected to the login page.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => logout()}
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                            Sign out
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     )
 }
+

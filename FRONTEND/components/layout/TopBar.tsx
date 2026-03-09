@@ -1,8 +1,17 @@
 "use client"
 
 import { useState } from "react"
-
-import { Bell, User, Wallet, ChevronUp, LogOut, Settings, Menu } from "lucide-react"
+import {
+    Bell,
+    User,
+    Wallet,
+    ChevronUp,
+    LogOut,
+    Settings,
+    Menu,
+    AlertTriangle,
+    Shield,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -30,7 +39,8 @@ import {
 import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
 
-import { useAuth } from "@/hooks/use-auth"
+import { useAuth } from "@/hooks/global/use-auth"
+import { PolicyViewDialog } from "@/components/policy/PolicyViewDialog"
 
 export interface NotificationItem {
     title: string
@@ -40,7 +50,6 @@ export interface NotificationItem {
 
 interface TopBarProps {
     title: string;
-    // Props are now optional overrides
     organizationName?: string;
     userName?: string;
     notifications?: NotificationItem[];
@@ -71,12 +80,13 @@ export function TopBar({
 }: TopBarProps) {
     const { user, logout } = useAuth()
     const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+    const [showPolicyDialog, setShowPolicyDialog] = useState(false)
 
     const displayUserName = userName || user?.username || "User"
-    // Prefer the formatted role from user if organizationName is not passed, 
-    // BUT organizationName prop currently overrides it. 
-    // We will remove organizationName from parents, so this logic holds.
     const displayRole = organizationName || formatRole(user?.role)
+
+    // Roles that can view the Policy menu item
+    const canViewPolicies = user?.role && ["AUDITOR", "COMPANY_MANAGER", "COMPANY_USER"].includes(user.role)
 
     return (
         <header className="h-20 border-b border-border bg-background px-4 md:px-6 flex items-center justify-between">
@@ -133,8 +143,11 @@ export function TopBar({
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="group pl-2 pr-4 py-2 h-auto flex items-center gap-3 hover:bg-muted/50 rounded-full border border-border data-[state=open]:bg-muted/50" suppressHydrationWarning>
-                            <div className="bg-primary/20 h-8 w-8 rounded-full flex items-center justify-center text-primary">
+                            <div className="relative bg-primary/20 h-8 w-8 rounded-full flex items-center justify-center text-primary">
                                 <User className="h-4 w-4" />
+                                {!user?.mfaEnabled && (
+                                    <AlertTriangle className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 text-amber-400" strokeWidth={2.5} />
+                                )}
                             </div>
                             <div className="flex flex-col items-start justify-center h-8 text-sm">
                                 {userName || user?.username ? (
@@ -158,12 +171,28 @@ export function TopBar({
                             <DropdownMenuItem className="cursor-pointer">
                                 <User className="mr-2 h-4 w-4" />
                                 <span className="font-medium">Profile</span>
+                                {!user?.mfaEnabled && (
+                                    <AlertTriangle className="ml-auto h-4 w-4 text-amber-400" />
+                                )}
                             </DropdownMenuItem>
                         </Link>
                         {user?.role === 'SUPER_ADMIN' && (
                             <DropdownMenuItem className="cursor-pointer">
                                 <Wallet className="mr-2 h-4 w-4" />
                                 <span className="font-medium">Wallet</span>
+                            </DropdownMenuItem>
+                        )}
+                        {/* Policy menu item for AUDITOR, COMPANY_MANAGER, COMPANY_USER */}
+                        {canViewPolicies && (
+                            <DropdownMenuItem
+                                className="cursor-pointer"
+                                onSelect={(e) => {
+                                    e.preventDefault()
+                                    setShowPolicyDialog(true)
+                                }}
+                            >
+                                <Shield className="mr-2 h-4 w-4" />
+                                <span className="font-medium">Policy</span>
                             </DropdownMenuItem>
                         )}
                         <DropdownMenuSeparator className="bg-sidebar-border" />
@@ -180,6 +209,7 @@ export function TopBar({
                     </DropdownMenuContent>
                 </DropdownMenu>
 
+                {/* Logout Confirmation Dialog */}
                 <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
@@ -196,7 +226,13 @@ export function TopBar({
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
+
+                {/* Policy View Dialog */}
+                <PolicyViewDialog
+                    open={showPolicyDialog}
+                    onOpenChange={setShowPolicyDialog}
+                />
             </div>
-        </header >
+        </header>
     )
 }

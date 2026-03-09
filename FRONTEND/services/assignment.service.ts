@@ -21,7 +21,7 @@ export interface CreateAssignmentRequest {
 }
 
 export interface UpdateAssignmentRequest {
-    status: "ACTIVE" | "INACTIVE";
+    status: "ACTIVE" | "INACTIVE" | "active" | "inactive";
 }
 
 /** Valid sortBy values for GET /assignment/listAssignments */

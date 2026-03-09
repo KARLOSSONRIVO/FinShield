@@ -1,39 +1,49 @@
-import { useQuery } from "@tanstack/react-query"
+﻿import { useQuery } from "@tanstack/react-query"
 import { DashboardService } from "@/services/dashboard.service"
 import { InvoiceService } from "@/services/invoice.service"
+import { ListInvoice } from "@/lib/types"
 
-export function useAuditorDashboard() {
-    const { data: stats } = useQuery({
-        queryKey: ["auditor-stats"],
-        queryFn: DashboardService.getAuditorStats
-    })
+interface UseAuditorDashboardOptions {
+    enabled?: boolean;
+}
 
-    const { data: allInvoices = [] } = useQuery({
+export function useAuditorDashboard({ enabled = true }: UseAuditorDashboardOptions = {}) {
+    const { data: allInvoices = [], isLoading } = useQuery({
         queryKey: ["invoices"],
         queryFn: async () => {
-            const res = await InvoiceService.getAll()
+            // Fetch all invoices for real-time dashboard stats calculation without limits
+            const res = await InvoiceService.list()
             return res.data?.items ?? []
-        }
+        },
+        enabled
     })
 
-    // Filter relevant lists
-    const pendingReviews = allInvoices.filter(i => i.status === "pending")
-        .sort((a, b) => new Date(a.invoiceDate ?? 0).getTime() - new Date(b.invoiceDate ?? 0).getTime())
+    // Filter relevant lists for display
+    const pendingReviews = allInvoices.filter((i: ListInvoice) => i.status === "pending")
+        .sort((a: ListInvoice, b: ListInvoice) => new Date(a.invoiceDate ?? 0).getTime() - new Date(b.invoiceDate ?? 0).getTime())
 
-    const flaggedInvoices = allInvoices.filter(i => i.status === "flagged" || i.status === "fraudulent")
+    const flaggedInvoices = allInvoices.filter((i: ListInvoice) =>
+        i.status === "flagged" ||
+        i.aiVerdict?.verdict === "flagged"
+    )
 
-    // Legacy structure expected by dashboard
+    // Calculate real-time stats from the fetched dataset
+    const cleanInvoices = allInvoices.filter((i: ListInvoice) =>
+        i.status === "clean" || i.aiVerdict?.verdict === "clean"
+    )
+
+    // Legacy structure expected by dashboard boxes
     const legacyStats = [
-        { label: "Pending Reviews", value: stats?.pendingReviews || 0, change: "+5", trend: "up" },
-        { label: "Flagged Invoices", value: stats?.flaggedInvoices || 0, change: "-2", trend: "down" },
-        { label: "Verified Invoices", value: stats?.verifiedInvoices || 0, change: "+12", trend: "up" },
-        { label: "Total Audited", value: stats?.activeInvoices || 0, change: "+8", trend: "up" },
+        { label: "Pending Reviews", value: pendingReviews.length, change: "+0", trend: "up" },
+        { label: "Flagged Invoices", value: flaggedInvoices.length, change: "+0", trend: "down" },
+        { label: "Clean Invoices", value: cleanInvoices.length, change: "+0", trend: "up" },
+        { label: "Total Audited", value: allInvoices.length, change: "+0", trend: "up" },
     ]
 
     return {
         stats: legacyStats,
         pendingReviews,
         flaggedInvoices,
-        isLoading: !stats || allInvoices.length === 0 // Basic check or use proper query loading
+        isLoading
     }
 }

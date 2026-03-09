@@ -1502,7 +1502,7 @@ export interface components {
              * @example ACTIVE
              * @enum {string}
              */
-            status?: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+            status?: "ACTIVE" | "INACTIVE";
             /** @example false */
             mustChangePassword?: boolean;
             mfaEnabled?: boolean;
@@ -1521,7 +1521,7 @@ export interface components {
              * @example ACTIVE
              * @enum {string}
              */
-            status?: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+            status?: "ACTIVE" | "INACTIVE";
         };
         Assignment: {
             /** @example 507f1f77bcf86cd799439011 */

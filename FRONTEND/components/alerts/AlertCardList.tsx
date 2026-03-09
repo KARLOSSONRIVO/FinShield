@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,7 @@ interface AlertCardListProps {
     title: string
     description?: string
     invoices: Invoice[]
-    type: "fraudulent" | "flagged" | "pending"
+    type: "flagged" | "pending"
 }
 
 export function AlertCardList({ title, description, invoices, type }: AlertCardListProps) {
@@ -19,13 +19,6 @@ export function AlertCardList({ title, description, invoices, type }: AlertCardL
     // Helper for visual styles based on type
     const getStyles = () => {
         switch (type) {
-            case "fraudulent":
-                return {
-                    icon: XCircle,
-                    badge: "bg-red-100 text-red-700",
-                    border: "border-l-4 border-l-red-500",
-                    button: "bg-blue-600 hover:bg-blue-700 text-white"
-                }
             case "flagged":
                 return {
                     icon: AlertTriangle,
@@ -64,21 +57,20 @@ export function AlertCardList({ title, description, invoices, type }: AlertCardL
                         </p>
                     ) : (
                         invoices.slice(0, 3).map(invoice => (
-                            <div key={invoice._id} className={`flex items-center justify-between p-3 bg-white border rounded-lg shadow-sm ${type !== 'pending' ? styles.border : ''}`}>
+                            <div key={invoice.id || invoice._id} className={`flex items-center justify-between p-3 bg-white border rounded-lg shadow-sm ${type !== 'pending' ? styles.border : ''}`}>
                                 <div>
-                                    <p className="font-bold text-sm">{invoice.invoiceNo}</p>
+                                    <p className="font-bold text-sm">{invoice.invoiceNumber || invoice.invoiceNo}</p>
                                     <Badge className={`mt-1 h-5 text-[10px] px-1.5 font-bold border-0 ${styles.badge}`}>
-                                        {type === 'fraudulent' ? 'Fraudulent' : type === 'flagged' ? 'Flagged' : 'Pending'}
+                                        {type === 'flagged' ? 'Flagged' : 'Pending'}
                                     </Badge>
                                 </div>
 
                                 {type === 'pending' && (
                                     <div className="text-sm text-muted-foreground">
-                                        by {invoice.uploadedByName || "Unknown"} • {new Date(invoice.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ago
                                     </div>
                                 )}
 
-                                <Link href={`/company/manager/invoices/${invoice._id}`}>
+                                <Link href={`/company/manager/invoices/${invoice.id || invoice._id}`}>
                                     <Button size="sm" className={`h-8 text-xs font-bold ${styles.button}`}>
                                         {type === 'pending' ? 'Pending' : 'View'}
                                     </Button>

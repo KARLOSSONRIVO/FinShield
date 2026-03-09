@@ -1,8 +1,0 @@
-﻿components/dashboard/EmployeeRecentInvoices.tsx(44,85): error TS18047: 'invoice.totals_total' is possibly 'null'.
-components/dashboard/ManagerAIAlerts.tsx(43,77): error TS18047: 'invoice.totals_total' is possibly 'null'.
-components/dashboard/ManagerRecentInvoices.tsx(43,77): error TS18047: 'invoice.totals_total' is possibly 'null'.
-components/users/ManagerEmployeeTable.tsx(14,13): error TS2741: Property 'onUpdateStatus' is missing in type '{ users: User[]; sortConfig: any; onSort: (key: any) => void; onDisableUser: (userId: string) => void; }' but required in type 'UserTableProps'.
-hooks/auditor/flagged/use-auditor-flagged-queue.ts(54,13): error TS18048: 'i.ai_riskScore' is possibly 'undefined'.
-hooks/company-manager/dashboard/use-manager-dashboard.ts(9,67): error TS18047: 'inv.totals_total' is possibly 'null'.
-hooks/super-admin/flagged/use-flagged-queue.ts(31,13): error TS18048: 'i.ai_riskScore' is possibly 'undefined'.
-hooks/super-admin/flagged/use-flagged-queue.ts(41,17): error TS18047: 'inv.invoiceNo' is possibly 'null'.

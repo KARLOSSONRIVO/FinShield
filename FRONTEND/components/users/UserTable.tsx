@@ -13,14 +13,14 @@ import { User, PaginationDetails } from "@/lib/types"
 import { DataPagination } from "../common/DataPagination"
 import { ChevronUp, ChevronDown } from "lucide-react"
 
-import { useState, Fragment } from "react"
+import { useState, Fragment, useEffect } from "react"
 import { DisableUserDialog } from "./DisableUserDialog"
 
 
 
 interface UserTableProps {
     users: User[]
-    onUpdateStatus: (userId: string, status: "ACTIVE" | "SUSPENDED", reason?: string) => void
+    onUpdateStatus: (userId: string, status: "ACTIVE" | "INACTIVE", reason?: string) => void
     renderSubComponent?: (user: User) => React.ReactNode
     pagination?: PaginationDetails
     onPageChange?: (page: number) => void
@@ -31,8 +31,12 @@ interface UserTableProps {
 }
 
 export function UserTable({ users, onUpdateStatus, renderSubComponent, pagination, onPageChange, sortBy, order, onSort, hideRoleAndOrg = false }: UserTableProps) {
-    const [statusUpdate, setStatusUpdate] = useState<{ id: string, status: "ACTIVE" | "SUSPENDED" } | null>(null)
+    const [statusUpdate, setStatusUpdate] = useState<{ id: string, status: "ACTIVE" | "INACTIVE" } | null>(null)
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
+
+    useEffect(() => {
+        console.log("Users Listing:", users);
+    }, [users]);
 
     const toggleRow = (userId: string) => {
         const newExpanded = new Set(expandedRows)
@@ -50,16 +54,25 @@ export function UserTable({ users, onUpdateStatus, renderSubComponent, paginatio
                 <Table>
                     <TableHeader>
                         <TableRow className="hover:bg-transparent border-b border-border/50">
-                            <TableHead className="w-[300px] px-6 py-4">
+                            <TableHead className="px-6 py-4">
                                 <div className="flex items-center justify-center gap-2 cursor-pointer font-bold text-base text-foreground" onClick={() => onSort?.("username")}>
-                                    User Details
+                                    Username
                                     {sortBy === 'username' ? (order === 'asc' ? <ChevronUp className="h-4 w-4 text-primary" /> : <ChevronDown className="h-4 w-4 text-primary" />) : <ChevronUp className="h-4 w-4 text-muted-foreground/40" />}
+                                </div>
+                            </TableHead>
+                            <TableHead className="px-6 py-4">
+                                <div className="flex items-center justify-center gap-2 cursor-pointer font-bold text-base text-foreground" onClick={() => onSort?.("email")}>
+                                    Email
+                                    {sortBy === 'email' ? (order === 'asc' ? <ChevronUp className="h-4 w-4 text-primary" /> : <ChevronDown className="h-4 w-4 text-primary" />) : <ChevronUp className="h-4 w-4 text-muted-foreground/40" />}
                                 </div>
                             </TableHead>
                             {!hideRoleAndOrg && (
                                 <>
-                                    <TableHead className="px-6 py-4 text-center text-foreground font-bold text-base">
-                                        Role
+                                    <TableHead className="px-6 py-4">
+                                        <div className="flex items-center justify-center gap-2 cursor-pointer font-bold text-base text-foreground" onClick={() => onSort?.("role")}>
+                                            Role
+                                            {sortBy === 'role' ? (order === 'asc' ? <ChevronUp className="h-4 w-4 text-primary" /> : <ChevronDown className="h-4 w-4 text-primary" />) : <ChevronUp className="h-4 w-4 text-muted-foreground/40" />}
+                                        </div>
                                     </TableHead>
                                     <TableHead className="px-6 py-4 text-center text-foreground font-bold text-base">Organization</TableHead>
                                 </>
@@ -80,21 +93,21 @@ export function UserTable({ users, onUpdateStatus, renderSubComponent, paginatio
                     <TableBody>
                         {users.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={renderSubComponent ? 7 : 6} className="h-24 text-center text-muted-foreground">
+                                <TableCell colSpan={renderSubComponent ? 8 : 7} className="h-24 text-center text-muted-foreground">
                                     No users found.
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            users.map((user) => {
+                            users.map((user, index) => {
                                 const subComponent = renderSubComponent ? renderSubComponent(user) : null
                                 return (
-                                    <Fragment key={user._id}>
+                                    <Fragment key={user.id || user._id}>
                                         <TableRow className="h-24 hover:bg-muted/30 transition-colors border-b border-border/50">
-                                            <TableCell className="px-6 text-center">
-                                                <div className="flex flex-col items-center">
-                                                    <span className="font-bold text-base text-foreground">{user.username}</span>
-                                                    <span className="text-sm text-foreground font-medium">{user.email}</span>
-                                                </div>
+                                            <TableCell className="px-6 text-center font-bold text-base text-foreground">
+                                                {user.username}
+                                            </TableCell>
+                                            <TableCell className="px-6 text-center text-sm font-medium text-foreground">
+                                                {user.email}
                                             </TableCell>
                                             {!hideRoleAndOrg && (
                                                 <>
@@ -109,7 +122,7 @@ export function UserTable({ users, onUpdateStatus, renderSubComponent, paginatio
                                                 </>
                                             )}
                                             <TableCell className="px-6 text-center">
-                                                <div className={`${user.status.toLowerCase() === 'active' ? 'bg-emerald-600' : 'bg-red-600'} text-white px-3 py-1.5 rounded-md text-[10px] font-bold w-fit mx-auto uppercase tracking-wider`}>
+                                                <div className={`${user.status?.toUpperCase() === 'ACTIVE' ? 'bg-emerald-600' : 'bg-red-600'} text-white px-3 py-1.5 rounded-md text-[10px] font-bold w-fit mx-auto uppercase tracking-wider`}>
                                                     {user.status}
                                                 </div>
                                             </TableCell>
@@ -117,11 +130,11 @@ export function UserTable({ users, onUpdateStatus, renderSubComponent, paginatio
                                                 {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString() : "Never"}
                                             </TableCell>
                                             <TableCell className="px-6 text-center">
-                                                {user.status.toLowerCase() === 'active' ? (
+                                                {user.status?.toUpperCase() === 'ACTIVE' ? (
                                                     <Button
                                                         size="sm"
                                                         className="bg-[#ff4d4f] hover:bg-[#ff4d4f]/90 text-white font-bold h-8 px-4 rounded-md text-xs shadow-none"
-                                                        onClick={() => setStatusUpdate({ id: user._id, status: "SUSPENDED" })}
+                                                        onClick={() => setStatusUpdate({ id: user.id || user._id, status: "INACTIVE" })}
                                                     >
                                                         Disable
                                                     </Button>
@@ -129,21 +142,22 @@ export function UserTable({ users, onUpdateStatus, renderSubComponent, paginatio
                                                     <Button
                                                         size="sm"
                                                         className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-8 px-4 rounded-md text-xs shadow-none"
-                                                        onClick={() => setStatusUpdate({ id: user._id, status: "ACTIVE" })}
+                                                        onClick={() => setStatusUpdate({ id: user.id || user._id, status: "ACTIVE" })}
                                                     >
                                                         Enable
                                                     </Button>
                                                 )}
                                             </TableCell>
                                             {renderSubComponent && (
-                                                <TableCell>
+                                                <TableCell className="w-[50px] px-2 text-center">
                                                     {subComponent && (
                                                         <Button
                                                             variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => toggleRow(user._id)}
+                                                            size="icon"
+                                                            className="h-8 w-8"
+                                                            onClick={() => toggleRow(user.id || user._id || index.toString())}
                                                         >
-                                                            {expandedRows.has(user._id) ?
+                                                            {expandedRows.has(user.id || user._id || index.toString()) ?
                                                                 <ChevronUp className="h-4 w-4" /> :
                                                                 <ChevronDown className="h-4 w-4" />
                                                             }
@@ -152,10 +166,12 @@ export function UserTable({ users, onUpdateStatus, renderSubComponent, paginatio
                                                 </TableCell>
                                             )}
                                         </TableRow>
-                                        {subComponent && expandedRows.has(user._id) && (
-                                            <TableRow className="bg-muted/5">
-                                                <TableCell colSpan={7} className="p-4">
-                                                    {subComponent}
+                                        {subComponent && expandedRows.has(user.id || user._id || index.toString()) && (
+                                            <TableRow className="bg-muted/30">
+                                                <TableCell colSpan={hideRoleAndOrg ? 6 : 8} className="p-0 border-b-0">
+                                                    <div className="p-4 border-t border-border/50">
+                                                        {subComponent}
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         )}

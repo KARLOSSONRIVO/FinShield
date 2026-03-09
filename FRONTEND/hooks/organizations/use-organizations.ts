@@ -15,8 +15,7 @@ export function useOrganizations({ initialLimit = 10 } = {}) {
 
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const [newOrgName, setNewOrgName] = useState("")
-    const [newOrgType, setNewOrgType] = useState("")
-    const [newOrgEmployeeCount, setNewOrgEmployeeCount] = useState("")
+    const [newOrgType, setNewOrgType] = useState("company")
     const [newOrgStatus, setNewOrgStatus] = useState("active")
     const [createError, setCreateError] = useState<string | null>(null)
 
@@ -24,7 +23,13 @@ export function useOrganizations({ initialLimit = 10 } = {}) {
     const { data, isLoading, isError, error } = useQuery({
         queryKey: ["organizations", queryParams],
         queryFn: async () => {
-            const response = await OrganizationService.listOrganizations(queryParams)
+            const allowedSortKeys = ["createdAt", "name", "type"]
+            const fetchParams = {
+                ...queryParams,
+                sortBy: (queryParams.sortBy && allowedSortKeys.includes(queryParams.sortBy) ? queryParams.sortBy : undefined) as "name" | "type" | "createdAt" | undefined
+            }
+
+            const response = await OrganizationService.listOrganizations(fetchParams)
 
             // Handle both unified PaginatedResponse or legacy array fallback
             // @ts-ignore
@@ -34,9 +39,10 @@ export function useOrganizations({ initialLimit = 10 } = {}) {
                 return {
                     items: rawData.map((o: any) => ({
                         id: String(o.id || o._id),
+                        _id: String(o.id || o._id),
                         name: o.name,
                         type: (o.type || "").toUpperCase() as "COMPANY" | "AUDITOR" | "REGULATOR",
-                        status: (o.status || "ACTIVE").toUpperCase() as "ACTIVE" | "INACTIVE" | "SUSPENDED",
+                        status: (o.status || "ACTIVE").toUpperCase() as "ACTIVE" | "INACTIVE",
                         createdAt: o.createdAt,
                         updatedAt: o.updatedAt,
                     })),
@@ -48,9 +54,10 @@ export function useOrganizations({ initialLimit = 10 } = {}) {
             const rawItems: any[] = response.data?.items || []
             const items = rawItems.map(o => ({
                 id: String(o.id || o._id),
+                _id: String(o.id || o._id),
                 name: o.name,
                 type: (o.type || "").toUpperCase() as "COMPANY" | "AUDITOR" | "REGULATOR",
-                status: (o.status || "ACTIVE").toUpperCase() as "ACTIVE" | "INACTIVE" | "SUSPENDED",
+                status: (o.status || "ACTIVE").toUpperCase() as "ACTIVE" | "INACTIVE",
                 createdAt: o.createdAt,
                 updatedAt: o.updatedAt,
             }))
@@ -68,7 +75,7 @@ export function useOrganizations({ initialLimit = 10 } = {}) {
             setCreateError(null)
             return await OrganizationService.createOrganization({
                 name: newOrgName,
-                type: "company" // Hardcoded per existing logic
+                type: newOrgType as "company" | "platform"
             })
         },
         onSuccess: () => {
@@ -76,30 +83,70 @@ export function useOrganizations({ initialLimit = 10 } = {}) {
             toast.success("Organization created successfully")
             setIsCreateOpen(false)
             setNewOrgName("")
-            setNewOrgType("")
-            setNewOrgEmployeeCount("")
+            setNewOrgType("company")
             setNewOrgStatus("active")
             setCreateError(null)
         },
         onError: (err: any) => {
-            const msg = err.response?.data?.message || err.message || "Failed to create organization"
-            console.error("Failed to create org:", err)
+            const msg = err.response?.data?.message || "Failed to create organization"
             setCreateError(msg)
             toast.error(msg)
         }
     })
 
+    // Update Organization Mutation
+    const updateOrgMutation = useMutation({
+        mutationFn: async (org: Organization) => {
+            const organizationId = org.id || org._id;
+            if (!organizationId) {
+                throw new Error("Organization ID is required");
+            }
+
+            return await OrganizationService.updateOrganization(organizationId, {
+                name: org.name,
+                status: (org.status || "ACTIVE").toLowerCase() as "active" | "inactive",
+                type: (org.type || "COMPANY").toLowerCase() as "company" | "platform"
+            })
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["organizations"] })
+            toast.success("Organization updated successfully")
+        },
+        onError: (err: any) => {
+            const msg = err.response?.data?.message || "Failed to update organization"
+            toast.error(msg)
+        }
+    })
+
+    // Delete Organization Mutation
+    const deleteOrgMutation = useMutation({
+        mutationFn: async (id: string) => {
+            return await OrganizationService.deleteOrganization(id)
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["organizations"] })
+            toast.success("Organization deleted successfully")
+        },
+        onError: (err: any) => {
+            const msg = err.response?.data?.message || "Failed to delete organization"
+            toast.error(msg)
+        }
+    })
+
     const handleCreateOrg = async () => {
+        if (!newOrgName.trim()) {
+            setCreateError("Organization name is required");
+            return;
+        }
         createOrgMutation.mutate()
     }
 
     const handleEditOrg = (org: Organization) => {
-        console.log("Updating organization:", org);
-        toast.info("Update Organization functionality is not yet fully implemented in Backend.");
+        updateOrgMutation.mutate(org)
     }
 
     const handleDeleteOrg = (id: string) => {
-        toast.info("Delete Organization functionality is not yet fully implemented in Backend.");
+        deleteOrgMutation.mutate(id)
     }
 
     return {
@@ -124,15 +171,19 @@ export function useOrganizations({ initialLimit = 10 } = {}) {
         setNewOrgName,
         newOrgType,
         setNewOrgType,
-        newOrgEmployeeCount,
-        setNewOrgEmployeeCount,
         newOrgStatus,
         setNewOrgStatus,
         handleCreateOrg,
         isCreating: createOrgMutation.isPending,
         createError,
 
-        // Placeholder actions
+        // Update
+        isUpdating: updateOrgMutation.isPending,
+
+        // Delete
+        isDeleting: deleteOrgMutation.isPending,
+
+        // Actions
         handleEditOrg,
         handleDeleteOrg
     }

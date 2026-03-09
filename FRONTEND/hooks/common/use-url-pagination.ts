@@ -2,13 +2,17 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { useCallback } from 'react'
 import { PaginationQuery } from '@/lib/types'
 
-export function useUrlPagination(defaultLimit = 20) {
+export function useUrlPagination(defaultLimit = 5) {
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
 
     const page = Math.max(1, Number(searchParams.get('page')) || 1)
-    const limit = Number(searchParams.get('limit')) || defaultLimit
+
+    // Parse limit, falling back to default, and strictly clamp between 1 and 5
+    const rawLimit = Number(searchParams.get('limit')) || defaultLimit
+    const limit = Math.min(defaultLimit, Math.max(1, rawLimit))
+
     const search = searchParams.get('search') || undefined
     const sortBy = searchParams.get('sortBy') || undefined
     const order = (searchParams.get('order') as 'asc' | 'desc') || undefined
@@ -67,6 +71,10 @@ export function useUrlPagination(defaultLimit = 20) {
         router.push(pathname + '?' + createQueryString({ [key]: value, page: 1 }))
     }
 
+    const setFilters = (updates: Record<string, string | undefined | null>) => {
+        router.push(pathname + '?' + createQueryString({ ...updates, page: 1 }))
+    }
+
     const queryParams: PaginationQuery = {
         page,
         limit,
@@ -85,6 +93,7 @@ export function useUrlPagination(defaultLimit = 20) {
         setPage,
         setSearch,
         setSort,
-        setFilter
+        setFilter,
+        setFilters
     }
 }

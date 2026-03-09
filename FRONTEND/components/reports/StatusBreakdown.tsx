@@ -4,10 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PieChart } from "lucide-react"
 
 interface StatusCounts {
-    verified: number
+    approved: number
     pending: number
-    flagged: number
-    fraudulent: number
+    rejected: number
 }
 
 interface StatusBreakdownProps {
@@ -30,19 +29,19 @@ export function StatusBreakdown({ counts, total }: StatusBreakdownProps) {
                 <CardDescription>Distribution of invoice statuses</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="space-y-6">
+                <div className="space-y-8">
                     <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                                <span className="font-bold">Verified</span>
+                                <span className="font-bold">Approved</span>
                             </div>
-                            <span className="font-bold">{counts.verified}</span>
+                            <span className="font-bold">{counts.approved}</span>
                         </div>
                         <div className="w-full bg-secondary rounded-full h-3">
                             <div
                                 className="bg-emerald-500 h-3 rounded-full"
-                                style={{ width: `${getPercentage(counts.verified)}%` }}
+                                style={{ width: `${getPercentage(counts.approved)}%` }}
                             />
                         </div>
                     </div>
@@ -66,34 +65,19 @@ export function StatusBreakdown({ counts, total }: StatusBreakdownProps) {
                     <div className="space-y-2">
                         <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-amber-500" />
-                                <span className="font-bold">Flagged</span>
-                            </div>
-                            <span className="font-bold">{counts.flagged}</span>
-                        </div>
-                        <div className="w-full bg-secondary rounded-full h-3">
-                            <div
-                                className="bg-amber-500 h-3 rounded-full"
-                                style={{ width: `${getPercentage(counts.flagged)}%` }}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-red-500" />
-                                <span className="font-bold">Fraudulent</span>
+                                <span className="font-bold">Rejected</span>
                             </div>
-                            <span className="font-bold">{counts.fraudulent}</span>
+                            <span className="font-bold">{counts.rejected || 0}</span>
                         </div>
                         <div className="w-full bg-secondary rounded-full h-3">
                             <div
                                 className="bg-red-500 h-3 rounded-full"
-                                style={{ width: `${getPercentage(counts.fraudulent)}%` }}
+                                style={{ width: `${getPercentage(counts.rejected || 0)}%` }}
                             />
                         </div>
                     </div>
+
                 </div>
             </CardContent>
         </Card>

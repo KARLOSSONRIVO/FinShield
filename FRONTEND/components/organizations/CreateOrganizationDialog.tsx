@@ -23,8 +23,6 @@ interface CreateOrganizationDialogProps {
     setNewOrgName: (name: string) => void
     newOrgType: string
     setNewOrgType: (type: string) => void
-    newOrgEmployeeCount: string
-    setNewOrgEmployeeCount: (count: string) => void
     newOrgStatus: string
     setNewOrgStatus: (status: string) => void
     onCreateOrg: () => void
@@ -38,8 +36,6 @@ export function CreateOrganizationDialog({
     setNewOrgName,
     newOrgType,
     setNewOrgType,
-    newOrgEmployeeCount,
-    setNewOrgEmployeeCount,
     newOrgStatus,
     setNewOrgStatus,
     onCreateOrg,
@@ -60,7 +56,7 @@ export function CreateOrganizationDialog({
                         <Label htmlFor="orgName" className="font-bold text-base">Organization Name</Label>
                         <Input
                             id="orgName"
-                            placeholder="eg. FinShield Platform Inc."
+                            placeholder="eg. Company"
                             value={newOrgName}
                             onChange={(e) => setNewOrgName(e.target.value)}
                             className="border border-black rounded-lg h-11"
@@ -74,23 +70,10 @@ export function CreateOrganizationDialog({
                                 <SelectValue placeholder="Select Organization Type" />
                             </SelectTrigger>
                             <SelectContent className="border border-black rounded-lg">
-                                <SelectItem value="FINANCE">Finance</SelectItem>
-                                <SelectItem value="GENERAL">General</SelectItem>
-                                <SelectItem value="SALES">Sales</SelectItem>
-                                <SelectItem value="TECHNOLOGY">Technology</SelectItem>
+                                <SelectItem value="ORGANIZATION">Organization</SelectItem>
+                                <SelectItem value="COMPANY">Company</SelectItem>
                             </SelectContent>
                         </Select>
-                    </div>
-
-                    <div className="grid gap-2">
-                        <Label className="font-bold text-base">Employee Number</Label>
-                        <Input
-                            placeholder="eg. 100"
-                            value={newOrgEmployeeCount}
-                            onChange={(e) => setNewOrgEmployeeCount(e.target.value)}
-                            className="border border-black rounded-lg h-11"
-                            type="number"
-                        />
                     </div>
 
                     <div className="grid gap-2">

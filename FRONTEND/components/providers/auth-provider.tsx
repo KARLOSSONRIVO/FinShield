@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { AuthService } from "@/services/auth.service"
 import type { components } from "@/lib/api-types"
+import { toast } from "sonner"
 
 type User = components["schemas"]["User"]
 type LoginRequest = Parameters<typeof AuthService.login>[0]
@@ -15,6 +16,7 @@ interface AuthContextType {
     isLoading: boolean
     login: (credentials: LoginRequest) => Promise<any>
     logout: () => Promise<void>
+    refreshUser: () => Promise<void>
     verifyMfaLogin: (tempToken: string, token: string) => Promise<void>
     enableMfa: (token: string) => Promise<void>
     disableMfa: (password: string) => Promise<void>
@@ -36,8 +38,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return
             }
             try {
-                // Validate the stored token by calling /auth/me
-                const response = await AuthService.getMe()
+                // Validate the stored token — race against a 5s timeout so a
+                // slow/offline backend never keeps isLoading=true indefinitely.
+                const timeoutPromise = new Promise<never>((_, reject) =>
+                    setTimeout(() => reject(new Error("Auth init timed out")), 5000)
+                )
+                const response = await Promise.race([AuthService.getMe(), timeoutPromise]) as any
                 const userData = response?.data?.user || response?.data || response?.user
                 if (userData) {
                     setUser(userData)
@@ -46,8 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     throw new Error("Invalid user data from /auth/me")
                 }
             } catch (error) {
-                // Token is expired or invalid — clear everything so user stays on /login
-                console.warn("Token validation failed, clearing session:", error)
+                // Token is expired, invalid, or backend timed out — clear session
                 localStorage.removeItem("token")
                 localStorage.removeItem("refreshToken")
                 localStorage.removeItem("user")
@@ -103,8 +108,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else {
                 throw new Error("Login failed")
             }
-        } catch (error) {
-            console.error("Login error:", error)
+        } catch (error: any) {
+            const msg = error.response?.data?.message || "Login failed"
+            toast.error(msg)
             throw error
         } finally {
             setIsLoading(false)
@@ -116,8 +122,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             const response = await AuthService.verifyMfa({ tempToken, token })
             handleAuthSuccess(response)
-        } catch (error) {
-            console.error("MFA Verify error:", error)
+        } catch (error: any) {
+            const msg = error.response?.data?.message || "MFA verification failed"
+            toast.error(msg)
             throw error
         } finally {
             setIsLoading(false)
@@ -153,8 +160,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const logout = async () => {
         try {
             await AuthService.logout()
-        } catch (error) {
-            console.error("Logout error", error)
+        } catch (error: any) {
+            // Silently fail logout if token is already bad, user is being redirected anyway
         } finally {
             localStorage.removeItem("token")
             localStorage.removeItem("refreshToken")
@@ -168,11 +175,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }
 
-    const navigateBasedOnRole = (user: User) => {
-        if (user.mustChangePassword) {
-            router.push("/auth/change-password")
-            return
+    const refreshUser = async () => {
+        try {
+            const response = await AuthService.getMe() as any
+            const userData = response?.data?.user || response?.data || response?.user
+            if (userData) {
+                setUser(userData)
+                localStorage.setItem("user", JSON.stringify(userData))
+            }
+        } catch {
+            // ignore refresh errors
         }
+    }
+
+    const navigateBasedOnRole = (user: User) => {
+        // If user must change password, stay on current page — the global dialog will appear
+        if ((user as any).mustChangePassword) return
 
         switch (user.role) {
             case "SUPER_ADMIN":
@@ -202,6 +220,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             isLoading,
             login,
             logout,
+            refreshUser,
             verifyMfaLogin,
             enableMfa,
             disableMfa

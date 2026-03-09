@@ -1,7 +1,8 @@
 "use client"
 
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
-import { useFlaggedQueue } from "@/hooks/super-admin/flagged/use-flagged-queue"
+import { FlaggedTableSkeleton } from "@/components/skeletons/flagged-table-skeleton"
+import { useFlaggedQueue } from "@/hooks/flagged/use-flagged-queue"
 import { Pagination } from "@/components/ui/pagination-custom"
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 
@@ -16,7 +17,8 @@ export default function FlaggedQueuePage() {
     totalPages,
     setCurrentPage,
     sortConfig,
-    requestSort
+    requestSort,
+    isLoading
   } = useFlaggedQueue()
 
   return (
@@ -27,21 +29,23 @@ export default function FlaggedQueuePage() {
 
       <div>
         <InvoiceFilter
-          search={search}
+          search={search || ""}
           onSearchChange={setSearch}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
           sortConfig={sortConfig}
           onSortChange={requestSort}
         />
       </div>
 
       <div className="mt-4">
-        <InvoiceTable
-          invoices={invoices}
-          mode="super-admin"
-          baseUrl="/admin/super-admin/invoices"
-        />
+        {isLoading ? (
+          <FlaggedTableSkeleton />
+        ) : (
+          <InvoiceTable
+            invoices={invoices}
+            mode="super-admin"
+            baseUrl="/admin/super-admin/invoices"
+          />
+        )}
       </div>
 
       <div className="mt-4 flex justify-center">

@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { useState, useEffect } from "react"
 import { RealAssignment } from "@/hooks/assignments/use-assignments"
 
@@ -23,7 +22,7 @@ interface EditAssignmentDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   assignment: RealAssignment | null
-  onUpdate: (id: string, data: { status?: "active" | "inactive"; notes?: string }) => void
+  onUpdate: (id: string, status: "ACTIVE" | "INACTIVE") => void
   companyName: string
   auditorName: string
 }
@@ -36,19 +35,17 @@ export function EditAssignmentDialog({
   companyName,
   auditorName
 }: EditAssignmentDialogProps) {
-  const [status, setStatus] = useState<"active" | "inactive">("active")
-  const [notes, setNotes] = useState("")
+  const [status, setStatus] = useState<"ACTIVE" | "INACTIVE">("ACTIVE")
 
   useEffect(() => {
     if (assignment) {
       setStatus(assignment.status)
-      setNotes(assignment.notes || "")
     }
   }, [assignment])
 
   const handleSubmit = () => {
     if (assignment) {
-      onUpdate(assignment.id, { status, notes })
+      onUpdate(assignment.id, status)
       onOpenChange(false)
     }
   }
@@ -61,7 +58,7 @@ export function EditAssignmentDialog({
         <DialogHeader>
           <DialogTitle>Edit Assignment</DialogTitle>
           <DialogDescription>
-            Update the status or notes for this auditor assignment.
+            Update the status for this auditor assignment.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -81,32 +78,23 @@ export function EditAssignmentDialog({
             <Label htmlFor="status">Status</Label>
             <Select
               value={status}
-              onValueChange={(value: "active" | "inactive") => setStatus(value)}
+              onValueChange={(value: "ACTIVE" | "INACTIVE") => setStatus(value)}
             >
               <SelectTrigger id="status">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="INACTIVE">Inactive</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add any notes about this assignment..."
-            />
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} className="bg-emerald-600 hover:bg-emerald-700">
+          <Button onClick={handleSubmit} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
             Save Changes
           </Button>
         </DialogFooter>
