@@ -768,6 +768,7 @@ GET /invoice/list
 | `sortBy` | string  | `createdAt` | `createdAt`, `invoiceNumber`, `invoiceDate`, `totalAmount`, `reviewDecision` |
 | `order`  | string  | `desc`      | `asc` or `desc`                                                |
 | `orgId`  | string  | —           | Filter by organization ID (SUPER_ADMIN/REGULATOR only)         |
+| `reviewDecision` | string | — | Filter by status: `pending`, `approved`, `rejected`       |
 
 **Scoping rules:**
 
@@ -782,6 +783,8 @@ GET /invoice/list
 
 ```
 GET /invoice/list?page=1&limit=10&search=INV&sortBy=invoiceDate&order=desc
+GET /invoice/list?reviewDecision=pending
+GET /invoice/list?reviewDecision=approved&sortBy=invoiceDate&order=asc
 ```
 
 **Response (200):**
@@ -831,6 +834,7 @@ GET /invoice/my-invoices
 | `search` | string  | —           | Search by invoice number or issued-to name                     |
 | `sortBy` | string  | `createdAt` | `createdAt`, `invoiceNumber`, `invoiceDate`, `totalAmount`, `reviewDecision` |
 | `order`  | string  | `desc`      | `asc` or `desc`                                                |
+| `reviewDecision` | string | — | Filter by status: `pending`, `approved`, `rejected`       |
 
 **Response (200):**
 

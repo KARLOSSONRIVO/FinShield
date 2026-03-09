@@ -28,6 +28,12 @@ paths:
           schema:
             type: string
           description: Filter by organization ID (SUPER_ADMIN/REGULATOR only)
+        - in: query
+          name: reviewDecision
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+          description: Filter by review status
       responses:
         "200":
           description: Paginated invoice list
@@ -75,6 +81,12 @@ paths:
             enum: [createdAt, invoiceNumber, invoiceDate, totalAmount, reviewDecision]
             default: createdAt
           description: Sort field
+        - in: query
+          name: reviewDecision
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+          description: Filter by review status
       responses:
         "200":
           description: Paginated list of user's own invoices

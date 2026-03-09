@@ -40,7 +40,7 @@ termsRouter.delete(
 // Get all Terms and Conditions
 termsRouter.get(
     "/",
-    allowRoles("REGULATOR", "COMPANY_MANAGER", "AUDITOR", "COMPANY_USER"),
+    allowRoles("REGULATOR", "COMPANY_MANAGER", "AUDITOR", "COMPANY_USER","SUPER_ADMIN"),
     TermsController.getTerms
 );
 
