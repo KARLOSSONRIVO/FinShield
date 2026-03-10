@@ -156,11 +156,20 @@ class AnomalyModelTrainer:
             
             # 6. Train model
             logger.info("✓ Training Isolation Forest...")
-            contamination = 0.1
+            # Adaptive contamination: fewer samples → higher contamination (more sensitive to catching anomalies)
+            n = len(feature_matrix)
+            if n <= 75:
+                contamination = 0.15    # small dataset — flag more aggressively
+            elif n <= 200:
+                contamination = 0.10    # medium dataset
+            else:
+                contamination = 0.05    # large dataset — standard
+            logger.info(f"  Adaptive contamination = {contamination} (n={n})")
+            n_estimators = 200          # more trees → smoother boundary
             model = train_isolation_forest(
                 feature_matrix,
                 contamination=contamination,
-                n_estimators=100
+                n_estimators=n_estimators
             )
             
             # 7. Save to S3 with metadata
@@ -172,7 +181,7 @@ class AnomalyModelTrainer:
                 len(invoices),
                 {
                     'contamination': contamination,
-                    'n_estimators': 100,
+                    'n_estimators': n_estimators,
                     'feature_count': len(feature_matrix)
                 }
             )
@@ -220,33 +229,20 @@ class AnomalyModelTrainer:
         success_count = 0
         fail_count = 0
         
-        # Train organizations in parallel
-        max_workers = min(settings.MAX_PARALLEL_TRAINING, len(eligible_orgs))
-        logger.info(f"\n🚀 Training {len(eligible_orgs)} organizations with {max_workers} parallel workers\n")
-        
-        with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            # Submit all training jobs
-            future_to_org = {
-                executor.submit(self.train_organization_model, org_data['org_id']): org_data
-                for org_data in eligible_orgs
-            }
-            
-            # Process results as they complete
-            for idx, future in enumerate(as_completed(future_to_org), 1):
-                org_data = future_to_org[future]
-                org_id = org_data['org_id']
-                
-                try:
-                    result = future.result()
-                    if result:
-                        success_count += 1
-                        logger.info(f"✅ [{idx}/{len(eligible_orgs)}] {org_id} - SUCCESS")
-                    else:
-                        fail_count += 1
-                        logger.info(f"❌ [{idx}/{len(eligible_orgs)}] {org_id} - FAILED")
-                except Exception as e:
+        # Train sequentially — ProcessPoolExecutor can't pickle the MongoDB SSL connection
+        for idx, org_data in enumerate(eligible_orgs, 1):
+            org_id = org_data['org_id']
+            try:
+                result = self.train_organization_model(org_id)
+                if result:
+                    success_count += 1
+                    logger.info(f"✅ [{idx}/{len(eligible_orgs)}] {org_id} - SUCCESS")
+                else:
                     fail_count += 1
-                    logger.error(f"❌ [{idx}/{len(eligible_orgs)}] {org_id} - ERROR: {e}")
+                    logger.info(f"❌ [{idx}/{len(eligible_orgs)}] {org_id} - FAILED")
+            except Exception as e:
+                fail_count += 1
+                logger.error(f"❌ [{idx}/{len(eligible_orgs)}] {org_id} - ERROR: {e}")
         
         # Final summary
         logger.info("\n" + "="*70)

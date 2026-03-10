@@ -4,12 +4,20 @@ from typing import Dict
 def check_round_amount(amount: float) -> float:
     if amount <= 0:
         return 1.0
-    if amount >= 1000 and amount % 1000 == 0:
-        return 0.4
+    if amount % 1_000_000 == 0:
+        return 0.0    # Perfectly divisible by $1M — near certain fraud signal
+    if amount % 10_000 == 0:
+        return 0.0    # Divisible by $10k — very strong fraud signal
+    if amount % 1_000 == 0:
+        return 0.05   # Divisible by $1k
+    if amount % 500 == 0:
+        return 0.15   # Divisible by $500
     if amount >= 100 and amount % 100 == 0:
-        return 0.7
+        return 0.30   # Divisible by $100
+    if amount >= 50 and amount % 50 == 0:
+        return 0.55   # Divisible by $50
     if amount % 10 == 0:
-        return 0.9
+        return 0.75   # Divisible by $10
     return 1.0
 
 def check_invoice_number(invoice_number: str) -> float:

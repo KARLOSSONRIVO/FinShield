@@ -1,0 +1,258 @@
+paths:
+  /terms:
+    get:
+      summary: Get all Terms and Conditions
+      description: |
+        Retrieve the full list of global Terms and Conditions documents visible to all company roles.
+        Terms and Conditions are shared across all companies — no org scoping.
+
+        Optionally filter by title using the `search` query parameter (case-insensitive partial match).
+
+        Results are served from a 30-minute read-through Redis cache.
+        Cache key is `terms:global` for unfiltered requests and `terms:search:{term}` for filtered ones.
+
+        **Note:** This endpoint is exempt from the `mustChangePassword` enforcement — users with a
+        forced password-change flag can still access `GET /terms` to read Terms and Conditions
+        before completing their password change.
+      tags:
+        - Terms and Conditions
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          required: false
+          description: "Filter by title (case-insensitive partial match). Example: ?search=privacy"
+          example: privacy
+      responses:
+        "200":
+          description: List of all Terms and Conditions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TermsItem"
+              example:
+                ok: true
+                data:
+                  - id: "507f1f77bcf86cd799439011"
+                    title: "General Terms and Conditions"
+                    content: "By using this service, you agree to the following terms and conditions..."
+                    version: "1.0"
+                    createdByUserId: "507f1f77bcf86cd799439012"
+                    updatedByUserId: "507f1f77bcf86cd799439012"
+                    createdAt: "2026-03-05T11:02:34.461Z"
+                    updatedAt: "2026-03-05T11:02:34.461Z"
+        "401":
+          description: Unauthorized - Missing or invalid JWT
+        "403":
+          description: Forbidden - Requires REGULATOR, COMPANY_MANAGER, AUDITOR, or COMPANY_USER role
+
+    post:
+      summary: Create a new Terms and Conditions document
+      description: |
+        Create a new Terms and Conditions document. Immediately visible to all company roles.
+        Invalidates the terms cache. Fires a `TERMS_CREATED` audit log entry.
+      tags:
+        - Terms and Conditions
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - content
+              properties:
+                title:
+                  type: string
+                  minLength: 3
+                  maxLength: 200
+                  example: "General Terms and Conditions"
+                content:
+                  type: string
+                  minLength: 10
+                  maxLength: 20000
+                  example: "By using this service, you agree to the following terms and conditions..."
+                version:
+                  type: string
+                  maxLength: 20
+                  default: "1.0"
+                  example: "1.0"
+      responses:
+        "201":
+          description: Terms and Conditions created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Terms and Conditions created successfully"
+                  data:
+                    $ref: "#/components/schemas/TermsItem"
+        "400":
+          description: Validation error (missing or invalid fields)
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden - Requires REGULATOR or SUPER_ADMIN role
+
+  /terms/{id}:
+    patch:
+      summary: Update a Terms and Conditions document
+      description: |
+        Partially update an existing Terms and Conditions document. All body fields are optional — only
+        provided fields are updated.
+
+        **Auto-versioning:** On every update the `version` field is automatically
+        incremented (e.g. `"1.0"` → `"1.1"`). To override, supply an explicit
+        `version` string in the request body.
+
+        Invalidates the `terms:global` cache. Fires a `TERMS_UPDATED` audit log entry.
+      tags:
+        - Terms and Conditions
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Terms and Conditions MongoDB ObjectId
+          example: "507f1f77bcf86cd799439011"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  minLength: 3
+                  maxLength: 200
+                  example: "Updated Terms and Conditions Title"
+                content:
+                  type: string
+                  minLength: 10
+                  maxLength: 20000
+                  example: "Updated terms and conditions content."
+                version:
+                  type: string
+                  maxLength: 20
+                  description: "Override the auto-incremented version (e.g. \"2.0\"). If omitted, the minor version is bumped automatically."
+                  example: "2.0"
+      responses:
+        "200":
+          description: Terms and Conditions updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Terms and Conditions updated successfully"
+                  data:
+                    $ref: "#/components/schemas/TermsItem"
+        "400":
+          description: Validation error
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden - Requires REGULATOR or SUPER_ADMIN role
+        "404":
+          description: Terms and Conditions not found
+
+    delete:
+      summary: Delete a Terms and Conditions document
+      description: |
+        Permanently delete a Terms and Conditions document (hard delete). Invalidates the terms
+        cache. Fires a `TERMS_DELETED` audit log entry.
+      tags:
+        - Terms and Conditions
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Terms and Conditions MongoDB ObjectId
+          example: "507f1f77bcf86cd799439011"
+      responses:
+        "200":
+          description: Terms and Conditions deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Terms and Conditions deleted successfully"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden - Requires REGULATOR or SUPER_ADMIN role
+        "404":
+          description: Terms and Conditions not found
+
+components:
+  schemas:
+    TermsItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "507f1f77bcf86cd799439011"
+        title:
+          type: string
+          example: "General Terms and Conditions"
+        content:
+          type: string
+          example: "By using this service, you agree to the following terms and conditions..."
+        version:
+          type: string
+          example: "1.0"
+        createdByUserId:
+          type: string
+          nullable: true
+          example: "507f1f77bcf86cd799439012"
+        updatedByUserId:
+          type: string
+          nullable: true
+          example: "507f1f77bcf86cd799439012"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-03-05T11:02:34.461Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2026-03-05T11:02:34.461Z"

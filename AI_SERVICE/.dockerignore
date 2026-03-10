@@ -1,0 +1,59 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual environment — never copy venv into the image
+venv/
+.venv/
+env/
+ENV/
+
+# Environment secrets — injected at runtime via docker-compose env_file
+.env
+.env.*
+
+# Jupyter notebooks and training data (not needed at runtime)
+models/*.ipynb
+models/*.json
+models/generate_data.py
+
+# Logs
+*.log
+scripts/retrain.log
+
+# Test / coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Python packaging artifacts
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Docker files themselves (no need to copy inside image)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Editor config
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Documentation (not needed at runtime)
+DOCS/
+
+# Git
+.git/
+.gitignore

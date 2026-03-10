@@ -5,8 +5,11 @@ import * as OrganizationRepositories from "../../repositories/organization.repos
 import { toAssignmentPublic } from "../../mappers/assignment.mapper.js";
 import { cacheDel, invalidatePrefix } from "../../../infrastructure/redis/cache.service.js";
 import { CachePrefix } from "../../../common/utils/cache.constants.js";
+import { getIO, SocketEvents } from "../../../infrastructure/socket/socket.service.js";
+import { createAuditLog } from "../../../common/utils/audit.js";
+import { AuditActions } from "../../../common/utils/audit.constants.js";
 
-export async function createAssignment({ actor, payload }) {
+export async function createAssignment({ actor, payload, ip, userAgent }) {
     if (!actor) throw new AppError("Unauthorized", 401, "UNAUTHORIZED")
     if (actor.role !== "SUPER_ADMIN") {
         throw new AppError("Only SUPER_ADMIN can create assignments", 403, "FORBIDDEN")
@@ -59,6 +62,29 @@ export async function createAssignment({ actor, payload }) {
             const reactivated = await AssignmentRepositories.findById(updated._id);
 
             await invalidateAssignmentCaches();
+
+            const io = getIO();
+            if (io) {
+                io.to(`user:${payload.auditorUserId}`).emit(SocketEvents.ASSIGNMENT_CREATED, {
+                    assignmentId: reactivated._id.toString(),
+                    companyOrgId: payload.companyOrgId,
+                });
+                io.to(`role:SUPER_ADMIN`).emit(SocketEvents.ASSIGNMENT_CREATED, {
+                    assignmentId: reactivated._id.toString(),
+                    auditorUserId: payload.auditorUserId,
+                    companyOrgId: payload.companyOrgId,
+                });
+            }
+
+            createAuditLog({
+                actorId: actor.sub, actorRole: actor.role,
+                actor: { username: actor.username ?? null, email: actor.email ?? null },
+                action: AuditActions.ASSIGNMENT_CREATED,
+                target: { type: "Assignment" },
+                metadata: { assignmentId: reactivated._id.toString(), auditorUserId: payload.auditorUserId, companyOrgId: payload.companyOrgId, reactivated: true, actorEmail: actor.email },
+                ip, userAgent,
+            });
+
             return toAssignmentPublic(reactivated)
         }
     }
@@ -75,5 +101,28 @@ export async function createAssignment({ actor, payload }) {
     const created = await AssignmentRepositories.findById(assignment._id)
 
     await invalidateAssignmentCaches();
+
+    const io = getIO();
+    if (io) {
+        io.to(`user:${payload.auditorUserId}`).emit(SocketEvents.ASSIGNMENT_CREATED, {
+            assignmentId: created._id.toString(),
+            companyOrgId: payload.companyOrgId,
+        });
+        io.to(`role:SUPER_ADMIN`).emit(SocketEvents.ASSIGNMENT_CREATED, {
+            assignmentId: created._id.toString(),
+            auditorUserId: payload.auditorUserId,
+            companyOrgId: payload.companyOrgId,
+        });
+    }
+
+    createAuditLog({
+        actorId: actor.sub, actorRole: actor.role,
+        actor: { username: actor.username ?? null, email: actor.email ?? null },
+        action: AuditActions.ASSIGNMENT_CREATED,
+        target: { type: "Assignment" },
+        metadata: { assignmentId: created._id.toString(), auditorUserId: payload.auditorUserId, companyOrgId: payload.companyOrgId, actorEmail: actor.email },
+        ip, userAgent,
+    });
+
     return toAssignmentPublic(created)
 }

@@ -58,3 +58,20 @@ export function validateInvoiceUpload(req, _res, next) {
     // All validations passed - file is valid
     next();
 }
+
+// ── PATCH /:id/review ────────────────────────────────────────
+export const validateReviewBody = validate(
+    z.object({
+        body: z.object({
+            reviewDecision: z.enum(["approved", "rejected"], {
+                required_error: "reviewDecision is required",
+                invalid_type_error: "reviewDecision must be 'approved' or 'rejected'",
+            }),
+            reviewNotes: z
+                .string({ required_error: "reviewNotes is required" })
+                .min(1, "reviewNotes cannot be empty")
+                .max(1000, "reviewNotes cannot exceed 1000 characters")
+                .trim(),
+        }),
+    })
+);

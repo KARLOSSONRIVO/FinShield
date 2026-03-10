@@ -3,7 +3,7 @@ import { uploadSingle } from "../../common/utils/multer.js";
 import { allowRoles } from "../../common/middlewares/rbac.middleware.js";
 import { uploadLimiter } from "../../common/middlewares/rateLimit.middleware.js";
 import * as InvoiceController from "../../modules/controllers/invoice.controller.js";
-import { validateInvoiceUpload } from "../../modules/validators/invoice.validator.js";
+import { validateInvoiceUpload, validateReviewBody } from "../../modules/validators/invoice.validator.js";
 import { validateInvoiceListQuery, validateMyInvoiceListQuery } from "../../modules/validators/pagination.validator.js";
 import { validateInvoiceIdParam } from "../../modules/validators/invoice.validator.js";
 import { validateFileType } from "../../common/middlewares/fileType.middleware.js";
@@ -39,6 +39,14 @@ invoiceRouter.post(
     validateInvoiceUpload,
     allowRoles("COMPANY_MANAGER", "COMPANY_USER"),
     InvoiceController.uploadAndAnchorInvoice
+)
+
+invoiceRouter.patch(
+    "/:id/review",
+    allowRoles("AUDITOR"),
+    validateInvoiceIdParam,
+    validateReviewBody,
+    InvoiceController.submitReviewDecision
 )
 
 

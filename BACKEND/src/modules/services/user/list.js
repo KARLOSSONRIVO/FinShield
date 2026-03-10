@@ -25,6 +25,9 @@ export async function listUsers({ actor, orgId, query = {} }) {
     // Exclude the current user
     filter._id = { $ne: actor.userId || actor.sub };
 
+    // Do not include COMPANY_USERs in the root response since they are embedded in COMPANY_MANAGERs
+    filter.role = { $ne: "COMPANY_USER" };
+
     const queryHash = buildQueryHash({ role: actor.role, sub: actor.sub, orgId: actor.orgId, filter, page, limit, search, sortBy, order });
     const cacheKey = `${CachePrefix.USERS_LIST}${queryHash}`;
     const cached = await cacheGet(cacheKey);
@@ -32,8 +35,23 @@ export async function listUsers({ actor, orgId, query = {} }) {
 
     const result = await UsersRepositories.findManyPaginated({ filter, page, limit, search, sortBy, order });
 
+    // Fetch and embed employees for any COMPANY_MANAGER in the results
+    const itemsWithEmployees = await Promise.all(result.items.map(async (userDoc) => {
+        const publicUser = toUserPublic(userDoc);
+
+        if (publicUser.role === 'COMPANY_MANAGER' && publicUser.orgId) {
+            const employees = await UsersRepositories.findMany({
+                orgId: publicUser.orgId,
+                role: 'COMPANY_USER'
+            });
+            publicUser.employees = employees.map(toUserPublic);
+        }
+
+        return publicUser;
+    }));
+
     const response = {
-        items: result.items.map(toUserPublic),
+        items: itemsWithEmployees,
         pagination: {
             page: result.page,
             limit: result.limit,

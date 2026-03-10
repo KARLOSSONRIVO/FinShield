@@ -85,28 +85,45 @@ class FeatureExtractor:
         try:
             if not current_date_str:
                 return 0.0
-            
-            # Simple conversion to ISO for comparison
+
             current_date = datetime.fromisoformat(current_date_str.replace('Z', '+00:00'))
-            
+            # Strip timezone so we can compare to naive datetimes stored in MongoDB
+            current_date_naive = current_date.replace(tzinfo=None)
+
+            # Cast org_id to ObjectId so it matches the stored BSON type
+            try:
+                from bson import ObjectId
+                org_oid = ObjectId(organization_id)
+            except Exception:
+                org_oid = organization_id
+
+            # Use $and so both the org filter AND the date filter apply.
+            # (Two $or keys in the same dict is a Python bug — only the last one wins.)
             last_invoice = db.invoices.find_one(
                 {
-                    '$or': [{'organizationId': organization_id}, {'orgId': organization_id}],
-                    '$or': [
-                        {'invoiceDate': {'$lt': current_date.isoformat()}},
-                        {'date': {'$lt': current_date.isoformat()}}
+                    '$and': [
+                        {'orgId': org_oid},
+                        {'$or': [
+                            {'invoiceDate': {'$lt': current_date_naive}},
+                            {'date':        {'$lt': current_date_naive}},
+                        ]},
                     ],
-                    'aiVerdict': 'clean'
+                    'aiVerdict': 'clean',
                 },
                 sort=[('invoiceDate', -1), ('date', -1)]
             )
-            
+
             if last_invoice:
-                last_date_str = last_invoice.get('invoiceDate') or last_invoice.get('date')
-                last_date = datetime.fromisoformat(last_date_str.replace('Z', '+00:00'))
-                delta = (current_date - last_date).days
+                last_date_raw = last_invoice.get('invoiceDate') or last_invoice.get('date')
+                if isinstance(last_date_raw, datetime):
+                    last_date = last_date_raw.replace(tzinfo=None)
+                else:
+                    last_date = datetime.fromisoformat(
+                        str(last_date_raw).replace('Z', '+00:00')
+                    ).replace(tzinfo=None)
+                delta = (current_date_naive - last_date).days
                 return float(max(0, delta))
-            
+
             return 0.0
         except Exception as e:
             logger.warning(f"Error calculating days since last invoice: {e}")

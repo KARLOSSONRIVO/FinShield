@@ -313,6 +313,8 @@ async def retrain(
 
 def main():
     """CLI entry point"""
+    global MONGO_URI
+    
     parser = argparse.ArgumentParser(
         description='Retrain FinShield Fraud Detection Model',
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -356,7 +358,6 @@ Examples:
     args = parser.parse_args()
     
     # Update global MongoDB URI if provided
-    global MONGO_URI
     MONGO_URI = args.mongo_uri
     
     # Run async retraining

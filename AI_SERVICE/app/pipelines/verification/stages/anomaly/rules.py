@@ -35,7 +35,7 @@ def check_line_item_totals(
         expected_total = subtotal + tax
         
         if expected_total == 0:
-            return 0.7, "Unable to verify line item totals (missing subtotal/tax)"
+            return 0.85, None   # Missing subtotal/tax is not suspicious on its own
         
         discrepancy = abs(expected_total - total)
         discrepancy_pct = (discrepancy / total) * 100 if total > 0 else 0
@@ -57,34 +57,44 @@ def check_line_item_totals(
 def check_date_validity(invoice_data: dict) -> Tuple[float, Optional[str]]:
     """Check if invoice date is logical."""
     try:
-        date_str = invoice_data.get('date')
+        date_str = invoice_data.get('invoiceDate') or invoice_data.get('date')
         if not date_str:
-            return 0.7, "No date provided"
-        
-        invoice_date = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            return 0.8, None   # Missing date is neutral — not inherently suspicious
+
+        invoice_date = datetime.fromisoformat(str(date_str).replace('Z', '+00:00'))
         today = datetime.now()
-        
+
+        # Future date — tiered severity (threshold: >7 days, consistent with fraud layer)
         days_future = (invoice_date - today).days
-        if days_future > 30:
-            return 0.0, f"Invoice dated {days_future} days in future"
-        
+        if days_future > 90:
+            return 0.0, f"Invoice dated {days_future} days in future (critical)"
+        elif days_future > 30:
+            return 0.2, f"Invoice dated {days_future} days in future (high)"
+        elif days_future > 7:
+            return 0.5, f"Invoice dated {days_future} days in future (medium)"
+
+        # Old date — only flag beyond 2 years (consistent with fraud layer)
         days_past = (today - invoice_date).days
-        if days_past > 365:
-            return 0.5, f"Invoice dated {days_past} days ago (over 1 year)"
-        
+        if days_past > 730:
+            return 0.4, f"Invoice dated {days_past} days ago (over 2 years)"
+
         return 1.0, None
     except Exception as e:
         logger.error(f"Error checking date: {e}")
-        return 0.7, f"Invalid date format: {str(e)}"
+        return 0.8, None   # Parse error is not suspicious on its own
 
 def check_amount_sanity(invoice_data: dict) -> Tuple[float, Optional[str]]:
     """Check if amounts are reasonable."""
     try:
-        total = float(invoice_data.get('total', 0))
+        total = float(invoice_data.get('total') or invoice_data.get('totalAmount') or 0)
         if total <= 0:
-            return 0.0, f"Invalid total amount: ${total}"
-        if total > 1000000:
-            return 0.3, f"Unusually high amount: ${total:,.2f}"
+            return 0.5, None   # Missing total is neutral — may be a parsing issue
+        if total >= 1_000_000:
+            return 0.0, f"Extremely high amount: ${total:,.2f} (>= $1M)"
+        if total >= 500_000:
+            return 0.2, f"Unusually high amount: ${total:,.2f} (>= $500k)"
+        if total >= 100_000:
+            return 0.6, f"High amount: ${total:,.2f} (>= $100k)"
         return 1.0, None
     except Exception as e:
         logger.error(f"Error checking amounts: {e}")
@@ -93,13 +103,19 @@ def check_amount_sanity(invoice_data: dict) -> Tuple[float, Optional[str]]:
 def check_round_numbers(invoice_data: dict) -> Tuple[float, Optional[str]]:
     """Detect suspiciously round amounts."""
     try:
-        total = float(invoice_data.get('total', 0))
+        total = float(invoice_data.get('total') or invoice_data.get('totalAmount') or 0)
         if total <= 0:
             return 1.0, None
-        if total % 1000 == 0:
-            return 0.5, f"Suspiciously round amount: ${total:,.2f}"
+        if total % 1_000_000 == 0:
+            return 0.0, f"ROUND_NUMBER: Perfectly round ${total:,.2f} (divisible by $1M)"
+        if total % 10_000 == 0:
+            return 0.0, f"ROUND_NUMBER: Perfectly round ${total:,.2f} (divisible by $10k)"
+        if total % 1_000 == 0:
+            return 0.05, f"ROUND_NUMBER: Very round ${total:,.2f} (divisible by $1,000)"
+        if total % 500 == 0:
+            return 0.2, f"ROUND_NUMBER: Round ${total:,.2f} (divisible by $500)"
         if total % 100 == 0:
-            return 0.7, f"Round amount detected: ${total:,.2f}"
+            return 0.4, f"ROUND_NUMBER: Round ${total:,.2f} (divisible by $100)"
         return 1.0, None
     except Exception as e:
         logger.error(f"Error checking round numbers: {e}")

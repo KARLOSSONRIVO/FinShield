@@ -8,7 +8,7 @@ let s3Client = null;
 /**
  * Initialize S3 client if credentials are available
  */
-function getS3Client() {
+export function getS3Client() {
     if (!AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY || !AWS_S3_BUCKET_NAME) {
         throw new AppError(
             "AWS S3 credentials not configured. Please set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_S3_BUCKET_NAME in .env",

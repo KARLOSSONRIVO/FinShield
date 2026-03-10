@@ -8,12 +8,14 @@ import { CachePrefix, CacheTTL } from "../../../common/utils/cache.constants.js"
  * Returns a simplified payload (no AI verdict, includes file name & anchor status).
  */
 export async function listMyInvoices({ actor, query }) {
-    const { page, limit, search, sortBy, order } = query;
+    const { page, limit, search, sortBy, order, reviewDecision } = query;
 
     const filter = { uploadedByUserId: actor.sub };
 
+    if (reviewDecision) filter.reviewDecision = reviewDecision;
+
     // Build cache key from user + query params
-    const queryHash = buildQueryHash({ sub: actor.sub, page, limit, search, sortBy, order });
+    const queryHash = buildQueryHash({ sub: actor.sub, page, limit, search, sortBy, order, reviewDecision });
     const cacheKey = `${CachePrefix.INV_MY}${queryHash}`;
     const cached = await cacheGet(cacheKey);
     if (cached) return cached;

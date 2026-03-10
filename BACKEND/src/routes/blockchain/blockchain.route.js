@@ -5,6 +5,6 @@ import * as BlockchainController from "../../modules/controllers/blockchain.cont
 
 const blockchainRouter = Router();
 
-blockchainRouter.get("/ledger",allowRoles("SUPER_ADMIN","REGULATOR"),validateLedgerQuery,BlockchainController.getLedger);
+blockchainRouter.get("/ledger",allowRoles("SUPER_ADMIN","REGULATOR","AUDITOR"),validateLedgerQuery,BlockchainController.getLedger);
 
 export default blockchainRouter;

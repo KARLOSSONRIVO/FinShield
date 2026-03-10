@@ -17,7 +17,7 @@ from app.engines.fraud.temporal_checker import TemporalChecker
 from app.engines.fraud.feature_extractor import FraudFeatureExtractor
 from app.engines.fraud.model_loader import get_fraud_model
 
-from .ml import predict_fraud_score
+from .ml import predict_fraud_score, explain_fraud_ml
 
 logger = logging.getLogger(__name__)
 
@@ -38,14 +38,15 @@ class FraudDetectionLayer(BaseLayer):
     SCORE_WARN_THRESHOLD = 0.40  # Score 40-70: WARN (medium risk)
     
     # Rule weights (must sum to 1.0)
-    WEIGHT_DUPLICATE = 0.40
-    WEIGHT_VENDOR = 0.30
-    WEIGHT_PATTERN = 0.20
-    WEIGHT_TEMPORAL = 0.10
-    
+    WEIGHT_DUPLICATE = 0.30   # reduced — duplicate alone shouldn't dominate
+    WEIGHT_VENDOR    = 0.20   # reduced
+    WEIGHT_PATTERN   = 0.25   # raised — round numbers, Benford's, format
+    WEIGHT_TEMPORAL  = 0.25   # raised from 0.10 — temporal fraud is very significant
+
     # Hybrid weights (if ML model exists)
-    WEIGHT_RULES = 0.60
-    WEIGHT_ML = 0.40
+    # ML kept low (0.25) as model is early-stage — rules are more reliable
+    WEIGHT_RULES = 0.75   # raised from 0.60
+    WEIGHT_ML    = 0.25   # lowered from 0.40
     
     def __init__(self, db=None):
         super().__init__()
@@ -96,31 +97,31 @@ class FraudDetectionLayer(BaseLayer):
         # PART 1: Rule-Based Fraud Detection (Always Runs)
         logger.info(f"Running fraud rule checks for org {organization_id}")
         
-        # 1. Duplicate Detection (40%)
+        # 1. Duplicate Detection (30%)
         dup_score, dup_issue = await self.duplicate_detector.check(
             invoice_data, organization_id, invoice_id
         )
         checks['duplicate'] = dup_score
         if dup_issue:
             issues.append(dup_issue)
-        
-        # 2. Customer Validation (30%)
+
+        # 2. Customer Validation (20%)
         customer_score, customer_issue = await self.customer_validator.check(
             invoice_data, organization_id
         )
         checks['customer'] = customer_score
         if customer_issue:
             issues.append(customer_issue)
-        
-        # 3. Pattern Analysis (20%)
+
+        # 3. Pattern Analysis (25%)
         pattern_score, pattern_issue = self.pattern_analyzer.check(
             invoice_data
         )
         checks['pattern'] = pattern_score
         if pattern_issue:
             issues.append(pattern_issue)
-        
-        # 4. Temporal Checks (10%)
+
+        # 4. Temporal Checks (25%)
         temporal_score, temporal_issue = await self.temporal_checker.check(
             invoice_data, organization_id
         )
@@ -158,15 +159,22 @@ class FraudDetectionLayer(BaseLayer):
                 checks['ml_score'] = round(ml_score, 4)
                 checks['fraud_probability'] = round(fraud_proba, 4)
                 
-                # Hybrid score: Rules (60%) + ML (40%)
+                # Hybrid score: Rules (75%) + ML (25%)
                 final_score = (rule_score * self.WEIGHT_RULES) + (ml_score * self.WEIGHT_ML)
                 checks['model_status'] = 'hybrid'
-                
-                logger.info(f"Hybrid score: {final_score:.3f} (rules: {rule_score:.3f} * 0.6 + ml: {ml_score:.3f} * 0.4)")
+
+                logger.info(f"Hybrid score: {final_score:.3f} (rules: {rule_score:.3f} * {self.WEIGHT_RULES} + ml: {ml_score:.3f} * {self.WEIGHT_ML})")
+
+                # If rule score is critically bad, ML cannot inflate it.
+                # A clean-biased ML model should not override strong rule signals.
+                if rule_score < 0.55:
+                    final_score = min(final_score, rule_score)
+                    checks['ml_clamped'] = True
+                    logger.info(f"ML score clamped: rule_score {rule_score:.3f} < 0.55, final capped at {final_score:.3f}")
                 
                 # Add flag if ML detects high fraud risk
                 if fraud_proba > 0.7:
-                    issues.append(f"ML_HIGH_FRAUD_RISK: {fraud_proba*100:.1f}% fraud probability")
+                    issues.append(f"ML fraud signal: {explain_fraud_ml(features, fraud_proba)}")
                     
             except Exception as e:
                 logger.error(f"ML prediction failed: {e}")

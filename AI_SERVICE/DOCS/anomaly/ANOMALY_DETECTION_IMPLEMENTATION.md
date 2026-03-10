@@ -84,8 +84,16 @@ Invoice arrives → Verification Pipeline → Stage 2: Anomaly Detection
                            │
                            ▼
                 ┌────────────────────────┐
+                │ explain_ml_anomaly()   │
+                │ → plain-English flag   │
+                └──────────┬─────────────┘
+                           │
+                           ▼
+                ┌────────────────────────┐
                 │ Return LayerResult     │
                 │ - score: 0.0 - 1.0     │
+                │ - details: {model_used}│  ← raw check scores stripped
+                │ - flags: [ML text]     │  ← plain-English only
                 │ - verdict: PASS/WARN/  │
                 │            FAIL        │
                 └────────────────────────┘

@@ -1,5 +1,17 @@
 
 
+export function toUserLogin(userDoc) {
+  return {
+    id: String(userDoc._id),
+    orgId: userDoc.orgId ? String(userDoc.orgId) : null,
+    role: userDoc.role,
+    email: userDoc.email,
+    username: userDoc.username,
+    mustChangePassword: userDoc.mustChangePassword,
+    mfaEnabled: !!userDoc.mfaEnabled,
+  };
+}
+
 export function toUserPublic(userDoc) {
   return {
     id: String(userDoc._id),

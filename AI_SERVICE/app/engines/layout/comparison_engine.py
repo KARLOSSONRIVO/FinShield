@@ -103,8 +103,15 @@ class LayoutComparisonEngine:
             "total_score": total_score,
             "flags": flags,
             "details": {
-                "field_presence": field_presence,
-                "field_positions": field_positions,
+                "field_presence": {
+                    k: v for k, v in field_presence.items() if k != "missing"
+                },
+                "field_positions": {
+                    # Omit mismatched_details so the LLM never sees individual field names.
+                    # Only expose the count — the summary should say "position mismatch"
+                    # generically, not "tax field offset", "invoice_number x-offset", etc.
+                    k: v for k, v in field_positions.items() if k != "mismatched_details"
+                },
                 "element_count": element_count,
                 "structure": structure,
                 "structural_features": structural_features,

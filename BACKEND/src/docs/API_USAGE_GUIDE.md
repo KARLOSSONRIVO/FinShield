@@ -14,10 +14,14 @@
 5. [Assignments](#5-assignments)
 6. [Invoices](#6-invoices)
 7. [Blockchain Ledger](#7-blockchain-ledger)
-8. [Sessions](#8-sessions)
-9. [Pagination](#9-pagination)
-10. [Error Handling](#10-error-handling)
-11. [Role Permissions Matrix](#11-role-permissions-matrix)
+8. [Policies](#8-policies)
+9. [Terms and Conditions](#9-terms-and-conditions)
+10. [Sessions](#10-sessions)
+11. [WebSocket (Real-Time Events)](#11-websocket-real-time-events)
+12. [Pagination](#12-pagination)
+13. [Error Handling](#13-error-handling)
+14. [Role Permissions Matrix](#14-role-permissions-matrix)
+15. [Audit Logs](#15-audit-logs)
 
 ---
 
@@ -163,6 +167,87 @@ POST /auth/change-password
 ```
 
 **Response (200):** Password changed successfully.
+
+### 1.6 MFA Login
+
+Login using a temporary token and a TOTP code when MFA is enabled.
+
+```
+POST /auth/login/mfa
+```
+
+**Request Body:**
+
+```json
+{
+  "tempToken": "eyJhbGciOi...",
+  "code": "123456"
+}
+```
+
+**Response (200):** Returns access and refresh tokens.
+
+### 1.7 MFA Setup
+
+Initialize TOTP MFA. Returns a secrete and QR code.
+
+```
+POST /auth/mfa/setup
+```
+
+**Headers:** `Authorization: Bearer <accessToken>`
+
+**Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "secret": "JBSWY3DPEHPK3PXP",
+    "qrCode": "data:image/png;base64,iVBORw0KGgo..."
+  }
+}
+```
+
+### 1.8 MFA Enable
+
+Verify the TOTP code to formally enable MFA.
+
+```
+POST /auth/mfa/enable
+```
+
+**Headers:** `Authorization: Bearer <accessToken>`
+
+**Request Body:**
+
+```json
+{
+  "code": "123456"
+}
+```
+
+**Response (200):** MFA enabled successfully.
+
+### 1.9 MFA Disable
+
+Disable MFA.
+
+```
+POST /auth/mfa/disable
+```
+
+**Headers:** `Authorization: Bearer <accessToken>`
+
+**Request Body:**
+
+```json
+{
+  "code": "123456"
+}
+```
+
+**Response (200):** MFA disabled successfully.
 
 ---
 
@@ -322,6 +407,55 @@ GET /organization/getOrganization/507f1f77bcf86cd799439011
   }
 }
 ```
+
+### 3.4 Update Organization
+
+Partially update an organization's `name`, `type`, and/or `status`. At least one field is required.
+
+```
+PATCH /organization/updateOrganization/:id
+```
+
+**Roles:** `SUPER_ADMIN`
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string (min 2) | New organization name |
+| `type` | string | `platform` or `company` |
+| `status` | string | `active` or `inactive` |
+
+**Example:**
+
+```json
+{
+  "name": "Acme Corp Renamed",
+  "status": "inactive"
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "message": "Organization updated successfully",
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "name": "Acme Corp Renamed",
+    "type": "company",
+    "status": "inactive",
+    "createdAt": "2026-02-22T12:00:00.000Z",
+    "updatedAt": "2026-03-05T09:00:00.000Z"
+  }
+}
+```
+
+**Errors:**
+
+| Code | Meaning |
+|------|---------|
+| `400` | No fields provided / validation failure |
+| `404 ORG_NOT_FOUND` | Organization does not exist |
 
 ---
 
@@ -634,6 +768,7 @@ GET /invoice/list
 | `sortBy` | string  | `createdAt` | `createdAt`, `invoiceNumber`, `invoiceDate`, `totalAmount`, `reviewDecision` |
 | `order`  | string  | `desc`      | `asc` or `desc`                                                |
 | `orgId`  | string  | —           | Filter by organization ID (SUPER_ADMIN/REGULATOR only)         |
+| `reviewDecision` | string | — | Filter by status: `pending`, `approved`, `rejected`       |
 
 **Scoping rules:**
 
@@ -648,6 +783,8 @@ GET /invoice/list
 
 ```
 GET /invoice/list?page=1&limit=10&search=INV&sortBy=invoiceDate&order=desc
+GET /invoice/list?reviewDecision=pending
+GET /invoice/list?reviewDecision=approved&sortBy=invoiceDate&order=asc
 ```
 
 **Response (200):**
@@ -697,6 +834,7 @@ GET /invoice/my-invoices
 | `search` | string  | —           | Search by invoice number or issued-to name                     |
 | `sortBy` | string  | `createdAt` | `createdAt`, `invoiceNumber`, `invoiceDate`, `totalAmount`, `reviewDecision` |
 | `order`  | string  | `desc`      | `asc` or `desc`                                                |
+| `reviewDecision` | string | — | Filter by status: `pending`, `approved`, `rejected`       |
 
 **Response (200):**
 
@@ -841,19 +979,89 @@ curl -X POST http://localhost:5000/api/invoice/upload \
 }
 ```
 
+### 6.5 Submit Review Decision
+
+Submit or update an auditor's review decision on an invoice. Re-submittable — each call overwrites the previous decision and notes and refreshes `reviewedAt`.
+
+```
+PATCH /invoice/:id/review
+```
+
+**Roles:** `AUDITOR` (own assigned companies only)
+
+**Headers:** `Authorization: Bearer <accessToken>`
+
+**Path Parameter:**
+
+| Param | Type   | Description             |
+|-------|--------|-------------------------|
+| `id`  | string | Invoice MongoDB ObjectId |
+
+**Request Body:**
+
+```json
+{
+  "reviewDecision": "approved",
+  "reviewNotes": "All line items verified and amounts match the purchase order."
+}
+```
+
+| Field            | Type   | Required | Constraints                        |
+|------------------|--------|----------|------------------------------------|
+| `reviewDecision` | string | Yes      | `"approved"` or `"rejected"`       |
+| `reviewNotes`    | string | Yes      | 1–1000 characters, cannot be empty |
+
+**Business Rules:**
+
+- The invoice's AI analysis must be complete (`aiVerdict` must not be `null`). Returns `400 AI_PENDING` if processing is still in progress.
+- The auditor must have an **active assignment** for the invoice's organization. Returns `404` if not assigned (to avoid leaking invoice existence).
+- The decision is **re-submittable** — calling this endpoint again overwrites the previous `reviewDecision`, `reviewNotes`, and `reviewedAt`.
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": {
+    "invoiceId": "507f1f77bcf86cd799439011",
+    "reviewDecision": "approved",
+    "reviewNotes": "All line items verified and amounts match the purchase order.",
+    "reviewedAt": "2026-03-04T10:30:00.000Z",
+    "isUpdate": false
+  }
+}
+```
+
+> `isUpdate: true` when the invoice already had a prior decision (i.e. this is a re-submission). The action logged will be `REVIEW_UPDATED` instead of `REVIEW_SUBMITTED`.
+
+**Error Responses:**
+
+| Status | Code          | Description                                            |
+|--------|---------------|--------------------------------------------------------|
+| `400`  | `AI_PENDING`  | AI analysis not yet complete                           |
+| `400`  | —             | Validation error (missing/invalid `reviewDecision` or `reviewNotes`) |
+| `401`  | —             | Unauthorized                                           |
+| `404`  | —             | Invoice not found or auditor not assigned to this org  |
+
+**Socket Event emitted:**
+
+`invoice:reviewed` → rooms `user:{uploadedByUserId}`, `org:{orgId}`, `role:SUPER_ADMIN`
+
 ---
 
 ## 7. Blockchain Ledger
 
 ### 7.1 Get Ledger (Paginated)
 
-Retrieve all blockchain-anchored invoices. Only invoices with a confirmed anchor transaction are included.
+Retrieve blockchain-anchored invoices. Only invoices with a confirmed anchor transaction are included.
 
 ```
 GET /blockchain/ledger
 ```
 
-**Roles:** `SUPER_ADMIN`, `REGULATOR`
+**Roles:** `SUPER_ADMIN`, `REGULATOR`, `AUDITOR`
+
+> **AUDITOR scoping:** Auditors only see ledger entries for companies they are actively assigned to. The backend resolves their assigned org IDs from cache key `aud:orgs:{userId}` and filters the query to `$in` those org IDs only. SUPER_ADMIN and REGULATOR see all entries.
 
 | Param    | Type    | Default      | Description                                |
 |----------|---------|--------------|--------------------------------------------|
@@ -897,11 +1105,311 @@ GET /blockchain/ledger?page=1&limit=10&search=INV&sortBy=anchoredAt&order=desc
 
 ---
 
-## 8. Sessions
+## 8. Policies
+
+Policies are **global** — a single shared set of compliance documents (T&C, NDAs, guidelines) visible to all company roles. Only REGULATORs can create, update, or delete policies.
+
+### 8.1 Get All Policies
+
+Retrieve the full list of global policies. Optionally filter by title.
+
+```
+GET /policy
+```
+
+**Roles:** `REGULATOR`, `COMPANY_MANAGER`, `COMPANY_USER`
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `search` | string | Filter by title (case-insensitive, partial match) |
+
+**Examples:**
+
+```
+GET /policy
+GET /policy?search=privacy
+GET /policy?search=nda
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": [
+    {
+      "id": "507f1f77bcf86cd799439011",
+      "title": "Confidentiality Agreement (NDA)",
+      "content": "Employees must maintain strict confidentiality...",
+      "version": "1.0",
+      "createdByUserId": "507f1f77bcf86cd799439012",
+      "updatedByUserId": "507f1f77bcf86cd799439012",
+      "createdAt": "2026-03-05T11:02:34.461Z",
+      "updatedAt": "2026-03-05T11:02:34.461Z"
+    }
+  ]
+}
+```
+
+### 8.2 Create Policy
+
+```
+POST /policy
+```
+
+**Roles:** `REGULATOR`
+
+**Request Body:**
+
+```json
+{
+  "title": "Confidentiality Agreement (NDA)",
+  "content": "Employees must maintain strict confidentiality...",
+  "version": "1.0"
+}
+```
+
+| Field     | Type   | Required | Constraints          |
+|-----------|--------|----------|----------------------|
+| `title`   | string | Yes      | 3–200 characters      |
+| `content` | string | Yes      | 10–20,000 characters  |
+| `version` | string | No       | Max 20 chars, default `"1.0"` |
+
+**Response (201):**
+
+```json
+{
+  "ok": true,
+  "message": "Policy created successfully",
+  "data": { /* Policy object */ }
+}
+```
+
+### 8.3 Update Policy
+
+```
+PATCH /policy/:id
+```
+
+**Roles:** `REGULATOR`
+
+> **Auto-versioning:** Every successful update automatically bumps the minor version (`"1.0"` → `"1.1"` → `"1.2"`, etc.) unless you explicitly supply a `version` in the body, in which case your value is used as-is.
+
+**Request Body** (all fields optional):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` | string (3–200) | New policy title |
+| `content` | string (10–20000) | New policy content |
+| `version` | string | Override auto-increment (e.g. `"2.0"`) |
+
+```json
+{
+  "title": "Updated Title",
+  "content": "Updated content text."
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "message": "Policy updated successfully",
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "title": "Updated Title",
+    "content": "Updated content text.",
+    "version": "1.1",
+    "createdByUserId": "507f1f77bcf86cd799439010",
+    "updatedByUserId": "507f1f77bcf86cd799439010",
+    "createdAt": "2026-03-01T09:00:00.000Z",
+    "updatedAt": "2026-03-05T11:00:00.000Z"
+  }
+}
+```
+
+### 8.4 Delete Policy
+
+```
+DELETE /policy/:id
+```
+
+**Roles:** `REGULATOR`
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "message": "Policy deleted successfully"
+}
+```
+
+**Error Codes:**
+
+| Status | Code               | Description                    |
+|--------|--------------------|--------------------------------|
+| `404`  | `POLICY_NOT_FOUND` | Policy with given ID not found |
+
+---
+
+## 9. Terms and Conditions
+
+Terms and Conditions are **global** — a single shared set of legal documents visible to all company roles. Only `REGULATOR` and `SUPER_ADMIN` can create, update, or delete Terms and Conditions.
+
+### 9.1 Get All Terms and Conditions
+
+Retrieve the full list of global Terms and Conditions. Optionally filter by title.
+
+```
+GET /terms
+```
+
+**Roles:** `REGULATOR`, `COMPANY_MANAGER`, `AUDITOR`, `COMPANY_USER`
+
+> **`mustChangePassword` exception:** This is the only endpoint accessible to users whose account has `mustChangePassword: true`. All other protected routes return `403 MUST_CHANGE_PASSWORD` until the password is changed via `POST /auth/change-password`.
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `search` | string | Filter by title (case-insensitive, partial match) |
+
+**Examples:**
+
+```
+GET /terms
+GET /terms?search=privacy
+GET /terms?search=liability
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": [
+    {
+      "id": "507f1f77bcf86cd799439011",
+      "title": "General Terms and Conditions",
+      "content": "By using this service, you agree to the following terms...",
+      "version": "1.0",
+      "createdByUserId": "507f1f77bcf86cd799439012",
+      "updatedByUserId": "507f1f77bcf86cd799439012",
+      "createdAt": "2026-03-05T11:02:34.461Z",
+      "updatedAt": "2026-03-05T11:02:34.461Z"
+    }
+  ]
+}
+```
+
+### 9.2 Create Terms and Conditions
+
+```
+POST /terms
+```
+
+**Roles:** `REGULATOR`, `SUPER_ADMIN`
+
+**Request Body:**
+
+```json
+{
+  "title": "General Terms and Conditions",
+  "content": "By using this service, you agree to the following terms and conditions...",
+  "version": "1.0"
+}
+```
+
+| Field     | Type   | Required | Constraints          |
+|-----------|--------|----------|----------------------|
+| `title`   | string | Yes      | 3–200 characters      |
+| `content` | string | Yes      | 10–20,000 characters  |
+| `version` | string | No       | Max 20 chars, default `"1.0"` |
+
+**Response (201):**
+
+```json
+{
+  "ok": true,
+  "message": "Terms and Conditions created successfully",
+  "data": { /* TermsItem object */ }
+}
+```
+
+### 9.3 Update Terms and Conditions
+
+```
+PATCH /terms/:id
+```
+
+**Roles:** `REGULATOR`, `SUPER_ADMIN`
+
+> **Auto-versioning:** Every successful update automatically bumps the minor version (`"1.0"` → `"1.1"` → `"1.2"`, etc.) unless you explicitly supply a `version` in the body, in which case your value is used as-is.
+
+**Request Body** (all fields optional):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` | string (3–200) | New title |
+| `content` | string (10–20000) | New content |
+| `version` | string | Override auto-increment (e.g. `"2.0"`) |
+
+```json
+{
+  "title": "Updated Title",
+  "content": "Updated content text."
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "message": "Terms and Conditions updated successfully",
+  "data": {
+    "id": "507f1f77bcf86cd799439011",
+    "title": "Updated Title",
+    "content": "Updated content text.",
+    "version": "1.1",
+    "createdByUserId": "507f1f77bcf86cd799439010",
+    "updatedByUserId": "507f1f77bcf86cd799439010",
+    "createdAt": "2026-03-01T09:00:00.000Z",
+    "updatedAt": "2026-03-05T11:00:00.000Z"
+  }
+}
+```
+
+### 9.4 Delete Terms and Conditions
+
+```
+DELETE /terms/:id
+```
+
+**Roles:** `REGULATOR`, `SUPER_ADMIN`
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "message": "Terms and Conditions deleted successfully"
+}
+```
+
+**Error Codes:**
+
+| Status | Code                  | Description                                    |
+|--------|-----------------------|------------------------------------------------|
+| `404`  | `TERMS_NOT_FOUND`     | Terms and Conditions with given ID not found   |
+
+---
+
+## 10. Sessions
 
 Manage active login sessions for the authenticated user.
 
-### 8.1 List Active Sessions
+### 10.1 List Active Sessions
 
 ```
 GET /session
@@ -924,7 +1432,7 @@ GET /session
 }
 ```
 
-### 8.2 Get Session Count
+### 10.2 Get Session Count
 
 ```
 GET /session/count
@@ -941,7 +1449,7 @@ GET /session/count
 }
 ```
 
-### 8.3 Revoke All Sessions
+### 10.3 Revoke All Sessions
 
 Logout from all devices.
 
@@ -958,7 +1466,7 @@ DELETE /session/all
 }
 ```
 
-### 8.4 Revoke a Specific Session
+### 9.4 Revoke a Specific Session
 
 ```
 DELETE /session/:sessionId
@@ -975,7 +1483,477 @@ DELETE /session/:sessionId
 
 ---
 
-## 9. Pagination
+## 11. WebSocket (Real-Time Events)
+
+The API provides real-time push notifications via **Socket.IO** (WebSocket). Connected clients receive instant updates when invoices are uploaded, processed, flagged, or when assignments change — without polling.
+
+### 11.1 Connecting
+
+**URL:** `ws://localhost:5000` (same port as the REST API)
+
+**Library:** [`socket.io-client`](https://www.npmjs.com/package/socket.io-client)
+
+```js
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000", {
+  auth: { token: "<accessToken>" },  // Same JWT used for REST API
+  transports: ["websocket"],          // Skip HTTP long-polling
+});
+
+socket.on("connect", () => console.log("Connected:", socket.id));
+socket.on("connect_error", (err) => console.error("Auth failed:", err.message));
+```
+
+**Authentication:** The server validates the JWT on handshake using the same `JWT_SECRET` and token blacklist as REST endpoints. Invalid, expired, or revoked tokens are rejected with a `connect_error`.
+
+### 11.2 Room Assignment (Automatic)
+
+Rooms are assigned **automatically** on connection based on the JWT payload — clients do not need to join rooms manually.
+
+| Room Pattern | Who Joins | Purpose |
+|---|---|---|
+| `user:{userId}` | Every connected user | Targeted personal notifications |
+| `org:{orgId}` | Users with an `orgId` in their JWT | Organization-wide broadcasts |
+| `role:SUPER_ADMIN` | Super admins | Platform-wide admin alerts |
+| `role:AUDITOR` | Auditors | Flagged invoice alerts |
+| `role:REGULATOR` | Regulators | Flagged invoice alerts |
+
+### 11.3 Events Reference
+
+#### Invoice Pipeline Events
+
+| Event | Target Rooms | Payload | When |
+|---|---|---|---|
+| `invoice:created` | `org:{orgId}` | `{ invoiceId, uploadedBy }` | After a new invoice is uploaded |
+| `invoice:anchor:success` | `user:{uploader}`, `org:{orgId}` | `{ invoiceId }` | Blockchain anchoring completed successfully |
+| `invoice:anchor:failed` | `user:{uploader}`, `role:SUPER_ADMIN` | `{ invoiceId, error }` | Blockchain anchoring failed (all retries exhausted) |
+| `invoice:processing` | `org:{orgId}` | `{ invoiceId }` | AI/OCR processing has started |
+| `invoice:ai:complete` | `user:{uploader}`, `org:{orgId}` | `{ invoiceId, aiVerdict, aiRiskScore, riskLevel }` | AI pipeline finished processing |
+| `invoice:flagged` | `role:AUDITOR`, `role:SUPER_ADMIN`, `role:REGULATOR` | `{ invoiceId, aiRiskScore, riskLevel }` | AI flagged an invoice as suspicious |
+| `invoice:list:invalidate` | `org:{orgId}` | `{ orgId }` | Invoice list data changed — refetch recommended |
+
+#### Assignment Events
+
+| Event | Target Rooms | Payload | When |
+|---|---|---|---|
+| `assignment:created` | `user:{auditorId}`, `role:SUPER_ADMIN` | `{ assignmentId, companyOrgId }` | New auditor assignment created or reactivated |
+| `assignment:updated` | `user:{auditorId}`, `role:SUPER_ADMIN` | `{ assignmentId, status }` | Assignment status or notes changed |
+| `assignment:deactivated` | `user:{auditorId}`, `role:SUPER_ADMIN` | `{ assignmentId, companyOrgId }` | Assignment deactivated (soft delete) |
+
+#### Audit Log Events
+
+| Event | Target Rooms | Payload | When |
+|---|---|---|---|
+| `audit:created` | `role:SUPER_ADMIN` | `{ id, actorId, actorRole, actor, action, targetType, summary, metadata, ip, userAgent, createdAt }` | New audit log entry written |
+
+#### Admin List Invalidation Events
+
+| Event | Target Rooms | Payload | When |
+|---|---|---|---|
+| `user:list:invalidate` | `role:SUPER_ADMIN` | — | A user was created or updated |
+| `org:list:invalidate` | `role:SUPER_ADMIN` | — | An organization was created |
+
+### 11.4 Listening for Events
+
+```js
+// Invoice finished AI processing
+socket.on("invoice:ai:complete", (data) => {
+  // data = { invoiceId, aiVerdict, aiRiskScore, riskLevel }
+  // → Refetch invoice detail or update UI state
+});
+
+// New invoice uploaded in your org
+socket.on("invoice:created", (data) => {
+  // data = { invoiceId, uploadedBy }
+  // → Show toast notification, refetch invoice list
+});
+
+// Invoice flagged by AI
+socket.on("invoice:flagged", (data) => {
+  // data = { invoiceId, aiRiskScore, riskLevel }
+  // → Show alert badge, refetch flagged invoices
+});
+
+// Invoice list changed — time to refetch
+socket.on("invoice:list:invalidate", () => {
+  // → Refetch invoice list
+});
+
+// Auditor received a new assignment
+socket.on("assignment:created", (data) => {
+  // data = { assignmentId, companyOrgId }
+  // → Show toast, refetch assignments
+});
+
+// Admin: user list changed
+socket.on("user:list:invalidate", () => {
+  // → Refetch user list
+});
+```
+
+### 11.5 Disconnecting
+
+```js
+socket.disconnect();
+```
+
+The server automatically cleans up rooms when a client disconnects.
+
+### 11.6 Event Flow Diagram
+
+```
+┌──────────────┐     upload      ┌──────────────┐  invoice:created  ┌──────────┐
+│   Frontend   │ ──── REST ────► │   Backend    │ ── Socket.IO ──► │ Org Room │
+└──────────────┘                 └──────┬───────┘                   └──────────┘
+                                        │ BullMQ job
+                                        ▼
+                                 ┌──────────────┐  invoice:anchor:success
+                                 │  Blockchain  │ ── Socket.IO ──► user + org
+                                 │  Worker      │
+                                 └──────┬───────┘
+                                        │ HTTP trigger
+                                        ▼
+                                 ┌──────────────┐  Redis Pub/Sub   ┌──────────┐
+                                 │  AI Service  │ ──────────────► │ Backend  │
+                                 │  (Python)    │                  │ Socket   │
+                                 └──────────────┘                  │ Layer    │
+                                                                   └────┬─────┘
+                                                    invoice:ai:complete │
+                                                    invoice:flagged     │
+                                                                        ▼
+                                                                   Connected
+                                                                   Clients
+```
+
+### 11.7 Notes
+
+- **No polling needed**: Events push instantly when data changes. Use `*:list:invalidate` events as signals to refetch list data.
+- **Graceful degradation**: If the WebSocket connection drops, the REST API still works normally. Reconnect and the server re-assigns rooms from the JWT.
+- **AI Service bridge**: The AI Service (Python) does not use Socket.IO directly. It publishes events to Redis Pub/Sub (`channel:invoice`), and the Backend's Socket.IO layer subscribes and fans them to clients.
+- **Token expiry**: If the JWT expires while connected, the socket remains connected until the next reconnect attempt, which will fail authentication. Handle `connect_error` to redirect to login.
+
+### 11.8 Frontend Implementation Guide (Next.js)
+
+Step-by-step guide for integrating WebSocket into the FinShield Next.js frontend.
+
+#### Step 1: Install dependency
+
+```bash
+pnpm add socket.io-client
+```
+
+#### Step 2: Add environment variable
+
+Add to `.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+
+#### Step 3: Create socket constants
+
+Create `lib/socket-events.ts` — shared event name constants matching the backend's `SocketEvents`:
+
+```ts
+export const SocketEvents = {
+  // Invoice pipeline
+  INVOICE_CREATED:         "invoice:created",
+  INVOICE_ANCHOR_SUCCESS:  "invoice:anchor:success",
+  INVOICE_ANCHOR_FAILED:   "invoice:anchor:failed",
+  INVOICE_PROCESSING:      "invoice:processing",
+  INVOICE_AI_COMPLETE:     "invoice:ai:complete",
+  INVOICE_FLAGGED:         "invoice:flagged",
+  INVOICE_LIST_INVALIDATE: "invoice:list:invalidate",
+
+  // Assignments
+  ASSIGNMENT_CREATED:      "assignment:created",
+  ASSIGNMENT_UPDATED:      "assignment:updated",
+  ASSIGNMENT_DEACTIVATED:  "assignment:deactivated",
+
+  // Admin list invalidation
+  USER_LIST_INVALIDATE:    "user:list:invalidate",
+  ORG_LIST_INVALIDATE:     "org:list:invalidate",
+} as const;
+
+export type SocketEvent = (typeof SocketEvents)[keyof typeof SocketEvents];
+```
+
+#### Step 4: Create the socket hook
+
+Create `hooks/global/use-socket.ts`:
+
+```ts
+"use client";
+
+import { useEffect, useRef, useCallback } from "react";
+import { io, Socket } from "socket.io-client";
+import type { SocketEvent } from "@/lib/socket-events";
+
+const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+
+/**
+ * Manages a single Socket.IO connection for the authenticated user.
+ * Automatically connects when a token is provided and disconnects on cleanup.
+ *
+ * @param token - JWT access token (pass null/undefined when logged out)
+ * @returns socket ref + on/off helpers
+ */
+export function useSocket(token: string | null | undefined) {
+  const socketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    if (!token) return;
+
+    const socket = io(SOCKET_URL, {
+      auth: { token },
+      transports: ["websocket"],
+      reconnectionAttempts: 5,
+      reconnectionDelay: 2000,
+    });
+
+    socket.on("connect", () => {
+      console.log("[WS] Connected:", socket.id);
+    });
+
+    socket.on("connect_error", (err) => {
+      console.error("[WS] Connection error:", err.message);
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.log("[WS] Disconnected:", reason);
+    });
+
+    socketRef.current = socket;
+
+    return () => {
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, [token]);
+
+  /** Subscribe to a Socket.IO event. Returns an unsubscribe function. */
+  const on = useCallback(
+    <T = unknown>(event: SocketEvent | string, handler: (data: T) => void) => {
+      socketRef.current?.on(event, handler as any);
+      return () => {
+        socketRef.current?.off(event, handler as any);
+      };
+    },
+    []
+  );
+
+  /** Unsubscribe from a Socket.IO event. */
+  const off = useCallback(
+    (event: SocketEvent | string, handler?: (...args: any[]) => void) => {
+      socketRef.current?.off(event, handler);
+    },
+    []
+  );
+
+  return { socket: socketRef, on, off };
+}
+```
+
+#### Step 5: Export from hooks barrel
+
+Update `hooks/global/index.ts`:
+
+```ts
+export { useToast, toast } from "./use-toast";
+export { useIsMobile } from "./use-mobile";
+export { useSocket } from "./use-socket";
+```
+
+Update `hooks/index.ts`:
+
+```ts
+export { useToast, toast } from "./global";
+export { useIsMobile } from "./global";
+export { useSocket } from "./global";
+// ...rest of exports
+```
+
+#### Step 6: Create an event listener hook
+
+Create `hooks/global/use-socket-event.ts` — a convenience hook for subscribing to a single event inside any component:
+
+```ts
+"use client";
+
+import { useEffect } from "react";
+import type { SocketEvent } from "@/lib/socket-events";
+
+type SocketRef = { socket: React.RefObject<import("socket.io-client").Socket | null> };
+
+/**
+ * Subscribe to a single Socket.IO event. Handles cleanup automatically.
+ *
+ * @param socketCtx - The return value of useSocket()
+ * @param event     - The event name to listen for
+ * @param handler   - Callback when the event fires
+ */
+export function useSocketEvent<T = unknown>(
+  socketCtx: SocketRef & { on: (event: string, handler: (data: T) => void) => () => void },
+  event: SocketEvent | string,
+  handler: (data: T) => void
+) {
+  useEffect(() => {
+    if (!socketCtx.socket.current) return;
+    const unsub = socketCtx.on(event, handler);
+    return unsub;
+  }, [socketCtx, event, handler]);
+}
+```
+
+#### Step 7: Usage examples
+
+**A) Initialize socket at app level** (e.g., in a layout or auth provider):
+
+```tsx
+"use client";
+
+import { useSocket } from "@/hooks";
+
+export function AppProviders({ children }: { children: React.ReactNode }) {
+  // Get token from your auth state (context, store, cookies, etc.)
+  const token = useAuthToken();
+  const socketCtx = useSocket(token);
+
+  return (
+    <SocketContext.Provider value={socketCtx}>
+      {children}
+    </SocketContext.Provider>
+  );
+}
+```
+
+**B) Show toast when an invoice is flagged:**
+
+```tsx
+"use client";
+
+import { useContext, useCallback } from "react";
+import { SocketContext } from "@/providers/socket-provider";
+import { useSocketEvent } from "@/hooks/global/use-socket-event";
+import { SocketEvents } from "@/lib/socket-events";
+import { toast } from "@/hooks";
+
+interface FlaggedPayload {
+  invoiceId: string;
+  aiRiskScore: number;
+  riskLevel: string;
+}
+
+export function FlaggedInvoiceListener() {
+  const socketCtx = useContext(SocketContext);
+
+  const handleFlagged = useCallback((data: FlaggedPayload) => {
+    toast({
+      title: "Invoice Flagged",
+      description: `Invoice flagged with risk score ${data.aiRiskScore} (${data.riskLevel})`,
+      variant: "destructive",
+    });
+  }, []);
+
+  useSocketEvent(socketCtx, SocketEvents.INVOICE_FLAGGED, handleFlagged);
+
+  return null; // Render nothing — listener only
+}
+```
+
+**C) Auto-refetch invoice list when data changes:**
+
+```tsx
+"use client";
+
+import { useContext, useCallback } from "react";
+import { SocketContext } from "@/providers/socket-provider";
+import { useSocketEvent } from "@/hooks/global/use-socket-event";
+import { SocketEvents } from "@/lib/socket-events";
+
+export function useInvoiceListSocket(refetchFn: () => void) {
+  const socketCtx = useContext(SocketContext);
+
+  const handleInvalidate = useCallback(() => {
+    refetchFn();
+  }, [refetchFn]);
+
+  // Refetch when any of these events occur
+  useSocketEvent(socketCtx, SocketEvents.INVOICE_CREATED, handleInvalidate);
+  useSocketEvent(socketCtx, SocketEvents.INVOICE_LIST_INVALIDATE, handleInvalidate);
+  useSocketEvent(socketCtx, SocketEvents.INVOICE_AI_COMPLETE, handleInvalidate);
+}
+```
+
+**D) Show real-time processing status on invoice detail:**
+
+```tsx
+"use client";
+
+import { useContext, useCallback, useState } from "react";
+import { SocketContext } from "@/providers/socket-provider";
+import { useSocketEvent } from "@/hooks/global/use-socket-event";
+import { SocketEvents } from "@/lib/socket-events";
+
+interface AiCompletePayload {
+  invoiceId: string;
+  aiVerdict: "clean" | "flagged";
+  aiRiskScore: number;
+  riskLevel: string;
+}
+
+export function useInvoiceStatus(invoiceId: string) {
+  const socketCtx = useContext(SocketContext);
+  const [status, setStatus] = useState<string>("idle");
+  const [aiResult, setAiResult] = useState<AiCompletePayload | null>(null);
+
+  useSocketEvent(socketCtx, SocketEvents.INVOICE_ANCHOR_SUCCESS, 
+    useCallback((data: { invoiceId: string }) => {
+      if (data.invoiceId === invoiceId) setStatus("anchored");
+    }, [invoiceId])
+  );
+
+  useSocketEvent(socketCtx, SocketEvents.INVOICE_PROCESSING,
+    useCallback((data: { invoiceId: string }) => {
+      if (data.invoiceId === invoiceId) setStatus("processing");
+    }, [invoiceId])
+  );
+
+  useSocketEvent(socketCtx, SocketEvents.INVOICE_AI_COMPLETE,
+    useCallback((data: AiCompletePayload) => {
+      if (data.invoiceId === invoiceId) {
+        setStatus("complete");
+        setAiResult(data);
+      }
+    }, [invoiceId])
+  );
+
+  return { status, aiResult };
+}
+```
+
+#### Step 8: Recommended file structure
+
+After implementation, the frontend socket files should look like:
+
+```
+FRONTEND/
+  lib/
+    socket-events.ts          ← Event name constants
+  hooks/
+    global/
+      use-socket.ts           ← Core socket connection hook
+      use-socket-event.ts     ← Single-event listener hook
+      index.ts                ← Updated exports
+    index.ts                  ← Updated exports
+  providers/
+    socket-provider.tsx       ← React context for socket (optional)
+```
+
+---
+
+## 12. Pagination
 
 All list endpoints support a consistent pagination interface.
 
@@ -1029,7 +2007,7 @@ All paginated endpoints return:
 
 ---
 
-## 10. Error Handling
+## 13. Error Handling
 
 ### Standard Error Response
 
@@ -1077,19 +2055,24 @@ When request validation fails, the response includes field-level details:
 
 ---
 
-## 11. Role Permissions Matrix
+## 14. Role Permissions Matrix
 
 | Endpoint                              | SUPER_ADMIN | AUDITOR | REGULATOR | COMPANY_MANAGER | COMPANY_USER |
 |---------------------------------------|:-----------:|:-------:|:---------:|:---------------:|:------------:|
 | `POST /auth/login`                    | ✅          | ✅      | ✅        | ✅              | ✅           |
+| `POST /auth/login/mfa`                | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `POST /auth/refresh`                  | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `POST /auth/logout`                   | ✅          | ✅      | ✅        | ✅              | ✅           |
+| `POST /auth/mfa/setup`                | ✅          | ✅      | ✅        | ✅              | ✅           |
+| `POST /auth/mfa/enable`               | ✅          | ✅      | ✅        | ✅              | ✅           |
+| `POST /auth/mfa/disable`              | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `GET  /auth/me`                       | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `POST /auth/change-password`          | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `GET  /health`                        | 🔓          | 🔓      | 🔓        | 🔓              | 🔓           |
 | `POST /organization/createOrganization` | ✅        | —       | —         | —               | —            |
 | `GET  /organization/listOrganizations` | ✅         | —       | —         | —               | —            |
 | `GET  /organization/getOrganization/:id` | ✅       | —       | —         | ✅¹             | —            |
+| `PATCH /organization/updateOrganization/:id` | ✅  | —       | —         | —               | —            |
 | `POST /user/createUser`               | ✅          | —       | —         | ✅²             | —            |
 | `GET  /user/listUsers`                | ✅          | —       | —         | ✅³             | —            |
 | `GET  /user/listEmployees`            | —           | —       | —         | ✅              | —            |
@@ -1104,11 +2087,21 @@ When request validation fails, the response includes field-level details:
 | `GET  /invoice/list`                  | ✅          | ✅⁴     | ✅        | ✅⁵             | —            |
 | `GET  /invoice/my-invoices`           | —           | —       | —         | —               | ✅           |
 | `GET  /invoice/:id`                   | ✅          | ✅⁴     | ✅        | ✅⁵             | ✅⁶          |
-| `GET  /blockchain/ledger`             | ✅          | —       | ✅        | —               | —            |
+| `PATCH /invoice/:id/review`           | —           | ✅⁴     | —         | —               | —            |
+| `GET  /blockchain/ledger`             | ✅          | ✅⁴     | ✅        | —               | —            |
+| `POST /policy`                        | —           | —       | ✅        | —               | —            |
+| `PATCH /policy/:id`                   | —           | —       | ✅        | —               | —            |
+| `DELETE /policy/:id`                  | —           | —       | ✅        | —               | —            |
+| `GET  /policy`                        | —           | —       | ✅        | ✅              | ✅           |
+| `POST /terms`                         | ✅          | —       | ✅        | —               | —            |
+| `PATCH /terms/:id`                    | ✅          | —       | ✅        | —               | —            |
+| `DELETE /terms/:id`                   | ✅          | —       | ✅        | —               | —            |
+| `GET  /terms`                         | —           | ✅      | ✅        | ✅              | ✅           |
 | `GET  /session`                       | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `GET  /session/count`                 | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `DELETE /session/all`                 | ✅          | ✅      | ✅        | ✅              | ✅           |
 | `DELETE /session/:sessionId`          | ✅          | ✅      | ✅        | ✅              | ✅           |
+| `GET  /audit-logs`                    | ✅          | —      | —        | —              | —           |
 
 > 🔓 = Public (no auth required)
 > ¹ Own organization only
@@ -1117,3 +2110,104 @@ When request validation fails, the response includes field-level details:
 > ⁴ Assigned companies only
 > ⁵ Own organization's invoices only
 > ⁶ Own uploaded invoices only
+> ⁷ Assignment-scoped; AI analysis must be complete (`aiVerdict != null`)
+
+---
+
+## 15. Audit Logs
+
+Append-only log of every significant action taken in the system. Accessible only to `SUPER_ADMIN`. Logs older than 90 days are automatically archived to S3 and hard-deleted from MongoDB nightly at 2 AM.
+
+### 15.1 List Audit Logs
+
+```
+GET /audit-logs
+```
+
+**Roles:** `SUPER_ADMIN`
+
+**Headers:** `Authorization: Bearer <accessToken>`
+
+**Query Parameters:**
+
+| Param       | Type    | Default     | Description                                          |
+|-------------|---------|-------------|------------------------------------------------------|
+| `page`      | integer | `1`         | Page number                                          |
+| `limit`     | integer | `20`        | Items per page (1–100)                               |
+| `action`    | string  | —           | Filter by action name (see AuditActions enum below)  |
+| `actorRole` | string  | —           | Filter by actor role                                 |
+| `search`    | string  | —           | Filter by actor username (case-insensitive partial match) |
+| `from`      | date    | —           | Start of date range (ISO 8601 or parseable date)     |
+| `to`        | date    | —           | End of date range (ISO 8601 or parseable date)       |
+
+**Example:**
+
+```
+GET /audit-logs?page=1&limit=20&action=LOGIN_SUCCESS&search=auditor_hamish&from=2026-03-01
+GET /audit-logs?search=admin
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": {
+    "items": [
+      {
+        "id": "69a521b31f03c85a6fa7cd68",
+        "actorId": "698db6b9aa83105def51ddb0",
+        "actorRole": "SUPER_ADMIN",
+        "actor": {
+          "username": "admin",
+          "email": "admin@finshield.com"
+        },
+        "action": "LOGIN_SUCCESS",
+        "targetType": "User",
+        "summary": "admin@finshield.com logged in successfully",
+        "metadata": { "email": "admin@finshield.com" },
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0...",
+        "isArchived": false,
+        "archivedAt": null,
+        "archiveKey": null,
+        "archiveFileHash": null,
+        "createdAt": "2026-03-02T05:25:35.502+00:00"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "limit": 20,
+    "totalPages": 1
+  }
+}
+```
+
+### AuditActions Enum
+
+| Category | Actions |
+|---|---|
+| Authentication | `LOGIN_SUCCESS`, `ACCOUNT_LOCKED`, `LOGOUT` |
+| MFA | `MFA_ENABLED`, `MFA_DISABLED` |
+| User Management | `USER_CREATED`, `USER_UPDATED`, `USER_DISABLED`, `USER_ENABLED`, `PASSWORD_RESET_FORCED` |
+| Organization | `ORG_CREATED`, `ORG_UPDATED`, `ORG_TEMPLATE_UPLOADED` |
+| Assignments | `ASSIGNMENT_CREATED`, `ASSIGNMENT_UPDATED`, `ASSIGNMENT_DELETED` |
+| Invoices | `INVOICE_UPLOADED`, `INVOICE_FLAGGED` |
+| Reviews | `REVIEW_SUBMITTED`, `REVIEW_UPDATED` |
+| Policies | `POLICY_CREATED`, `POLICY_UPDATED`, `POLICY_DELETED` |
+| Terms and Conditions | `TERMS_CREATED`, `TERMS_UPDATED`, `TERMS_DELETED` |
+| Archival | `ARCHIVE_EXECUTED`, `ARCHIVE_ACCESSED` |
+
+> **Note:** `LOGIN_FAILED` is intentionally not logged.
+
+### Archive Behavior
+
+- Nightly at **2 AM**, a BullMQ worker archives all audit logs older than **90 days**.
+- Up to **1,000 logs per run** are processed; remainder handled on subsequent nights.
+- Each batch is serialized to **JSONL**, compressed with **gzip**, and uploaded to S3 at key `audit-logs/YYYY/MM/DD/audit-YYYY-MM-DD-{batchId}.jsonl.gz`.
+- A **SHA-256 hash** of the compressed file is stored in S3 object metadata for tamper detection.
+- Logs are **hard-deleted** from MongoDB only after S3 upload is confirmed.
+
+### Real-Time Push
+
+Every audit log write emits `audit:created` via WebSocket to the `role:SUPER_ADMIN` room. See [Section 11 — WebSocket Events](#11-websocket-real-time-events).

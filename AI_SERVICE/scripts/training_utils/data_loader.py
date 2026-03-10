@@ -10,7 +10,7 @@ from bson import ObjectId
 logger = logging.getLogger(__name__)
 
 
-async def fetch_invoices_for_training(
+def fetch_invoices_for_training(
     db,
     org_id: str,
     verdict_filter: str = 'clean',
@@ -19,26 +19,31 @@ async def fetch_invoices_for_training(
 ) -> List[Dict]:
     """
     Fetch invoices for training from MongoDB.
-    
+
     Args:
         db: MongoDB database connection
-        org_id: Organization ID
+        org_id: Organization ID (string or ObjectId)
         verdict_filter: AI verdict to filter by (default: 'clean')
         min_count: Minimum invoices required
         max_count: Maximum invoices to fetch
-    
+
     Returns:
         List of invoice documents
     """
+    # Accept both string and ObjectId — DB stores orgId as ObjectId
+    try:
+        oid = ObjectId(org_id) if not isinstance(org_id, ObjectId) else org_id
+    except Exception:
+        oid = org_id
+
     query = {
-        'organizationId': org_id,
+        'orgId': oid,
         'aiVerdict': verdict_filter,
-        'total': {'$exists': True}
     }
-    
+
     cursor = db.invoices.find(query).limit(max_count)
     invoices = list(cursor)
-    
+
     logger.info(f"Fetched {len(invoices)} invoices for org {org_id}")
     return invoices
 
@@ -103,21 +108,25 @@ def count_organization_invoices(
 ) -> int:
     """
     Count invoices for an organization.
-    
+
     Args:
         db: MongoDB database connection
-        org_id: Organization ID
+        org_id: Organization ID (string or ObjectId)
         verdict_filter: AI verdict to filter by
-    
+
     Returns:
         Count of matching invoices
     """
+    try:
+        oid = ObjectId(org_id) if not isinstance(org_id, ObjectId) else org_id
+    except Exception:
+        oid = org_id
+
     count = db.invoices.count_documents({
-        'organizationId': org_id,
+        'orgId': oid,
         'aiVerdict': verdict_filter,
-        'total': {'$exists': True}
     })
-    
+
     return count
 
 
@@ -139,12 +148,11 @@ def get_eligible_organizations(
         {
             '$match': {
                 'aiVerdict': 'clean',
-                'total': {'$exists': True}
             }
         },
         {
             '$group': {
-                '_id': '$organizationId',
+                '_id': '$orgId',
                 'count': {'$sum': 1}
             }
         },
@@ -157,10 +165,11 @@ def get_eligible_organizations(
             '$sort': {'count': -1}
         }
     ]
-    
+
     orgs = list(db.invoices.aggregate(pipeline))
-    eligible = [{'org_id': org['_id'], 'count': org['count']} for org in orgs]
-    
-    logger.info(f"Found {len(eligible)} eligible organizations (\u003e= {min_invoices} invoices)")
-    
+    # Convert ObjectId to string for compatibility with train script
+    eligible = [{'org_id': str(org['_id']), 'count': org['count']} for org in orgs]
+
+    logger.info(f"Found {len(eligible)} eligible organizations (>= {min_invoices} invoices)")
+
     return eligible

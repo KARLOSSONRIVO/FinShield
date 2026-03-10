@@ -28,6 +28,12 @@ paths:
           schema:
             type: string
           description: Filter by organization ID (SUPER_ADMIN/REGULATOR only)
+        - in: query
+          name: reviewDecision
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+          description: Filter by review status
       responses:
         "200":
           description: Paginated invoice list
@@ -75,6 +81,12 @@ paths:
             enum: [createdAt, invoiceNumber, invoiceDate, totalAmount, reviewDecision]
             default: createdAt
           description: Sort field
+        - in: query
+          name: reviewDecision
+          schema:
+            type: string
+            enum: [pending, approved, rejected]
+          description: Filter by review status
       responses:
         "200":
           description: Paginated list of user's own invoices
@@ -145,6 +157,85 @@ paths:
           description: Forbidden
         "404":
           description: Invoice not found or not authorized
+    patch:
+      summary: Submit review decision
+      description: >
+        AUDITOR-only: Submit or update the review decision and notes for an invoice in a single operation.
+        The auditor must have an active assignment for the invoice's organization.
+        AI analysis must be complete (aiVerdict != null) before a review can be submitted.
+        Re-submittable — each call overwrites the previous decision, notes, and refreshes reviewedAt.
+        Emits invoice:reviewed via Socket.IO to the uploader, org room, and role:SUPER_ADMIN.
+      tags:
+        - Invoices
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            pattern: "^[0-9a-fA-F]{24}$"
+          description: Invoice MongoDB ObjectId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reviewDecision
+                - reviewNotes
+              properties:
+                reviewDecision:
+                  type: string
+                  enum: [approved, rejected]
+                  description: The auditor's decision
+                  example: approved
+                reviewNotes:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                  description: Notes justifying the decision (required, 1–1000 chars)
+                  example: All line items verified and amounts match the purchase order.
+      responses:
+        "200":
+          description: Review submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      invoiceId:
+                        type: string
+                        example: "507f1f77bcf86cd799439011"
+                      reviewDecision:
+                        type: string
+                        enum: [approved, rejected]
+                        example: approved
+                      reviewNotes:
+                        type: string
+                        example: All line items verified and amounts match the purchase order.
+                      reviewedAt:
+                        type: string
+                        format: date-time
+                        example: "2026-03-04T10:30:00.000Z"
+                      isUpdate:
+                        type: boolean
+                        description: true if this overwrites a prior decision (logs REVIEW_UPDATED), false for first submission (logs REVIEW_SUBMITTED)
+                        example: false
+        "400":
+          description: Validation error or AI analysis not yet complete (AI_PENDING)
+        "401":
+          description: Unauthorized
+        "404":
+          description: Invoice not found or auditor not assigned to this organization
 
   /invoice/upload:
     post:

@@ -10,8 +10,10 @@ import multiprocessing
 
 # Number of worker processes
 # Formula: (CPU_CORES × 2) + 1
-# If UVICORN_WORKERS is set, use it; otherwise auto-calculate
-workers = int(os.getenv("UVICORN_WORKERS", (multiprocessing.cpu_count() * 2) + 1))
+# If UVICORN_WORKERS is set to a positive integer, use it; otherwise auto-calculate.
+# Set UVICORN_WORKERS=1 for dev (Windows), leave empty/unset in Docker for auto.
+_workers_env = os.getenv("UVICORN_WORKERS", "").strip()
+workers = int(_workers_env) if _workers_env and int(_workers_env) > 0 else (multiprocessing.cpu_count() * 2) + 1
 
 # Worker class - use Uvicorn workers for ASGI
 worker_class = "uvicorn.workers.UvicornWorker"
