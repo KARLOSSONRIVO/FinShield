@@ -28,9 +28,15 @@ export default function RegulatorDashboard() {
   return (
     <>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">
-          Regulator Dashboard
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          Dashboard
         </h1>
+        <div className="mt-2">
+          <h2 className="text-lg font-bold">
+            Welcome back, <span className="text-emerald-600">{user?.username || "Regulator"}</span>
+          </h2>
+          <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your invoices</p>
+        </div>
       </div>
 
       {isLoading ? (

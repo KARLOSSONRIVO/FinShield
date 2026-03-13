@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -42,14 +42,12 @@ const MONTHS = [
     { value: "11", label: "December" },
 ]
 
-interface InvoiceFilterProps {
+interface FlaggedInvoiceFilterProps {
     search: string
     onSearchChange: (value: string) => void
     sortConfig: { key: string; direction: 'asc' | 'desc' } | null
     onSortChange: (key: string, direction?: 'asc' | 'desc') => void
 
-    aiVerdictFilter?: "all" | "flagged" | "clean" | "pending"
-    onAiVerdictChange?: (value: "all" | "flagged" | "clean" | "pending") => void
     statusFilter?: string
     onStatusChange?: (value: string) => void
 
@@ -67,13 +65,11 @@ interface InvoiceFilterProps {
     onClearFilters?: () => void
 }
 
-export function InvoiceFilter({
+export function FlaggedInvoiceFilter({
     search,
     onSearchChange,
     sortConfig,
     onSortChange,
-    aiVerdictFilter,
-    onAiVerdictChange,
     statusFilter,
     onStatusChange,
     dateRange,
@@ -85,7 +81,7 @@ export function InvoiceFilter({
     availableYears,
     hasActiveFilters: hasActiveFiltersProp,
     onClearFilters,
-}: InvoiceFilterProps) {
+}: FlaggedInvoiceFilterProps) {
     const [localSearch, setLocalSearch] = useState(search)
 
     useEffect(() => { setLocalSearch(search) }, [search])
@@ -98,7 +94,6 @@ export function InvoiceFilter({
     }, [localSearch])
 
     const computedHasActiveFilters =
-        (aiVerdictFilter !== undefined && aiVerdictFilter !== "all") ||
         (statusFilter !== undefined && statusFilter !== "all") ||
         !!(dateRange?.from || dateRange?.to) ||
         (monthFilter !== undefined && monthFilter !== "all") ||
@@ -175,35 +170,6 @@ export function InvoiceFilter({
                                 ))}
                             </div>
                         </div>
-
-                        {/* AI Verdict */}
-                        {aiVerdictFilter !== undefined && onAiVerdictChange && (
-                            <>
-                                <DropdownMenuSeparator />
-                                <div>
-                                    <DropdownMenuLabel className="px-0 pt-0 pb-2 text-muted-foreground uppercase text-xs tracking-wider">
-                                        AI Verdict
-                                    </DropdownMenuLabel>
-                                    <div className="space-y-1">
-                                        {[
-                                            { value: "flagged", label: "Flagged" },
-                                            { value: "clean", label: "Verified (Clean)" },
-                                        ].map((opt) => (
-                                            <DropdownMenuCheckboxItem
-                                                key={opt.value}
-                                                checked={aiVerdictFilter === opt.value}
-                                                onCheckedChange={() =>
-                                                    onAiVerdictChange(aiVerdictFilter === opt.value ? "all" : opt.value as any)
-                                                }
-                                                className="text-sm"
-                                            >
-                                                {opt.label}
-                                            </DropdownMenuCheckboxItem>
-                                        ))}
-                                    </div>
-                                </div>
-                            </>
-                        )}
 
                         {/* Review Status */}
                         {statusFilter !== undefined && onStatusChange && (

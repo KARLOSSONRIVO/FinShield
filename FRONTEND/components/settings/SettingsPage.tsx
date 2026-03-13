@@ -64,7 +64,7 @@ export function SettingsPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="space-y-6 max-w-2xl w-full"
+                        className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full"
                     >
                         {/* Profile Information Card */}
                         <div className="p-4 sm:p-6 border rounded-xl bg-card text-card-foreground shadow-sm space-y-6 w-full overflow-hidden">

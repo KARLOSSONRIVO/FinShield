@@ -103,11 +103,13 @@ export function useAssignments({ initialLimit = 10 } = {}) {
     })
 
     const createAssignmentMutation = useMutation({
-        mutationFn: async () => {
+        mutationFn: async (overrideData?: { auditorUserId: string, companyOrgId: string, notes?: string }) => {
             return await AssignmentService.createAssignment({
-                auditorUserId: newAssignment.auditorUserId,
-                companyOrgId: newAssignment.companyOrgId
-            })
+                auditorUserId: overrideData?.auditorUserId || newAssignment.auditorUserId,
+                companyOrgId: overrideData?.companyOrgId || newAssignment.companyOrgId,
+                // Assigning notes if backend supports it, otherwise it ignores it
+                notes: overrideData?.notes
+            } as any)
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["assignments"] })
@@ -149,7 +151,6 @@ export function useAssignments({ initialLimit = 10 } = {}) {
     })
 
     const handleDeleteAssignment = (id: string) => {
-        if (!confirm("Are you sure you want to delete this assignment?")) return
         deleteAssignmentMutation.mutate(id)
     }
 
@@ -183,7 +184,7 @@ export function useAssignments({ initialLimit = 10 } = {}) {
         newAssignment,
         setNewAssignment,
 
-        handleCreateAssignment: () => createAssignmentMutation.mutate(),
+        handleCreateAssignment: (overrideData?: { auditorUserId: string, companyOrgId: string, notes?: string }) => createAssignmentMutation.mutate(overrideData),
         isCreating: createAssignmentMutation.isPending,
 
         handleUpdateAssignment: (id: string, status: "ACTIVE" | "INACTIVE") =>

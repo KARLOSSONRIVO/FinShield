@@ -14,7 +14,7 @@ export function useManagerReports() {
 
     const totalValue = companyInvoices.reduce((sum, inv) => sum + (Number(inv.amount || inv.totalAmount) || 0), 0)
 
-    const cleanValue = companyInvoices
+    const verifiedValue = companyInvoices
         .filter((i) =>
             String(i.reviewDecision) === "approved" ||
             (String(i.reviewDecision) !== "rejected" && (i.aiVerdict?.verdict === "clean" || (!i.aiVerdict?.verdict && String(i.status) !== "flagged" && String(i.status) !== "rejected")))
@@ -49,7 +49,7 @@ export function useManagerReports() {
         ? companyInvoices.reduce((sum, inv) => sum + (Number(inv.aiVerdict?.riskScore) || 0), 0) / companyInvoices.length
         : 0
 
-    const cleanCount = companyInvoices.filter((i) => i.aiVerdict?.verdict === "clean").length
+    const verifiedCount = companyInvoices.filter((i) => i.aiVerdict?.verdict === "clean").length
     const aiFlaggedCount = companyInvoices.filter((i) => i.aiVerdict?.verdict === "flagged").length
 
     const fraudCount = companyInvoices.filter((i) =>
@@ -67,13 +67,13 @@ export function useManagerReports() {
         totalCount: companyInvoices.length,
         metrics: {
             totalValue,
-            cleanValue,
+            verifiedValue,
             flaggedValue,
         },
         statusCounts,
         riskMetrics: {
             averageRiskScore,
-            cleanCount,
+            verifiedCount,
             aiFlaggedCount,
             fraudRate,
             fraudCount

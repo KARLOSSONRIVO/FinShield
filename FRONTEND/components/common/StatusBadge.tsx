@@ -7,9 +7,11 @@ export function InvoiceStatusBadge({ status }: { status: InvoiceStatus }) {
     { variant: "default" | "secondary" | "destructive" | "outline"; label: string; className?: string }
   > = {
     pending: { variant: "secondary", label: "Pending", className: "bg-gray-600 text-white hover:bg-gray-700 border-transparent" },
-    clean: { variant: "default", label: "Clean", className: "bg-emerald-600 text-white hover:bg-emerald-700 border-transparent" },
+    clean: { variant: "default", label: "Verified", className: "bg-emerald-600 text-white hover:bg-emerald-700 border-transparent" },
     flagged: { variant: "destructive", label: "Flagged", className: "bg-red-600 text-white hover:bg-red-700 border-transparent" },
     anchored: { variant: "outline", label: "Anchored", className: "bg-blue-600 text-white hover:bg-blue-700 border-transparent" },
+    accepted: { variant: "default", label: "Accepted", className: "bg-primary text-primary-foreground border-transparent font-bold" },
+    rejected: { variant: "destructive", label: "Rejected", className: "bg-red-700 text-white border-transparent font-bold" },
   }
 
   // Fallback for undefined or unknown status
@@ -36,7 +38,7 @@ export function AIVerdictBadge({ verdict, score, hideScore = false }: { verdict:
             : "bg-emerald-600 text-white hover:bg-emerald-700 border-transparent"
         }
       >
-        {verdict === "clean" ? "Clean" : "Flagged"}
+        {verdict === "clean" ? "Verified" : "Flagged"}
       </Badge>
       {!hideScore && score !== undefined && (
         <span className={`text-xs font-mono ${score > 0.5 ? "text-destructive" : "text-muted-foreground"}`}>
@@ -78,3 +80,4 @@ export function DecisionBadge({ decision }: { decision: ReviewDecision }) {
     </Badge>
   )
 }
+

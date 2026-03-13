@@ -14,7 +14,7 @@ export default function EmployeeDashboard() {
   const {
     myInvoicesCount,
     pendingCount,
-    approvedCount,
+    verifiedCount,
     rejectedCount,
     recentInvoices,
     rejectedInvoices,
@@ -30,7 +30,7 @@ export default function EmployeeDashboard() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            Welcome back, {user?.firstName || "Employee"}
+            Welcome back, {user?.username || "Employee"}
           </h1>
           <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your invoices</p>
         </div>
@@ -43,7 +43,7 @@ export default function EmployeeDashboard() {
           <EmployeeStats
             myInvoicesCount={myInvoicesCount}
             pendingCount={pendingCount}
-            approvedCount={approvedCount}
+            verifiedCount={verifiedCount}
             rejectedCount={rejectedCount}
           />
 

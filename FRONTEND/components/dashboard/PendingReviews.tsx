@@ -56,7 +56,7 @@ export function PendingReviews({ invoices }: PendingReviewsProps) {
                                 <div className="text-right">
                                     <p className="font-bold text-sm text-muted-foreground">PENDING</p>
                                     <p className="text-xs font-medium">
-                                        ${(invoice.amount || invoice.totalAmount || invoice.totals_total || 0).toLocaleString()}
+                                        ₱{(invoice.amount || invoice.totalAmount || invoice.totals_total || 0).toLocaleString()}
                                     </p>
                                 </div>
                             </div>

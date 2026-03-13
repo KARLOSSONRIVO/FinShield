@@ -26,7 +26,7 @@ export function ManagerStats({ totalInvoices, flaggedCount, employeeCount, total
     )
 
     // Format total value as currency
-    const formattedTotalValue = `$${(totalValue || 0).toLocaleString(undefined, {
+    const formattedTotalValue = `₱${(totalValue || 0).toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     })}`

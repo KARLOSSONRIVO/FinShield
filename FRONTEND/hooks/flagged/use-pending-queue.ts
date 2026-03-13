@@ -3,9 +3,9 @@ import { useQuery } from "@tanstack/react-query"
 import { InvoiceService } from "@/services/invoice.service"
 import { DateRange } from "react-day-picker"
 
-const LIMIT = 7
+const LIMIT = 8
 
-export function useEmployeeInvoices() {
+export function usePendingQueue() {
     const [search, setSearchState] = useState("")
     const [page, setPage] = useState(1)
     const [sortKey, setSortKey] = useState<string | null>(null)
@@ -50,8 +50,8 @@ export function useEmployeeInvoices() {
     }
 
     const { data: response, isLoading, isError, error } = useQuery({
-        queryKey: ["invoices", "employee"],
-        queryFn: () => InvoiceService.myInvoices()
+        queryKey: ["pending-invoices-queue"],
+        queryFn: () => InvoiceService.list()
     })
 
     const allInvoices = response?.data?.items || []
@@ -69,6 +69,7 @@ export function useEmployeeInvoices() {
     const { filteredInvoices, pagination } = useMemo(() => {
         let items = [...allInvoices]
 
+        // Search
         if (search.trim()) {
             const q = search.trim().toLowerCase()
             items = items.filter((inv: any) =>
@@ -76,9 +77,17 @@ export function useEmployeeInvoices() {
                 inv.companyName?.toLowerCase().includes(q)
             )
         }
-        if (aiVerdictFilter !== "all") {
-            items = items.filter((inv: any) => inv.aiVerdict?.verdict?.toLowerCase() === aiVerdictFilter)
-        }
+
+        // Base pending logic: exclude already reviewed (approved/rejected)
+        items = items.filter((inv: any) => {
+            const decision = (inv.status || inv.reviewDecision || "").toLowerCase()
+            if (decision === "approved" || decision === "rejected") return false
+            if (aiVerdictFilter !== "all") {
+                return inv.aiVerdict?.verdict?.toLowerCase() === aiVerdictFilter
+            }
+            return true
+        })
+
         if (statusFilter !== "all") {
             items = items.filter((inv: any) => (inv.status || "pending").toLowerCase() === statusFilter)
         }
@@ -108,7 +117,7 @@ export function useEmployeeInvoices() {
                 const actualKey = k === 'reviewDecision' ? 'status' : k
                 let av = (a as any)[actualKey], bv = (b as any)[actualKey]
                 
-                if (k === 'invoiceDate' || k === 'createdAt' || k === 'date' || k === 'uploadedAt') {
+                if (k === 'invoiceDate' || k === 'createdAt' || k === 'date') {
                     av = (a as any).date || (a as any).invoiceDate || (a as any).uploadedAt || (a as any).createdAt
                     bv = (b as any).date || (b as any).invoiceDate || (b as any).uploadedAt || (b as any).createdAt
                 }
@@ -116,7 +125,7 @@ export function useEmployeeInvoices() {
                 if (av === bv) return 0
                 if (av == null) return 1; if (bv == null) return -1
                 
-                if (k === 'invoiceDate' || k === 'createdAt' || k === 'date' || k === 'uploadedAt') {
+                if (k === 'invoiceDate' || k === 'createdAt' || k === 'date') {
                     const aDate = new Date(av).getTime()
                     const bDate = new Date(bv).getTime()
                     return dir === 'desc' ? bDate - aDate : aDate - bDate
@@ -137,7 +146,7 @@ export function useEmployeeInvoices() {
     return {
         invoices: filteredInvoices, pagination, isLoading, isError, error: error ? (error as any).message : null,
         search, setSearch, setPage, sortConfig, requestSort,
-        statusFilter, setStatusFilter, aiVerdictFilter, setAiVerdictFilter,
+        aiVerdictFilter, setAiVerdictFilter,
         dateRange, setDateRange, monthFilter, setMonthFilter, yearFilter, setYearFilter,
         availableYears, resetFilters, hasActiveFilters
     }

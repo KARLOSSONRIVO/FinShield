@@ -1,20 +1,19 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { AuthService } from "@/services/auth.service"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
     Dialog,
     DialogContent,
     DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { Eye, EyeOff, CheckCircle2, XCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Eye, EyeOff, KeyRound } from "lucide-react"
 import { toast } from "sonner"
 
 interface ChangePasswordDialogProps {
@@ -28,7 +27,6 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
     const [confirmPassword, setConfirmPassword] = useState("")
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [error, setError] = useState("")
 
     const { mutate: changePassword, isPending } = useMutation({
@@ -43,22 +41,52 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
         },
         onError: (err: any) => {
             console.error(err)
-            setError(err.response?.data?.message || "Failed to change password")
+            const msg = err.response?.data?.message || "Failed to change password"
+            setError(msg)
+            toast.error(msg)
         }
     })
+
+    const requirements = useMemo(() => [
+        { test: (p: string) => p.length >= 12, failMessage: "less than 12 characters" },
+        { test: (p: string) => /[A-Z]/.test(p), failMessage: "missing an uppercase letter" },
+        { test: (p: string) => /[0-9]/.test(p), failMessage: "missing a number" },
+        { test: (p: string) => /[^A-Za-z0-9]/.test(p), failMessage: "missing a special character" },
+    ], [])
+
+    // Get status messages
+    const getPasswordStatus = () => {
+        if (newPassword !== confirmPassword && confirmPassword.length > 0) {
+            return { message: "Passwords do not match", isError: true }
+        }
+
+        const failing = requirements
+            .filter(req => !req.test(newPassword))
+            .map(req => req.failMessage)
+
+        if (failing.length === 0) {
+            return { message: "All requirements met", isError: false }
+        }
+
+        let message = failing.join(", ")
+        message = message.charAt(0).toUpperCase() + message.slice(1)
+        return { message, isError: true }
+    }
+
+    const status = getPasswordStatus()
+    const allGood = status.message === "All requirements met" && newPassword === confirmPassword && confirmPassword.length > 0
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         setError("")
 
-        if (newPassword !== confirmPassword) {
-            setError("Passwords do not match")
+        if (!allGood) {
+            setError(status.message)
             return
         }
 
-        const strictRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
-        if (!strictRegex.test(newPassword)) {
-            setError("Password must be at least 8 characters, contain 1 uppercase letter, 1 number, and 1 special character")
+        if (newPassword === currentPassword) {
+            setError("New password must be different from your current password")
             return
         }
 
@@ -67,106 +95,122 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>Change Password</DialogTitle>
-                    <DialogDescription>
-                        Enter your current password and a new password to update your credentials.
-                    </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit}>
-                    <div className="grid gap-4 py-4">
-                        {error && (
-                            <div className="bg-red-50 text-red-600 p-3 rounded-md text-sm border border-red-200">
-                                {error}
-                            </div>
-                        )}
-                        <div className="grid gap-2">
-                            <Label htmlFor="current-password">Current Password</Label>
-                            <div className="relative">
-                                <Input
-                                    id="current-password"
-                                    type={showCurrentPassword ? "text" : "password"}
-                                    value={currentPassword}
-                                    onChange={(e) => setCurrentPassword(e.target.value)}
-                                    required
-                                    className="pr-10"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 bg-transparent text-gray-500 hover:text-gray-700 focus:outline-none"
-                                >
-                                    {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </button>
-                            </div>
+            <DialogContent className="sm:max-w-md [&>button]:hidden">
+                <DialogHeader className="space-y-3">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center">
+                            <KeyRound className="h-5 w-5 text-emerald-600" />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="new-password">New Password</Label>
-                            <div className="relative">
-                                <Input
-                                    id="new-password"
-                                    type={showNewPassword ? "text" : "password"}
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                    required
-                                    className="pr-10"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowNewPassword(!showNewPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 bg-transparent text-gray-500 hover:text-gray-700 focus:outline-none"
-                                >
-                                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </button>
-                            </div>
-                            <p className="text-xs text-muted-foreground w-full">
-                                Password must be at least 8 characters, contain 1 uppercase letter, 1 number, and 1 special character.
-                            </p>
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="confirm-password">Confirm Password</Label>
-                            <div className="relative">
-                                <Input
-                                    id="confirm-password"
-                                    type={showConfirmPassword ? "text" : "password"}
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    required
-                                    className="pr-10"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 bg-transparent text-gray-500 hover:text-gray-700 focus:outline-none"
-                                >
-                                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </button>
-                            </div>
-                            {confirmPassword.length > 0 && (
-                                <p className={`text-xs flex items-center gap-1 mt-1 ${newPassword === confirmPassword ? "text-emerald-600" : "text-red-500"}`}>
-                                    {newPassword === confirmPassword ? (
-                                        <><CheckCircle2 size={12} /> Passwords match</>
-                                    ) : (
-                                        <><XCircle size={12} /> Passwords do not match</>
-                                    )}
-                                </p>
-                            )}
+                        <div>
+                            <DialogTitle className="text-lg font-bold">Change Password</DialogTitle>
+                            <DialogDescription className="text-sm">
+                                Enter your current password and a new password to update your credentials.
+                            </DialogDescription>
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+                    {/* Current password */}
+                    <div className="space-y-1.5">
+                        <Label htmlFor="current-password" className="font-semibold">Current Password</Label>
+                        <div className="relative">
+                            <Input
+                                id="current-password"
+                                type={showCurrentPassword ? "text" : "password"}
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                required
+                                placeholder="Enter your current password"
+                                className="pr-10"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                                {showCurrentPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* New password */}
+                    <div className="space-y-1.5">
+                        <Label htmlFor="new-password" className="font-semibold">New Password</Label>
+                        <div className="relative">
+                            <Input
+                                id="new-password"
+                                type={showNewPassword ? "text" : "password"}
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                required
+                                placeholder="Enter new password..."
+                                className="pr-10"
+                                minLength={12}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowNewPassword(!showNewPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                                {showNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                            </button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            12 chars minimum, 1 uppercase, 1 number, 1 special char
+                        </p>
+                    </div>
+
+                    {/* Confirm password */}
+                    <div className="space-y-1.5">
+                        <Label htmlFor="confirm-password" className="font-semibold">Confirm Password</Label>
+                        <div className="relative">
+                            <Input
+                                id="confirm-password"
+                                type={showNewPassword ? "text" : "password"}
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                required
+                                placeholder="Re-enter your password..."
+                                minLength={12}
+                                className="pr-10"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowNewPassword(!showNewPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                                {showNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                            </button>
+                        </div>
+
+                        {confirmPassword.length > 0 && (
+                            <p className={`text-xs ${status.isError ? "text-red-500" : "text-emerald-600"}`}>
+                                {status.message}
+                            </p>
+                        )}
+                    </div>
+
+                    {error && <p className="text-sm text-red-500">{error}</p>}
+
+                    <div className="flex gap-3 pt-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="flex-1"
+                            disabled={isPending}
+                            onClick={() => onOpenChange(false)}
+                        >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
-                            disabled={isPending}
-                            isLoading={isPending}
-                            loadingText="Updating..."
+                            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-11"
+                            disabled={isPending || !allGood}
                         >
-                            Update Password
+                            {isPending ? "Updating..." : "Update Password"}
                         </Button>
-                    </DialogFooter>
+                    </div>
                 </form>
             </DialogContent>
         </Dialog>

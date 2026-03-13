@@ -8,33 +8,51 @@ import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skele
 
 export default function ManagerInvoicesPage() {
   const {
-    search,
-    setSearch,
-    statusFilter,
-    setStatusFilter,
     invoices,
     pagination,
+    isLoading,
+    search,
+    setSearch,
     setPage,
     sortConfig,
     requestSort,
-    isLoading // Destructure isLoading
+    statusFilter,
+    setStatusFilter,
+    aiVerdictFilter,
+    setAiVerdictFilter,
+    dateRange,
+    setDateRange,
+    resetFilters,
+    monthFilter,
+    setMonthFilter,
+    yearFilter,
+    setYearFilter,
+    availableYears,
   } = useManagerInvoices()
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        {/* Matches Super Admin Header Style */}
-        <h2 className="text-2xl font-normal tracking-tight">Invoice Management</h2>
+    <div className="space-y-3">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl font-bold">Invoices Management</h1>
+        <InvoiceFilter
+          search={search || ""}
+          onSearchChange={setSearch}
+          sortConfig={sortConfig}
+          onSortChange={requestSort}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter as any}
+          aiVerdictFilter={aiVerdictFilter as any}
+          onAiVerdictChange={setAiVerdictFilter as any}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          onClearFilters={resetFilters}
+          monthFilter={monthFilter}
+          yearFilter={yearFilter}
+          onMonthChange={setMonthFilter}
+          onYearChange={setYearFilter}
+          availableYears={availableYears}
+        />
       </div>
-
-      <InvoiceFilter
-        search={search || ""}
-        onSearchChange={setSearch}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        sortConfig={sortConfig}
-        onSortChange={requestSort}
-      />
 
       {isLoading ? (
         <InvoiceTableSkeleton />

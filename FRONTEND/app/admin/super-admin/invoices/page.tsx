@@ -2,6 +2,9 @@
 
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
+import { useSocketEvent } from "@/hooks/global/use-socket-event"
+import { SocketEvents } from "@/lib/socket-events"
+import { SocketContext } from "@/providers/socket-provider"
 import { useSuperAdminInvoices } from "@/hooks/invoices/use-super-admin-invoices"
 import { DataPagination } from "@/components/common/DataPagination"
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
@@ -17,23 +20,42 @@ export default function AllInvoicesPage() {
     setPage,
     sortConfig,
     requestSort,
-    isLoading // Destructure isLoading
+    isLoading,
+    aiVerdictFilter,
+    setAiVerdictFilter,
+    dateRange,
+    setDateRange,
+    resetFilters,
+    monthFilter,
+    setMonthFilter,
+    yearFilter,
+    setYearFilter,
+    availableYears,
   } = useSuperAdminInvoices()
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-normal tracking-tight">Invoice Management</h2>
+    <div className="space-y-3">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl font-bold">Invoices Management</h1>
+        <InvoiceFilter
+          search={search || ""}
+          onSearchChange={setSearch}
+          sortConfig={sortConfig}
+          onSortChange={requestSort}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter as any}
+          aiVerdictFilter={aiVerdictFilter as any}
+          onAiVerdictChange={setAiVerdictFilter as any}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          onClearFilters={resetFilters}
+          monthFilter={monthFilter}
+          yearFilter={yearFilter}
+          onMonthChange={setMonthFilter}
+          onYearChange={setYearFilter}
+          availableYears={availableYears}
+        />
       </div>
-
-      <InvoiceFilter
-        search={search || ""}
-        onSearchChange={setSearch}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        sortConfig={sortConfig}
-        onSortChange={requestSort}
-      />
 
       {isLoading ? (
         <InvoiceTableSkeleton />

@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -99,10 +99,9 @@ export function InvoiceTable({ invoices, mode, baseUrl, pagination, onPageChange
         const myRow = row as ExtendedMyInvoice;
 
         if (isEmployee) {
-            // Use type assertion to access potentially undefined properties
-            return (myRow as any).uploadedAt || (myRow as any).invoiceDate || (myRow as any).createdAt;
+            return (myRow as any).invoiceDate || (myRow as any).uploadedAt || (myRow as any).createdAt;
         }
-        return listRow.date || listRow.invoiceDate || (listRow as any).createdAt;
+        return listRow.invoiceDate || listRow.date || (listRow as any).createdAt;
     }
 
     return (
@@ -133,7 +132,7 @@ export function InvoiceTable({ invoices, mode, baseUrl, pagination, onPageChange
                         {/* Date Column */}
                         <TableHead className="px-4 py-4">
                             <div className="flex items-center gap-2 cursor-pointer font-bold text-base text-foreground" onClick={() => onSort?.("invoiceDate")}>
-                                {isEmployee ? "Uploaded At" : "Invoice Date"}
+                                Invoice Date
                                 {sortBy === "invoiceDate" ? (order === "asc" ? <ChevronUp className="h-4 w-4 text-primary" /> : <ChevronDown className="h-4 w-4 text-primary" />) : <ChevronUp className="h-4 w-4 text-muted-foreground/40" />}
                             </div>
                         </TableHead>
@@ -213,7 +212,7 @@ export function InvoiceTable({ invoices, mode, baseUrl, pagination, onPageChange
 
                                     {/* Amount Cell */}
                                     <TableCell className="px-4 font-bold text-base text-foreground">
-                                        {amount != null ? `$${amount.toLocaleString()}` : "—"}
+                                        {amount != null ? `₱${amount.toLocaleString()}` : "—"}
                                     </TableCell>
 
                                     {/* AI Verdict Cell - Only for non-employees */}
@@ -221,7 +220,7 @@ export function InvoiceTable({ invoices, mode, baseUrl, pagination, onPageChange
                                         <TableCell className="px-4 text-center">
                                             {aiVerdict ? (
                                                 <Badge className={`${getVerdictColor(aiVerdict.verdict)} rounded-md px-4 py-1 capitalize text-xs font-bold`}>
-                                                    {aiVerdict.verdict}
+                                                    {aiVerdict.verdict === "clean" ? "Verified" : aiVerdict.verdict}
                                                 </Badge>
                                             ) : (
                                                 <Badge className="bg-muted text-muted-foreground border border-border rounded-md px-3 py-1 text-xs font-bold flex items-center gap-1 w-fit mx-auto">
@@ -235,7 +234,7 @@ export function InvoiceTable({ invoices, mode, baseUrl, pagination, onPageChange
                                     {/* Status Cell */}
                                     <TableCell className="px-4 text-center">
                                         <Badge className={`${getStatusColor(row.status)} rounded-md px-4 py-1 capitalize text-xs font-bold`}>
-                                            {row.status}
+                                            {row.status === "clean" ? "Verified" : row.status}
                                         </Badge>
                                     </TableCell>
 

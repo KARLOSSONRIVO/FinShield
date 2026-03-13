@@ -42,7 +42,7 @@ export default function RejectedItems({ invoices }: RejectedItemsProps) {
                                     </div>
                                     <div className="text-right">
                                         <p className="font-bold text-lg mb-1">
-                                            ${(invoice.amount || 0).toLocaleString()}
+                                            ₱{(invoice.amount || 0).toLocaleString()}
                                         </p>
                                         <span className="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-white bg-red-500">
                                             Rejected

@@ -7,6 +7,12 @@ export type AssignmentStatus = "ACTIVE" | "INACTIVE"
 export type AIVerdict = "clean" | "flagged"
 export type InvoiceStatus = "pending" | "clean" | "flagged" | "anchored" | "accepted" | "rejected"
 export type ReviewDecision = "approved" | "rejected"
+export type AI_VERDICT_FILTER = "all" | "clean" | "flagged" | "pending"
+export type STATUS_FILTER = "all" | "pending" | "clean" | "flagged" | "anchored" | "accepted" | "rejected" | "approved"
+
+export type AiVerdictFilter = AI_VERDICT_FILTER
+export type StatusFilter = STATUS_FILTER
+
 export type EntityType = "organization" | "user" | "assignment" | "invoice" | "review"
 
 // ─── Pagination ─────────────────────────────────────────────────────────────

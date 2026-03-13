@@ -12,11 +12,19 @@ interface RecentInvoicesProps {
 }
 
 function getStatusColor(status: string) {
-    switch (status) {
-        case "clean": return "bg-emerald-600 text-white"
-        case "flagged": return "bg-red-600 text-white"
-        case "anchored": return "bg-blue-500 text-white"
-        default: return "bg-gray-400 text-white"
+    const s = status?.toLowerCase() || ""
+    switch (s) {
+        case "clean": 
+        case "approved":
+        case "accepted":
+            return "bg-emerald-600 text-white"
+        case "flagged": 
+        case "rejected":
+            return "bg-red-600 text-white"
+        case "anchored": 
+            return "bg-blue-500 text-white"
+        default: 
+            return "bg-gray-400 text-white"
     }
 }
 
@@ -58,7 +66,7 @@ export function RecentInvoices({ invoices, title = "Recent Invoices", descriptio
                                             })()}
                                         </p>
                                         {invoice.amount != null && (
-                                            <p className="text-sm font-bold">${invoice.amount.toLocaleString()}</p>
+                                            <p className="text-sm font-bold">₱{invoice.amount.toLocaleString()}</p>
                                         )}
                                         <div className="flex items-center justify-end gap-2">
                                             {invoice.aiVerdict?.riskScore !== undefined && (
@@ -70,7 +78,7 @@ export function RecentInvoices({ invoices, title = "Recent Invoices", descriptio
                                                 </Badge>
                                             )}
                                             <Badge className={`${getStatusColor(invoice.status)} rounded-md px-2 py-0 text-[10px] font-bold capitalize`}>
-                                                {invoice.status}
+                                                {invoice.status.toLowerCase() === "clean" || invoice.status.toLowerCase() === "accepted" ? "Approved" : invoice.status}
                                             </Badge>
                                         </div>
                                     </div>

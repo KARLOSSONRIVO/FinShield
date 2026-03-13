@@ -15,6 +15,7 @@ import {
     ScrollText,
     UserPlus,
     Shield,
+    Monitor,
 } from "lucide-react"
 import { useAuth } from "@/hooks/global/use-auth"
 
@@ -26,7 +27,7 @@ const superAdminLinks: NavLink[] = [
     { href: "/admin/super-admin/invoices", label: "All Invoices", icon: FileText },
     { href: "/admin/super-admin/flagged", label: "Flagged Queue", icon: AlertTriangle },
     { href: "/admin/super-admin/blockchain", label: "Blockchain Ledger", icon: Link2 },
-    { href: "/admin/super-admin/audit-logs", label: "Audit Logs", icon: ScrollText },
+    { href: "/admin/super-admin/audit-logs", label: "Audit Logs", icon: Monitor },
     { href: "/admin/super-admin/policy", label: "Policy", icon: Shield },
     { href: "/admin/super-admin/terms", label: "Terms", icon: ScrollText },
 ]

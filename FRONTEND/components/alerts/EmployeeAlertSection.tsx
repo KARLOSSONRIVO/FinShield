@@ -62,7 +62,7 @@ export function EmployeeAlertSection({
                                     <p className="text-sm text-muted-foreground">
                                         {invoice.uploadedByName ? `by ${invoice.uploadedByName}` : ""}
                                         {invoice.uploadedByName && variant !== "default" ? " - " : ""}
-                                        ${(invoice.totals_total || 0).toLocaleString()}
+                                        ₱{(invoice.totals_total || 0).toLocaleString()}
                                         {variant === "default" && ` - ${invoice.invoiceDate ? new Date(invoice.invoiceDate).toLocaleDateString() : 'N/A'}`}
                                     </p>
                                     {variant === "warning" && (

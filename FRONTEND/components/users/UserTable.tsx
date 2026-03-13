@@ -56,14 +56,8 @@ export function UserTable({ users, onUpdateStatus, renderSubComponent, paginatio
                         <TableRow className="hover:bg-transparent border-b border-border/50">
                             <TableHead className="px-6 py-4">
                                 <div className="flex items-center justify-center gap-2 cursor-pointer font-bold text-base text-foreground" onClick={() => onSort?.("username")}>
-                                    Username
+                                    User Details
                                     {sortBy === 'username' ? (order === 'asc' ? <ChevronUp className="h-4 w-4 text-primary" /> : <ChevronDown className="h-4 w-4 text-primary" />) : <ChevronUp className="h-4 w-4 text-muted-foreground/40" />}
-                                </div>
-                            </TableHead>
-                            <TableHead className="px-6 py-4">
-                                <div className="flex items-center justify-center gap-2 cursor-pointer font-bold text-base text-foreground" onClick={() => onSort?.("email")}>
-                                    Email
-                                    {sortBy === 'email' ? (order === 'asc' ? <ChevronUp className="h-4 w-4 text-primary" /> : <ChevronDown className="h-4 w-4 text-primary" />) : <ChevronUp className="h-4 w-4 text-muted-foreground/40" />}
                                 </div>
                             </TableHead>
                             {!hideRoleAndOrg && (
@@ -103,11 +97,9 @@ export function UserTable({ users, onUpdateStatus, renderSubComponent, paginatio
                                 return (
                                     <Fragment key={user.id || user._id}>
                                         <TableRow className="h-24 hover:bg-muted/30 transition-colors border-b border-border/50">
-                                            <TableCell className="px-6 text-center font-bold text-base text-foreground">
-                                                {user.username}
-                                            </TableCell>
-                                            <TableCell className="px-6 text-center text-sm font-medium text-foreground">
-                                                {user.email}
+                                            <TableCell className="px-6 text-center">
+                                                <div className="font-bold text-base text-foreground">{user.username}</div>
+                                                <div className="text-sm text-muted-foreground mt-0.5">{user.email}</div>
                                             </TableCell>
                                             {!hideRoleAndOrg && (
                                                 <>

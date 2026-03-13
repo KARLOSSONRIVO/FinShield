@@ -66,8 +66,7 @@ export default function RegulatorLayout({
                 <div className="sticky top-0 z-40">
                     <TopBar
                         title={title}
-                        userName={user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "Regulator User"}
-                        organizationName="Regulatory Body"
+                        userName={user?.username}
                         profileLink="/admin/regulator/settings"
                         notifications={[
                             { title: "Action Required", time: "2h ago", message: "Compliance report for Provider 100 is ready." }

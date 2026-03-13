@@ -8,8 +8,12 @@ import { Organization } from "./organization"
 import {
     AssignmentStatus,
     ReviewDecision,
-    EntityType
+    EntityType,
+    StatusFilter,
+    AiVerdictFilter
 } from "./primitives"
+
+export type { StatusFilter, AiVerdictFilter }
 
 // ─── Aggregate Types ─────────────────────────────────────────────────────────
 

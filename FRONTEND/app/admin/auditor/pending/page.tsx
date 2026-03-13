@@ -1,69 +1,48 @@
 "use client"
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { PendingInvoiceFilter } from "@/components/invoices/PendingInvoiceFilter"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
-import { useRegulatorFlaggedInvoices } from "@/hooks/invoices/use-regulator-flagged"
-import { FlaggedInvoiceFilter } from "@/components/invoices/FlaggedInvoiceFilter"
-import { useQueryClient } from "@tanstack/react-query"
-import { useSocketEvent } from "@/hooks/global/use-socket-event"
-import { SocketEvents } from "@/lib/socket-events"
-import { SocketContext } from "@/providers/socket-provider"
-import { useContext } from "react"
+import { usePendingQueue } from "@/hooks/flagged/use-pending-queue"
 
-export default function RegulatorFlaggedInvoicesPage() {
+export default function AuditorPendingPage() {
     const {
-        search,
-        setSearch,
-        requestSort,
-        sortConfig,
         invoices,
         pagination,
         setPage,
-        isLoading,
-        statusFilter,
-        setStatusFilter,
+        search,
+        setSearch,
+        sortConfig,
+        requestSort,
         dateRange,
         setDateRange,
-        hasActiveFilters,
+        isLoading,
         resetFilters,
         monthFilter,
         setMonthFilter,
         yearFilter,
         setYearFilter,
         availableYears,
-    } = useRegulatorFlaggedInvoices()
-
-    const queryClient = useQueryClient()
-    const socketCtx = useContext(SocketContext)
-
-    const invalidateList = () => {
-        queryClient.invalidateQueries({ queryKey: ["regulator-flagged-queue"] })
-    }
-
-    useSocketEvent(socketCtx!, SocketEvents.INVOICE_LIST_INVALIDATE, invalidateList)
+    } = usePendingQueue()
 
     return (
         <div className="space-y-3">
             <div className="flex flex-col gap-2">
-                <h1 className="text-2xl font-bold">Verification Queue</h1>
-                <FlaggedInvoiceFilter
+                <h1 className="text-2xl font-bold">Pending Invoices</h1>
+                <PendingInvoiceFilter
                     search={search || ""}
                     onSearchChange={setSearch}
-                    sortConfig={sortConfig as any}
-                    onSortChange={requestSort as any}
-                    statusFilter={statusFilter}
-                    onStatusChange={setStatusFilter as any}
+                    sortConfig={sortConfig}
+                    onSortChange={requestSort}
                     dateRange={dateRange}
                     onDateRangeChange={setDateRange}
-                    hasActiveFilters={hasActiveFilters}
                     onClearFilters={resetFilters}
                     monthFilter={monthFilter}
                     yearFilter={yearFilter}
                     onMonthChange={setMonthFilter}
                     onYearChange={setYearFilter}
                     availableYears={availableYears}
-                // aiVerdictFilter hidden
                 />
             </div>
 
@@ -72,11 +51,11 @@ export default function RegulatorFlaggedInvoicesPage() {
             ) : (
                 <InvoiceTable
                     invoices={invoices}
-                    mode="regulator"
-                    baseUrl="/admin/regulator/invoices"
+                    mode="auditor"
+                    baseUrl="/admin/auditor/invoices"
                     sortBy={sortConfig?.key}
-                    order={sortConfig?.direction as "asc" | "desc" | undefined}
-                    onSort={(field) => requestSort(field as any)}
+                    order={sortConfig?.direction}
+                    onSort={requestSort}
                 />
             )}
 

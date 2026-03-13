@@ -71,9 +71,9 @@ export default function AssignmentDetailPage() {
     const handleAddAssignment = async () => {
         if (!newAssignmentData.companyName || !newAssignmentData.taskName || !newAssignmentData.dueDate) return
 
-        const company = organizations.find(o => o.name === newAssignmentData.companyName)
+        const company = organizations.find((o: any) => o.name === newAssignmentData.companyName)
 
-        await handleCreateAssignment({
+        handleCreateAssignment({
             companyOrgId: company ? company._id || company.id : "",
             auditorUserId: auditor ? auditor._id || auditor.id || "" : "",
             notes: newAssignmentData.taskName // API doesn't have taskName natively, shoving to notes
@@ -88,13 +88,12 @@ export default function AssignmentDetailPage() {
         setIsViewOpen(true)
     }
 
-    // Filter assignments for this auditor
     const auditorAssignments = assignments.filter(a => a.auditorUserId === auditor?._id || a.auditorUserId === auditor?.id) as CompanyAssignment[]
-    const activeAssignments = auditorAssignments.filter(a => a.status === 'ACTIVE' || a.status === 'active')
-    const inactiveAssignments = auditorAssignments.filter(a => a.status === 'INACTIVE' || a.status === 'inactive')
+    const activeAssignments = auditorAssignments.filter(a => a.status.toUpperCase() === 'ACTIVE')
+    const inactiveAssignments = auditorAssignments.filter(a => a.status.toUpperCase() === 'INACTIVE')
 
     const getCompanyName = (orgId: string) => {
-        const org = organizations.find(o => o._id === orgId || o.id === orgId)
+        const org = organizations.find((o: any) => o._id === orgId || o.id === orgId)
         return org ? org.name : "Unknown Company"
     }
 
@@ -133,8 +132,8 @@ export default function AssignmentDetailPage() {
                                         <SelectValue placeholder="Select company" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {mockOrganizations.filter(o => o.type === 'company').map(org => (
-                                            <SelectItem key={org._id} value={org.name}>{org.name}</SelectItem>
+                                        {organizations.filter((o: any) => o.type === 'company').map((org: any) => (
+                                            <SelectItem key={org._id || org.id} value={org.name}>{org.name}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>

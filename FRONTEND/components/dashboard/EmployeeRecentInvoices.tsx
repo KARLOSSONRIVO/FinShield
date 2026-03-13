@@ -76,7 +76,7 @@ export function EmployeeRecentInvoices({
                                     </div>
                                     <div className="text-right">
                                         <p className="font-bold text-base text-foreground">
-                                            ${(invoice.amount || 0).toLocaleString()}
+                                            ₱{(invoice.amount || 0).toLocaleString()}
                                         </p>
                                         <div className="mt-1 flex justify-end">
                                             <InvoiceStatusBadge status={invoice.status as any} />

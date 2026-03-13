@@ -207,7 +207,7 @@ export function AssignmentTableContent({ assignments, onDelete, onUpdate, compan
 
             <AlertDialog open={!!pendingStatusChange} onOpenChange={(open) => !open && setPendingStatusChange(null)}>
                 <AlertDialogContent>
-                    <AlertDialogHeader>
+                    <AlertDialogHeader className="border-b pb-4">
                         <AlertDialogTitle>Change Assignment Status</AlertDialogTitle>
                         <AlertDialogDescription>
                             Are you sure you want to {pendingStatusChange?.newStatus === 'ACTIVE' ? 'enable' : 'disable'} the auditor assignment for <strong>{pendingStatusChange?.companyName}</strong>?

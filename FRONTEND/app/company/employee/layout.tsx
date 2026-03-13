@@ -65,8 +65,7 @@ export default function EmployeeLayout({
                 <div className="sticky top-0 z-40">
                     <TopBar
                         title={title}
-                        userName={user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "Company Employee"}
-                        organizationName="Employee"
+                        userName={user?.username}
                         profileLink="/company/employee/settings"
                         notifications={[
                             { title: "Invoice Verified", time: "2h ago", message: "INV-2024-001 has been verified." },

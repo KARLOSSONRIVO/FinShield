@@ -6,10 +6,12 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogClose,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { X } from "lucide-react"
 import {
     Select,
     SelectContent,
@@ -63,25 +65,29 @@ export function EditOrganizationDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[400px]">
-                <DialogHeader>
-                    <DialogTitle>Edit Organization</DialogTitle>
+            <DialogContent className="sm:max-w-[400px] border border-black shadow-none rounded-xl flex flex-col" showCloseButton={false}>
+                <DialogHeader className="flex flex-row items-center justify-between border-b pb-2">
+                    <DialogTitle className="text-xl font-normal">Edit Organization</DialogTitle>
+                    <DialogClose className="opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                        <X className="h-6 w-6" />
+                        <span className="sr-only">Close</span>
+                    </DialogClose>
                 </DialogHeader>
-                <div className="flex flex-col gap-4 py-4 px-2">
-                    <div className="flex flex-col gap-2">
-                        <Label htmlFor="name" className="text-left font-bold">
+                <div className="grid gap-4 py-2">
+                    <div className="grid gap-2">
+                        <Label htmlFor="name" className="font-bold text-base">
                             Name
                         </Label>
                         <Input
                             id="name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full"
+                            className="border border-black rounded-lg h-11 w-full"
                             disabled={isLoading}
                         />
                     </div>
-                    <div className="flex flex-col gap-2">
-                        <Label htmlFor="type" className="text-left font-bold">
+                    <div className="grid gap-2">
+                        <Label htmlFor="type" className="font-bold text-base">
                             Type
                         </Label>
                         <Select
@@ -89,17 +95,17 @@ export function EditOrganizationDialog({
                             onValueChange={setType}
                             disabled={isLoading}
                         >
-                            <SelectTrigger className="w-full">
+                            <SelectTrigger className="border border-black rounded-lg h-11 w-full">
                                 <SelectValue placeholder="Select type" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="border border-black rounded-lg">
                                 <SelectItem value="COMPANY">Company</SelectItem>
                                 <SelectItem value="ORGANIZATION">Organization</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
-                    <div className="flex flex-col gap-2">
-                        <Label htmlFor="status" className="text-left font-bold mt-2">
+                    <div className="grid gap-2">
+                        <Label htmlFor="status" className="font-bold text-base">
                             Status
                         </Label>
                         <Select
@@ -107,31 +113,34 @@ export function EditOrganizationDialog({
                             onValueChange={(val) => setStatus(val as OrganizationStatus)}
                             disabled={isLoading}
                         >
-                            <SelectTrigger className="w-full">
+                            <SelectTrigger className="border border-black rounded-lg h-11 w-full">
                                 <SelectValue placeholder="Select status" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="border border-black rounded-lg">
                                 <SelectItem value="ACTIVE">Active</SelectItem>
                                 <SelectItem value="INACTIVE">Inactive</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                 </div>
-                <DialogFooter className="px-2 pb-2 mt-4 space-x-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => onOpenChange(false)}
-                        disabled={isLoading}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        onClick={handleSave}
-                        disabled={isLoading}
-                        className="bg-emerald-600 hover:bg-emerald-700 !text-white font-bold"
-                    >
-                        {isLoading ? "Saving..." : "Save Changes"}
-                    </Button>
+                <DialogFooter className="w-full sm:justify-start">
+                    <div className="flex w-full gap-3">
+                        <Button
+                            variant="outline"
+                            onClick={() => onOpenChange(false)}
+                            disabled={isLoading}
+                            className="flex-1 border border-black rounded-lg h-11 font-bold text-base bg-white text-black hover:bg-gray-100"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleSave}
+                            disabled={isLoading}
+                            className="flex-1 bg-[#00C28C] hover:bg-[#00C28C]/90 text-white font-bold h-11 rounded-lg text-base"
+                        >
+                            {isLoading ? "Saving..." : "Save Changes"}
+                        </Button>
+                    </div>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

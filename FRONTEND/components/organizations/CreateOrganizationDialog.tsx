@@ -44,14 +44,14 @@ export function CreateOrganizationDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[400px] border border-black shadow-none rounded-xl flex flex-col" showCloseButton={false}>
-                <DialogHeader className="flex flex-row items-center justify-between border-b pb-4">
+                <DialogHeader className="flex flex-row items-center justify-between border-b pb-2">
                     <DialogTitle className="text-xl font-normal">Create New Organization</DialogTitle>
                     <DialogClose className="opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
                         <X className="h-6 w-6" /> {/* Bigger close icon */}
                         <span className="sr-only">Close</span>
                     </DialogClose>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
+                <div className="grid gap-4 py-2">
                     <div className="grid gap-2">
                         <Label htmlFor="orgName" className="font-bold text-base">Organization Name</Label>
                         <Input

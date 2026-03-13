@@ -25,6 +25,7 @@ export interface ListInvoice {
     companyName?: string
     uploadedByName?: string
     createdAt?: string
+    uploadedAt?: string
     reviewDecision?: string
 }
 

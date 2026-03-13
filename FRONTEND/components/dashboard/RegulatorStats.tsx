@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { FileText, Link2, AlertTriangle, ScrollText } from "lucide-react"
 import { useRegulatorDashboard } from "@/hooks/dashboard/use-regulator-dashboard"
@@ -31,7 +31,7 @@ export function RegulatorStats() {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {renderCard("Total Companies", companiesCount.toLocaleString(), "Registered organizations", <ScrollText className="h-7 w-7" />, "text-[#3b5998]", "bg-[#3b5998]")}
-            {renderCard("Total Invoices", totalInvoices.toLocaleString(), `$${(totalValue || 0).toLocaleString()} total value`, <FileText className="h-7 w-7" />, "text-emerald-600", "bg-emerald-600")}
+            {renderCard("Total Invoices", totalInvoices.toLocaleString(), `₱${(totalValue || 0).toLocaleString()} total value`, <FileText className="h-7 w-7" />, "text-emerald-600", "bg-emerald-600")}
             {renderCard("Blockchain Verified", verifiedOnChain.toLocaleString(), "Tamper-proof records", <Link2 className="h-7 w-7" />, "text-indigo-500", "bg-indigo-500")}
             {renderCard("Flagged Invoices", flaggedCount.toLocaleString(), "Awaiting review", <AlertTriangle className="h-7 w-7" />, "text-red-500", "bg-red-500")}
         </div>

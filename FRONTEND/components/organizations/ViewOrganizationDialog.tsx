@@ -5,7 +5,9 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogClose,
 } from "@/components/ui/dialog"
+import { X } from "lucide-react"
 import { Organization } from "@/services/organization.service"
 import { Badge } from "@/components/ui/badge"
 
@@ -24,11 +26,15 @@ export function ViewOrganizationDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[400px]">
-                <DialogHeader>
-                    <DialogTitle>Organization Details</DialogTitle>
+            <DialogContent className="sm:max-w-[400px] border border-black shadow-none rounded-xl flex flex-col" showCloseButton={false}>
+                <DialogHeader className="flex flex-row items-center justify-between border-b pb-2">
+                    <DialogTitle className="text-xl font-normal">Organization Details</DialogTitle>
+                    <DialogClose className="opacity-70 transition-opacity hover:opacity-100 focus:outline-none disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+                        <X className="h-6 w-6" />
+                        <span className="sr-only">Close</span>
+                    </DialogClose>
                 </DialogHeader>
-                <div className="space-y-4">
+                <div className="py-2 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="text-sm font-medium text-muted-foreground">Company Name</label>

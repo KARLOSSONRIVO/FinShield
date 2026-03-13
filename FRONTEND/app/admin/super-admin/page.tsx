@@ -37,7 +37,7 @@ export default function SuperAdminDashboard() {
           {/* Welcome Message */}
           <div>
             <h2 className="text-2xl font-bold tracking-tight">
-              Welcome back, <span className="text-primary">{user?.firstName || "Superadmin"}</span>
+              Welcome back, <span className="text-primary">{user?.username || "Superadmin"}</span>
             </h2>
             <p className="text-muted-foreground">Full Platform Overview and Status</p>
           </div>
@@ -61,7 +61,7 @@ export default function SuperAdminDashboard() {
               title="Total Invoices"
               value={totalInvoices}
               icon={FileText}
-              description={`$${totalValue.toLocaleString()} total value`}
+              description={`₱${totalValue.toLocaleString()} total value`}
             />
             <StatsCard
               title="Flagged / Alert"

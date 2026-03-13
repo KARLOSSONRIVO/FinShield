@@ -81,7 +81,10 @@ export default function LoginPage() {
       }
       // If login successful and no MFA, the effect above will handle terms/redirect
     } catch (error: any) {
-      const message = error.response?.data?.message || error.message || "Invalid credentials"
+      let message = error.response?.data?.message || error.message || "Invalid credentials"
+      if (message === "User is not active") {
+        message = "Account Disabled; contact management"
+      }
       toast.error(`Login failed: ${message}`)
       setLoginError(true)
     } finally {

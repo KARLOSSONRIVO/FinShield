@@ -25,7 +25,7 @@ export function DeleteAssignmentDialog({
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogContent>
-                <AlertDialogHeader>
+                <AlertDialogHeader className="border-b pb-4">
                     <AlertDialogTitle>Remove Assignment?</AlertDialogTitle>
                     <AlertDialogDescription>
                         Are you sure you want to remove this assignment? This action cannot be undone.
@@ -35,7 +35,7 @@ export function DeleteAssignmentDialog({
                     <AlertDialogCancel onClick={() => onOpenChange(false)}>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                         onClick={onConfirm}
-                        className="bg-destructive hover:bg-destructive/90"
+                        className="bg-destructive text-white hover:bg-destructive/90"
                     >
                         Remove
                     </AlertDialogAction>

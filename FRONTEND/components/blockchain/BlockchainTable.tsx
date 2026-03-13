@@ -61,7 +61,7 @@ export function BlockchainTable({ invoices, sortBy, order, onSort }: BlockchainT
                                 <TableCell className="px-6 font-bold text-base text-foreground">
                                     {row.company || '—'}
                                 </TableCell>
-                                <TableCell className="px-6 font-mono text-sm text-muted-foreground max-w-[220px] truncate">
+                                <TableCell className="px-6 text-sm text-muted-foreground max-w-[220px] truncate">
                                     {row.transactionHash || "—"}
                                 </TableCell>
                                 <TableCell className="px-6 font-bold text-base text-foreground">

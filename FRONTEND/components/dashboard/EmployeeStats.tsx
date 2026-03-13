@@ -5,14 +5,14 @@ import { FileText, Clock, CheckCircle, XCircle } from "lucide-react"
 interface EmployeeStatsProps {
     myInvoicesCount: number
     pendingCount: number
-    approvedCount: number
+    verifiedCount: number
     rejectedCount: number
 }
 
 export default function EmployeeStats({
     myInvoicesCount,
     pendingCount,
-    approvedCount,
+    verifiedCount,
     rejectedCount,
 }: EmployeeStatsProps) {
     const renderCard = (title: string, value: string | number, description: string, icon: React.ReactNode, colorClass: string, bgGlow: string) => (
@@ -34,7 +34,7 @@ export default function EmployeeStats({
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {renderCard("Total Invoices", myInvoicesCount.toLocaleString(), "All-time total", <FileText className="h-7 w-7" />, "text-[#3b5998]", "bg-[#3b5998]")}
-            {renderCard("Accepted", approvedCount.toLocaleString(), "Approved invoices", <CheckCircle className="h-7 w-7" />, "text-emerald-500", "bg-emerald-500")}
+            {renderCard("Approved", verifiedCount.toLocaleString(), "Approved invoices", <CheckCircle className="h-7 w-7" />, "text-emerald-500", "bg-emerald-500")}
             {renderCard("Pending", pendingCount.toLocaleString(), "Awaiting review", <Clock className="h-7 w-7" />, "text-amber-500", "bg-amber-500")}
             {renderCard("Rejected", rejectedCount.toLocaleString(), "Needs attention", <XCircle className="h-7 w-7" />, "text-red-500", "bg-red-500")}
         </div>

@@ -9,7 +9,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { AuditLog } from "@/lib/types"
-import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+import { ChevronsUpDown, ChevronUp, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface AuditLogTableProps {
@@ -20,8 +20,8 @@ interface AuditLogTableProps {
 
 export function AuditLogTable({ logs, sortConfig, requestSort }: AuditLogTableProps) {
     const renderSortIcon = (key: string) => {
-        if (!sortConfig || sortConfig.key !== key) return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />
-        return sortConfig.direction === 'asc' ? <ArrowUp className="ml-2 h-4 w-4 text-emerald-600" /> : <ArrowDown className="ml-2 h-4 w-4 text-emerald-600" />
+        if (!sortConfig || sortConfig.key !== key) return <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+        return sortConfig.direction === 'asc' ? <ChevronUp className="ml-2 h-4 w-4 text-emerald-600" /> : <ChevronDown className="ml-2 h-4 w-4 text-emerald-600" />
     }
 
     const SortableHeader = ({ label, sortKey, className }: { label: string; sortKey?: string; className?: string }) => {
@@ -49,7 +49,6 @@ export function AuditLogTable({ logs, sortConfig, requestSort }: AuditLogTablePr
                     <TableRow className="hover:bg-transparent border-b border-border/50">
                         <SortableHeader label="Timestamp" sortKey="createdAt" />
                         <SortableHeader label="Actor" />
-                        <SortableHeader label="Actor ID" />
                         <SortableHeader label="Action" className="text-center" />
                         <SortableHeader label="Target Type" className="text-center" />
                         <SortableHeader label="IP Address" />
@@ -60,7 +59,7 @@ export function AuditLogTable({ logs, sortConfig, requestSort }: AuditLogTablePr
                 <TableBody>
                     {logs.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                            <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                                 No audit logs found.
                             </TableCell>
                         </TableRow>
@@ -75,9 +74,6 @@ export function AuditLogTable({ logs, sortConfig, requestSort }: AuditLogTablePr
                                         <span className="font-bold text-foreground text-sm uppercase">{row.actorRole?.replace(/_/g, " ")}</span>
                                         <span className="text-xs text-muted-foreground">{row.actor?.email}</span>
                                     </div>
-                                </TableCell>
-                                <TableCell className="px-6 text-sm text-foreground font-mono whitespace-nowrap">
-                                    {row.actorId || "-"}
                                 </TableCell>
                                 <TableCell className="px-6 text-center whitespace-nowrap">
                                     <div className="bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-2 rounded-md text-[10px] font-bold inline-block uppercase tracking-wider cursor-pointer shadow-sm">

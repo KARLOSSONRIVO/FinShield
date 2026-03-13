@@ -1,7 +1,7 @@
 "use client"
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
+import { FlaggedInvoiceFilter } from "@/components/invoices/FlaggedInvoiceFilter"
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
 import { useFlaggedQueue } from "@/hooks/flagged/use-flagged-queue"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
@@ -18,23 +18,30 @@ export default function ManagerFlaggedPage() {
     setCurrentPage,
     sortConfig,
     requestSort,
-    isLoading
+    isLoading,
+    dateRange,
+    setDateRange,
+    hasActiveFilters,
+    resetFilters,
   } = useFlaggedQueue()
 
   return (
-    <div className="bg-transparent space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          Flagged Invoices Queue
-        </h1>
+    <div className="space-y-3">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl font-bold">Flagged Invoices Queue</h1>
+        <FlaggedInvoiceFilter
+          search={search || ""}
+          onSearchChange={setSearch}
+          sortConfig={sortConfig as any}
+          onSortChange={requestSort}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter as any}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={resetFilters}
+        />
       </div>
-
-      <InvoiceFilter
-        search={search || ""}
-        onSearchChange={setSearch}
-        sortConfig={sortConfig as any}
-        onSortChange={requestSort}
-      />
 
       {isLoading ? (
         <InvoiceTableSkeleton />

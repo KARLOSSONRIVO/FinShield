@@ -17,7 +17,7 @@ export function AuditorStats({ stats }: AuditorStatsProps) {
     if (!stats || stats.length < 4) return null
 
     const totalItem = stats.find(s => s.label.includes("Total") || s.label.includes("Assigned")) || stats[3]
-    const verifiedItem = stats.find(s => s.label.includes("Clean") || s.label.includes("Verified")) || stats[2]
+    const verifiedItem = stats.find(s => s.label.includes("Verified")) || stats[2]
     const pendingItem = stats.find(s => s.label.includes("Pending")) || stats[0]
     const flaggedItem = stats.find(s => s.label.includes("Flagged")) || stats[1]
 
@@ -39,7 +39,7 @@ export function AuditorStats({ stats }: AuditorStatsProps) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {renderCard(totalItem?.label || "Assigned Companies", totalItem?.value || 0, <FileText className="h-7 w-7" />, "text-[#3b5998]", "bg-[#3b5998]")}
-            {renderCard(verifiedItem?.label || "Clean Invoices", verifiedItem?.value || 0, <CheckCircle className="h-7 w-7" />, "text-emerald-500", "bg-emerald-500")}
+            {renderCard(verifiedItem?.label || "Verified Invoices", verifiedItem?.value || 0, <CheckCircle className="h-7 w-7" />, "text-emerald-500", "bg-emerald-500")}
             {renderCard(pendingItem?.label || "Pending Reviews", pendingItem?.value || 0, <Clock className="h-7 w-7" />, "text-amber-500", "bg-amber-500")}
             {renderCard(flaggedItem?.label || "Flagged Items", flaggedItem?.value || 0, <AlertTriangle className="h-7 w-7" />, "text-red-500", "bg-red-500")}
         </div>

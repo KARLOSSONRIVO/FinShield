@@ -1,4 +1,4 @@
-﻿import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { DashboardService } from "@/services/dashboard.service"
 import { InvoiceService } from "@/services/invoice.service"
 

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AlertTriangle } from "lucide-react"
@@ -60,7 +60,7 @@ export function FlaggedItems({ invoices }: FlaggedItemsProps) {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold text-lg mb-1">${(invoice.amount || invoice.totalAmount || invoice.totals_total || 0).toLocaleString()}</p>
+                                        <p className="font-bold text-lg mb-1">₱{(invoice.amount || invoice.totalAmount || invoice.totals_total || 0).toLocaleString()}</p>
                                         <div className="flex items-center justify-end gap-2">
                                             <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${finalBadgeClassName}`}>
                                                 {statusText}

@@ -1,7 +1,7 @@
-﻿"use client"
+"use client"
 
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
+import { FlaggedInvoiceFilter } from "@/components/invoices/FlaggedInvoiceFilter"
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
 import { useEmployeeFlaggedQueue } from "@/hooks/flagged/use-employee-flagged"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
@@ -11,33 +11,30 @@ export default function EmployeeFlaggedPage() {
         search,
         setSearch,
         invoices,
-        currentPage,
-        totalPages,
-        setCurrentPage,
+        pagination,
+        setPage,
         sortConfig,
         requestSort,
-        isLoading
+        isLoading,
+        resetFilters,
+        dateRange,
+        setDateRange,
     } = useEmployeeFlaggedQueue()
 
-    // Handle search change
-    const handleSearchChange = (value: string) => {
-        setSearch(value || "")
-    }
-
     return (
-        <div className="bg-transparent space-y-6">
-            <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                    Flagged Invoices Queue
-                </h1>
+        <div className="space-y-3">
+            <div className="flex flex-col gap-2">
+                <h1 className="text-2xl font-bold">Flagged Invoices Queue</h1>
+                <FlaggedInvoiceFilter
+                    search={search || ""}
+                    onSearchChange={setSearch}
+                    sortConfig={sortConfig}
+                    onSortChange={requestSort}
+                    dateRange={dateRange}
+                    onDateRangeChange={setDateRange}
+                    onClearFilters={resetFilters}
+                />
             </div>
-
-            <InvoiceFilter
-                search={search || ""}
-                onSearchChange={handleSearchChange}
-                sortConfig={sortConfig}
-                onSortChange={requestSort}
-            />
 
             {isLoading ? (
                 <InvoiceTableSkeleton />
@@ -53,35 +50,35 @@ export default function EmployeeFlaggedPage() {
                     />
 
                     {/* Pagination Controls */}
-                    {totalPages > 1 && (
+                    {pagination?.totalPages > 1 && (
                         <div className="mt-8 flex items-center justify-center gap-2">
                             <button
-                                onClick={() => setCurrentPage(currentPage - 1)}
-                                disabled={currentPage === 1}
+                                onClick={() => setPage(pagination.page - 1)}
+                                disabled={pagination.page === 1}
                                 className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                 aria-label="Previous page"
                             >
                                 <ChevronLeft className="h-4 w-4" />
                             </button>
 
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
                                 <button
-                                    key={page}
-                                    onClick={() => setCurrentPage(page)}
-                                    className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${currentPage === page
+                                    key={p}
+                                    onClick={() => setPage(p)}
+                                    className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${pagination.page === p
                                         ? "bg-emerald-100 text-emerald-700"
                                         : "text-gray-600 hover:bg-gray-100"
                                         }`}
-                                    aria-label={`Go to page ${page}`}
-                                    aria-current={currentPage === page ? "page" : undefined}
+                                    aria-label={`Go to page ${p}`}
+                                    aria-current={pagination.page === p ? "page" : undefined}
                                 >
-                                    {page}
+                                    {p}
                                 </button>
                             ))}
 
                             <button
-                                onClick={() => setCurrentPage(currentPage + 1)}
-                                disabled={currentPage === totalPages}
+                                onClick={() => setPage(pagination.page + 1)}
+                                disabled={pagination.page === pagination.totalPages}
                                 className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                 aria-label="Next page"
                             >

@@ -76,19 +76,6 @@ export function CreateTermsDialog({
                                 rows={10}
                             />
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="version">Version (optional)</Label>
-                            <Input
-                                id="version"
-                                value={version}
-                                onChange={(e) => setVersion(e.target.value)}
-                                placeholder="e.g., 2.0"
-                                maxLength={20}
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                If not provided, defaults to "1.0". Subsequent updates auto‑increment minor version.
-                            </p>
-                        </div>
                     </div>
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

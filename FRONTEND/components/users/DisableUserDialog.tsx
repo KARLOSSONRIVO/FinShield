@@ -43,7 +43,7 @@ export function DisableUserDialog({
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogContent>
-                <AlertDialogHeader>
+                <AlertDialogHeader className="border-b pb-4">
                     <AlertDialogTitle>{title}</AlertDialogTitle>
                     <AlertDialogDescription>
                         {description}

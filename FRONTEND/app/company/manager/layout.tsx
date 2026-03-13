@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState } from "react"
 import { AppSidebar, NavLink } from "@/components/layout/AppSidebar"
@@ -69,8 +69,7 @@ export default function CompanyManagerLayout({
                 <div className="sticky top-0 z-40">
                     <TopBar
                         title={title}
-                        userName={user?.username || "Company Manager"}
-                        organizationName="Company Manager" // Or fetch org name
+                        userName={user?.username}
                         profileLink="/company/manager/settings"
                         notifications={[
                             { title: "Invoice Flagged", time: "10m ago", message: "INV-004 has been flagged as Flagged." },

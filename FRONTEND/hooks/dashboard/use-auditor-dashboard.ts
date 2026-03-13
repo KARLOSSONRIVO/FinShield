@@ -1,4 +1,4 @@
-﻿import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { DashboardService } from "@/services/dashboard.service"
 import { InvoiceService } from "@/services/invoice.service"
 import { ListInvoice } from "@/lib/types"
@@ -28,7 +28,7 @@ export function useAuditorDashboard({ enabled = true }: UseAuditorDashboardOptio
     )
 
     // Calculate real-time stats from the fetched dataset
-    const cleanInvoices = allInvoices.filter((i: ListInvoice) =>
+    const verifiedInvoices = allInvoices.filter((i: ListInvoice) =>
         i.status === "clean" || i.aiVerdict?.verdict === "clean"
     )
 
@@ -36,7 +36,7 @@ export function useAuditorDashboard({ enabled = true }: UseAuditorDashboardOptio
     const legacyStats = [
         { label: "Pending Reviews", value: pendingReviews.length, change: "+0", trend: "up" },
         { label: "Flagged Invoices", value: flaggedInvoices.length, change: "+0", trend: "down" },
-        { label: "Clean Invoices", value: cleanInvoices.length, change: "+0", trend: "up" },
+        { label: "Verified Invoices", value: verifiedInvoices.length, change: "+0", trend: "up" },
         { label: "Total Audited", value: allInvoices.length, change: "+0", trend: "up" },
     ]
 

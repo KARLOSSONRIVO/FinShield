@@ -53,7 +53,17 @@ export function useManagerDashboard({ enabled = true }: UseManagerDashboardOptio
         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
     })
 
-    const flaggedInvoices = allInvoices.filter((i: any) => i.status === "flagged" || i.aiVerdict?.verdict === "flagged")
+    const allFlaggedInvoices = allInvoices
+        .filter((i: any) => i.status === "flagged" || i.aiVerdict?.verdict === "flagged")
+        .sort((a: any, b: any) => {
+            const dateStrA = a.createdAt || a.invoiceDate || a.date || a.uploadedAt
+            const dateStrB = b.createdAt || b.invoiceDate || b.date || b.uploadedAt
+            const dateA = dateStrA ? new Date(dateStrA).getTime() : 0
+            const dateB = dateStrB ? new Date(dateStrB).getTime() : 0
+            return dateB - dateA
+        })
+
+    const flaggedInvoices = allFlaggedInvoices.slice(0, 4)
     const totalValue = thisMonthInvoices.reduce((sum: number, inv: any) => sum + (Number(inv.amount || inv.totalAmount) || 0), 0)
 
     // Sort strictly by anchoredAt descending to show most recently verified invoices
@@ -71,7 +81,7 @@ export function useManagerDashboard({ enabled = true }: UseManagerDashboardOptio
 
     return {
         companyInvoicesCount: thisMonthInvoices.length,
-        flaggedInvoicesCount: flaggedInvoices.length,
+        flaggedInvoicesCount: allFlaggedInvoices.length,
         employeeCount: employees.length,
         totalValue: stats?.totalValue || totalValue,
         recentInvoices,

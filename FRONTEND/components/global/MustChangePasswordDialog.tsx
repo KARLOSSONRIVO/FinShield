@@ -155,6 +155,11 @@ export function MustChangePasswordDialog({
             return
         }
 
+        if (newPassword === currentPassword) {
+            setError("New password must be different from your current password")
+            return
+        }
+
         changePassword({ currentPassword, newPassword })
     }
 

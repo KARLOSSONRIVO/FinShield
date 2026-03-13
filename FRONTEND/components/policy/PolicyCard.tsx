@@ -203,20 +203,6 @@ export function PolicyCard({
                                     <p className="text-xs text-red-500 mt-1">{errors.content}</p>
                                 )}
                             </div>
-
-                            {/* Version input in edit mode */}
-                            <div className="space-y-2">
-                                <Label htmlFor={`version-${policy.id}`} className="text-sm font-medium">
-                                    Version (optional)
-                                </Label>
-                                <Input
-                                    id={`version-${policy.id}`}
-                                    value={version}
-                                    onChange={(e) => setVersion(e.target.value)}
-                                    className="border-2 border-gray-200"
-                                    placeholder="e.g., 2.0"
-                                />
-                            </div>
                         </div>
                     ) : (
                         <>

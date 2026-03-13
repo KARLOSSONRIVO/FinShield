@@ -14,7 +14,7 @@ export interface User extends SchemaUser {
     /** Legacy ID field used in some components and API responses */
     _id: string;
     /** Organization ID field (often used as alias for organizationId) */
-    orgId: string;
+    orgId: string | { _id: string; name: string };
     /** Optional organization name for display */
     organizationName?: string;
     /** Last login timestamp */

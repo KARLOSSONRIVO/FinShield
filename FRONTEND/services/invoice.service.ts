@@ -22,7 +22,13 @@ export const InvoiceService = {
      * Scoping is handled server-side per role.
      */
     list: async (params?: ListInvoiceParams): Promise<PaginatedResponse<ListInvoice>> => {
-        const cleanParams = params ? { ...params } : {}
+        const cleanParams: any = params ? { ...params } : {}
+
+        // If limit is not provided, we might be fetching "all" for frontend filtering
+        if (cleanParams.limit === undefined) {
+            delete cleanParams.page
+        }
+
         // Enforce valid sortBy — invalid values cause a 400
         if (cleanParams.sortBy && !LIST_VALID_SORT.includes(cleanParams.sortBy as any)) {
             delete cleanParams.sortBy

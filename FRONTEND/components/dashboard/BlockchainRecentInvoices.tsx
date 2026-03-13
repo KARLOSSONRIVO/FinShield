@@ -127,7 +127,7 @@ export function BlockchainRecentInvoices() {
                                         {formatDate(invoice.anchoredAt || invoice.timestamp || "")}
                                     </p>
                                     {invoice.amount != null && (
-                                        <p className="text-sm font-bold">${invoice.amount.toLocaleString()}</p>
+                                        <p className="text-sm font-bold">₱{invoice.amount.toLocaleString()}</p>
                                     )}
                                     <Badge className={`${getStatusBadge(invoice.status)} rounded-md px-2 py-0 text-[10px] font-bold capitalize`}>
                                         {invoice.status || "unknown"}

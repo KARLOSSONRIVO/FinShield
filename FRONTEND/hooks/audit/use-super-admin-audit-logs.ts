@@ -43,7 +43,24 @@ export function useAuditLogs() {
 
             // API returns a raw array — apply client-side pagination
             if (Array.isArray(response) || Array.isArray(response?.data)) {
-                const rawArray = Array.isArray(response) ? response : response.data
+                let rawArray = Array.isArray(response) ? response : response.data
+                
+                // Client-side filtering
+                if (action) {
+                    rawArray = rawArray.filter((log: any) => log.action === action)
+                }
+                if (actorRole) {
+                    rawArray = rawArray.filter((log: any) => log.actorRole === actorRole)
+                }
+                if (fetchParams.search) {
+                    const s = fetchParams.search.toLowerCase()
+                    rawArray = rawArray.filter((log: any) => 
+                        log.action?.toLowerCase().includes(s) || 
+                        log.summary?.toLowerCase().includes(s) ||
+                        log.actorEmail?.toLowerCase().includes(s)
+                    )
+                }
+
                 const pageNum = fetchParams.page ?? 1
                 const limitNum = fetchParams.limit ?? 5
                 const startIndex = (pageNum - 1) * limitNum

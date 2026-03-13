@@ -31,7 +31,7 @@ export function useEmployeeDashboard({ enabled = true }: UseEmployeeDashboardOpt
         String(i.status) === "pending"
     ).length
 
-    const approvedCount = allInvoices.filter((i: MyInvoice) =>
+    const verifiedCount = allInvoices.filter((i: MyInvoice) =>
         String(i.status) === "approved" || String(i.status) === "clean" || String((i as any).reviewDecision) === "approved"
     ).length
 
@@ -64,7 +64,7 @@ export function useEmployeeDashboard({ enabled = true }: UseEmployeeDashboardOpt
     return {
         myInvoicesCount: totalInvoicesCount,
         pendingCount,
-        approvedCount,
+        verifiedCount,
         rejectedCount,
         recentInvoices,
         rejectedInvoices,

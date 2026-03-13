@@ -1,6 +1,4 @@
-"use client"
-
-import { useState, useMemo } from "react"
+import { useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { InvoiceService } from "@/services/invoice.service"
 import { useUrlPagination } from "@/hooks/common/use-url-pagination"
@@ -8,65 +6,115 @@ import { Invoice } from "@/lib/types"
 
 export function useEmployeeFlaggedQueue() {
     const {
-        page,
-        search,
-        setSearch,
-        queryParams,
-        setPage,
-        sortBy,
-        order,
-        setSort
+        page, limit, search, sortBy, order, queryParams, filterParams,
+        setPage, setSearch, setSort,
+        statusFilter, setStatusFilter,
+        aiVerdictFilter, setAiVerdictFilter,
+        dateRange, setDateRange,
+        resetFilters, hasActiveFilters
     } = useUrlPagination(8)
 
     // Fetch Invoices from API (Employee scoped)
     const { data: response, isLoading, isError, error } = useQuery({
-        queryKey: ["employee-flagged-invoices", queryParams],
+        queryKey: ["employee-flagged-invoices", filterParams.search, filterParams.sortBy, filterParams.order, filterParams.reviewDecision],
         queryFn: () => InvoiceService.myInvoices({
-            ...queryParams,
-            limit: 100 // Fetch a larger batch to filter client-side if needed
+            search: filterParams.search,
+            sortBy: filterParams.sortBy,
+            order: filterParams.order,
+            reviewDecision: filterParams.reviewDecision,
         })
     })
+    const allInvoices = (response as any)?.data?.items || []
 
-    const allInvoices = response?.data?.items || []
-
-    // Implementation of "strictly flagged or flagged"
-    const filteredInvoices = useMemo(() => {
-        return allInvoices.filter((inv: any) => {
+    const { filteredInvoices, pagination } = useMemo(() => {
+        let items = allInvoices.filter((inv: any) => {
             const verdict = inv.aiVerdict?.verdict?.toLowerCase()
-            return verdict === "flagged" || inv.status === "flagged"
+            const status = inv.status?.toLowerCase()
+
+            // 1. Base Flagged Logic (respect user override via aiVerdictFilter)
+            const isFlagged = verdict === "flagged" || status === "flagged"
+
+            if (aiVerdictFilter === "all" && !isFlagged) return false
+            if (aiVerdictFilter !== "all" && verdict !== aiVerdictFilter) return false
+
+            // 2. Status Filter - employees might want and/or have status filter too? 
+            // In the alerts page, they usually only see flagged.
+            if (statusFilter !== "all" && status !== statusFilter?.toLowerCase()) return false
+
+            // 3. Date Range filter
+            if (dateRange?.from || dateRange?.to) {
+                const dateStr = inv.invoiceDate || inv.date || inv.createdAt
+                if (!dateStr) return false
+                const date = new Date(dateStr)
+                if (isNaN(date.getTime())) return false
+
+                if (dateRange.from && date < dateRange.from) return false
+                if (dateRange.to) {
+                    const toDate = new Date(dateRange.to)
+                    toDate.setHours(23, 59, 59, 999)
+                    if (date > toDate) return false
+                }
+            }
+
+            return true
         })
-    }, [allInvoices])
 
-    // Manual client-side filtering and sorting for the filtered set
-    const processedInvoices = useMemo(() => {
-        let processed = [...filteredInvoices]
-
-        // Search filter - only search by invoice number
-        if (search && search.trim()) {
-            processed = processed.filter(inv =>
-                inv.invoiceNumber?.toLowerCase().includes(search.toLowerCase())
-            )
+        // Sorting
+        if (sortBy) {
+            items.sort((a: any, b: any) => {
+                const aValue = (a as any)[sortBy]
+                const bValue = (b as any)[sortBy]
+                if (aValue === bValue) return 0
+                if (aValue === undefined || aValue === null) return 1
+                if (bValue === undefined || bValue === null) return -1
+                if (sortBy === 'invoiceDate' || sortBy === 'createdAt' || sortBy === 'date') {
+                    const dateA = new Date(aValue).getTime()
+                    const dateB = new Date(bValue).getTime()
+                    return order === "asc" ? dateA - dateB : dateB - dateA
+                }
+                return order === "asc" ? (aValue < bValue ? -1 : 1) : (aValue > bValue ? -1 : 1)
+            })
         }
 
-        return processed
-    }, [filteredInvoices, search])
+        const total = items.length
+        const totalPages = Math.ceil(total / limit)
+        const start = (page - 1) * limit
+        const paginatedItems = items.slice(start, start + limit)
 
-    // Pagination for the processed set
-    const itemsPerPage = 8
-    const totalPages = Math.max(1, Math.ceil(processedInvoices.length / itemsPerPage))
-    // Ensure page is within bounds
-    const validPage = Math.min(page, totalPages)
-    const currentInvoices = processedInvoices.slice((validPage - 1) * itemsPerPage, validPage * itemsPerPage)
-
+        return {
+            filteredInvoices: paginatedItems,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages
+            }
+        }
+    }, [allInvoices, aiVerdictFilter, statusFilter, dateRange, sortBy, order, page, limit])
     return {
+        // Table Data
+        invoices: filteredInvoices,
+        pagination: {
+            ...pagination,
+            setPage
+        },
+        // URL Pagination & Filters
         search,
         setSearch,
-        invoices: currentInvoices,
-        currentPage: validPage,
-        totalPages,
-        setCurrentPage: setPage,
+        setPage,
         sortConfig: sortBy ? { key: sortBy as keyof Invoice, direction: (order || "asc") as "asc" | "desc" } : null,
         requestSort: setSort,
+
+        // Filter states
+        aiVerdictFilter,
+        setAiVerdictFilter,
+
+        dateRange,
+        setDateRange,
+
+        resetFilters,
+        hasActiveFilters,
+
         isLoading,
         isError,
         error: error ? (error as any).message : null

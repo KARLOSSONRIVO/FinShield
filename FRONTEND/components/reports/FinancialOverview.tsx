@@ -1,15 +1,15 @@
-﻿"use client"
+"use client"
 
 import { DollarSign, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react"
 
 interface FinancialOverviewProps {
     total: number
-    cleanValue: number
+    verifiedValue: number
     flagged: number
     fraudValue: number
 }
 
-export function FinancialOverview({ total, cleanValue, flagged, fraudValue }: FinancialOverviewProps) {
+export function FinancialOverview({ total, verifiedValue, flagged, fraudValue }: FinancialOverviewProps) {
     const renderCard = (title: string, value: string, icon: React.ReactNode, colorClass: string, bgGlow: string) => (
         <div className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-black/10 dark:hover:border-white/10">
             <div className={`absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10 blur-2xl transition-all duration-500 group-hover:opacity-30 group-hover:scale-150 ${bgGlow}`} />
@@ -25,12 +25,12 @@ export function FinancialOverview({ total, cleanValue, flagged, fraudValue }: Fi
         </div>
     )
 
-    const formatCurrency = (val: number) => `$${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    const formatCurrency = (val: number) => `₱${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6 mb-8">
             {renderCard("Total Invoice Value", formatCurrency(total), <DollarSign className="h-7 w-7" />, "text-[#3b5998]", "bg-[#3b5998]")}
-            {renderCard("Clean Value", formatCurrency(cleanValue), <TrendingUp className="h-7 w-7" />, "text-emerald-500", "bg-emerald-500")}
+            {renderCard("Verified Value", formatCurrency(verifiedValue), <TrendingUp className="h-7 w-7" />, "text-emerald-500", "bg-emerald-500")}
             {renderCard("Flagged Value", formatCurrency(flagged), <TrendingDown className="h-7 w-7" />, "text-amber-500", "bg-amber-500")}
         </div>
     )

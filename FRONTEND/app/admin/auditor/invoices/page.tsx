@@ -25,31 +25,51 @@ export default function AuditorInvoicesPage() {
   useSocketEvent(socketCtx!, SocketEvents.INVOICE_LIST_INVALIDATE, invalidateList)
 
   const {
-    search,
-    setSearch,
-    statusFilter,
-    setStatusFilter,
     invoices,
     pagination,
+    isLoading,
+    search,
+    setSearch,
     setPage,
     sortConfig,
     requestSort,
-    isLoading
+    statusFilter,
+    setStatusFilter,
+    aiVerdictFilter,
+    setAiVerdictFilter,
+        dateRange,
+        setDateRange,
+        resetFilters,
+        monthFilter,
+        setMonthFilter,
+        yearFilter,
+        setYearFilter,
+        availableYears,
   } = useAuditorInvoices()
 
   return (
-    <div className="bg-transparent space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Invoice Management</h1>
+    <div className="space-y-3">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl font-bold">Invoices Management</h1>
+        <InvoiceFilter
+          search={search || ""}
+          onSearchChange={setSearch}
+          sortConfig={sortConfig}
+          onSortChange={requestSort}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter as any}
+          aiVerdictFilter={aiVerdictFilter as any}
+          onAiVerdictChange={setAiVerdictFilter as any}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          onClearFilters={resetFilters}
+          monthFilter={monthFilter}
+          yearFilter={yearFilter}
+          onMonthChange={setMonthFilter}
+          onYearChange={setYearFilter}
+          availableYears={availableYears}
+        />
       </div>
-      <InvoiceFilter
-        search={search || ""}
-        onSearchChange={setSearch}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        sortConfig={sortConfig}
-        onSortChange={requestSort}
-      />
 
       {isLoading ? (
         <InvoiceTableSkeleton />

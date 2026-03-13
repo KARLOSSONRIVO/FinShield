@@ -142,7 +142,16 @@ export function InvoiceDetailView({ id, backUrl, backLabel = "Back to Invoices",
     // aiPending: true when no verdict yet (aiAnalysis may exist but have null verdict)
     const aiPending = !verdict
     const barColor = riskScore < 30 ? "bg-emerald-500" : riskScore < 70 ? "bg-yellow-500" : "bg-red-600"
-    const verdictColor = verdict === "clean" ? "bg-emerald-600 text-white" : verdict === "flagged" ? "bg-yellow-500 text-white" : "bg-red-600 text-white"
+
+    // Change "flagged" to "For Audit Verification" in display
+    const displayVerdict = verdict === "flagged" ? "For Audit Verification" :
+        verdict === "clean" ? "Verified" :
+            verdict || "Pending"
+
+    // Use yellow for flagged, emerald for clean, red for anything else
+    const verdictColor = verdict === "clean" ? "bg-emerald-600 text-white" :
+        verdict === "flagged" ? "bg-yellow-500 text-white" :
+            "bg-red-600 text-white"
 
     const imageUrl = data.blockchain?.fileUrl || null
     const isImage = imageUrl ? /\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(imageUrl) || imageUrl.startsWith('data:image/') : false
@@ -165,20 +174,20 @@ export function InvoiceDetailView({ id, backUrl, backLabel = "Back to Invoices",
                             {aiDialog?.aiVerdict === "clean" ? (
                                 <CheckCircle2 className="h-6 w-6 text-emerald-500" />
                             ) : (
-                                <AlertTriangle className="h-6 w-6 text-red-500" />
+                                <AlertTriangle className="h-6 w-6 text-yellow-500" />
                             )}
                             <DialogTitle>AI Analysis Complete</DialogTitle>
                         </div>
                         <DialogDescription>
                             {aiDialog?.aiVerdict === "clean"
                                 ? `Invoice looks clean. Risk score: ${aiDialog?.aiRiskScore?.toFixed(1)}% (${aiDialog?.riskLevel})`
-                                : `Invoice flagged as suspicious. Risk score: ${aiDialog?.aiRiskScore?.toFixed(1)}% (${aiDialog?.riskLevel})`
+                                : `Invoice requires audit verification. Risk score: ${aiDialog?.aiRiskScore?.toFixed(1)}% (${aiDialog?.riskLevel})`
                             }
                         </DialogDescription>
                     </DialogHeader>
-                    <div className={`p-4 rounded-lg border ${aiDialog?.aiVerdict === "clean" ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800" : "bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800"}`}>
-                        <Badge className={`${aiDialog?.aiVerdict === "clean" ? "bg-emerald-600" : "bg-red-600"} text-white capitalize text-sm px-4 py-1`}>
-                            {aiDialog?.aiVerdict}
+                    <div className={`p-4 rounded-lg border ${aiDialog?.aiVerdict === "clean" ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800" : "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/30 dark:border-yellow-800"}`}>
+                        <Badge className={`${aiDialog?.aiVerdict === "clean" ? "bg-emerald-600" : "bg-yellow-600"} text-white capitalize text-sm px-4 py-1`}>
+                            {aiDialog?.aiVerdict === "clean" ? "Verified" : "For Audit Verification"}
                         </Badge>
                     </div>
                     <DialogFooter>
@@ -316,7 +325,7 @@ export function InvoiceDetailView({ id, backUrl, backLabel = "Back to Invoices",
                             <div>
                                 <p className="text-xs font-bold text-foreground uppercase">Total Amount</p>
                                 <p className="text-xl font-extrabold mt-1">
-                                    {data.totalAmount != null ? `$${data.totalAmount.toLocaleString()}` : "N/A"}
+                                    {data.totalAmount != null ? `₱${data.totalAmount.toLocaleString()}` : "N/A"}
                                 </p>
                             </div>
                             <div>
@@ -326,12 +335,16 @@ export function InvoiceDetailView({ id, backUrl, backLabel = "Back to Invoices",
                             <div>
                                 <p className="text-xs font-bold text-foreground uppercase mb-1">Status</p>
                                 <Badge className={`${data.status?.toLowerCase() === "accepted" || data.status?.toLowerCase() === "clean"
-                                        ? "bg-emerald-600 text-white"
-                                        : data.status?.toLowerCase() === "rejected" || data.status?.toLowerCase() === "flagged"
-                                            ? "bg-red-600 text-white"
+                                    ? "bg-emerald-600 text-white"
+                                    : data.status?.toLowerCase() === "rejected"
+                                        ? "bg-red-600 text-white"
+                                        : data.status?.toLowerCase() === "flagged"
+                                            ? "bg-yellow-600 text-white"
                                             : "bg-muted text-muted-foreground border border-border"
                                     } rounded-md px-3 py-0.5 capitalize text-xs font-bold`}>
-                                    {data.status}
+                                    {data.status === "clean" ? "Verified" :
+                                        data.status === "flagged" ? "For Audit Verification" :
+                                            data.status}
                                 </Badge>
                             </div>
                         </div>
@@ -377,7 +390,7 @@ export function InvoiceDetailView({ id, backUrl, backLabel = "Back to Invoices",
                                 <div className="flex justify-between items-center bg-muted/40 p-3 rounded-lg border border-border">
                                     <span className="font-bold text-sm">AI Verdict</span>
                                     <Badge className={`${verdictColor} rounded-md px-4 capitalize text-xs font-bold`}>
-                                        {verdict}
+                                        {displayVerdict}
                                     </Badge>
                                 </div>
                                 <div>
@@ -426,7 +439,7 @@ export function InvoiceDetailView({ id, backUrl, backLabel = "Back to Invoices",
                             <>
                                 <div>
                                     <p className="text-xs font-bold text-muted-foreground mb-1 uppercase">Transaction Hash</p>
-                                    <div className="bg-muted p-2 rounded border border-border text-xs font-mono text-muted-foreground break-all">
+                                    <div className="bg-muted p-2 rounded border border-border text-xs text-muted-foreground break-all">
                                         {data.blockchain.txHash}
                                     </div>
                                 </div>
@@ -482,7 +495,7 @@ export function InvoiceDetailView({ id, backUrl, backLabel = "Back to Invoices",
                                     <div className="flex items-center space-x-2">
                                         <RadioGroupItem value="rejected" id="r-rejected" className="border-foreground text-foreground" />
                                         <Label htmlFor="r-rejected" className="text-sm font-semibold text-red-600 cursor-pointer">
-                                            Rejected — Invoice is flagged or invalid
+                                            Rejected — Invoice is fraudulent or invalid
                                         </Label>
                                     </div>
                                 </RadioGroup>
@@ -586,7 +599,7 @@ export function InvoiceDetailView({ id, backUrl, backLabel = "Back to Invoices",
                                 <div className="flex justify-between items-center">
                                     <span className="font-bold text-sm">{data.review!.reviewer || "Auditor"}</span>
                                     <Badge className={`${data.review!.decision === "rejected" ? "bg-red-600" : "bg-emerald-600"} text-white text-[10px] capitalize rounded-md px-3 font-bold`}>
-                                        {data.review!.decision}
+                                        {data.review!.decision === "approved" ? "Approved" : "Rejected"}
                                     </Badge>
                                 </div>
                                 {data.review!.notes && (

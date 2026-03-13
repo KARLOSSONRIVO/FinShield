@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -42,7 +42,7 @@ const MONTHS = [
     { value: "11", label: "December" },
 ]
 
-interface InvoiceFilterProps {
+interface PendingInvoiceFilterProps {
     search: string
     onSearchChange: (value: string) => void
     sortConfig: { key: string; direction: 'asc' | 'desc' } | null
@@ -50,8 +50,6 @@ interface InvoiceFilterProps {
 
     aiVerdictFilter?: "all" | "flagged" | "clean" | "pending"
     onAiVerdictChange?: (value: "all" | "flagged" | "clean" | "pending") => void
-    statusFilter?: string
-    onStatusChange?: (value: string) => void
 
     dateRange?: DateRange
     onDateRangeChange?: (range: DateRange | undefined) => void
@@ -67,15 +65,13 @@ interface InvoiceFilterProps {
     onClearFilters?: () => void
 }
 
-export function InvoiceFilter({
+export function PendingInvoiceFilter({
     search,
     onSearchChange,
     sortConfig,
     onSortChange,
     aiVerdictFilter,
     onAiVerdictChange,
-    statusFilter,
-    onStatusChange,
     dateRange,
     onDateRangeChange,
     monthFilter,
@@ -85,7 +81,7 @@ export function InvoiceFilter({
     availableYears,
     hasActiveFilters: hasActiveFiltersProp,
     onClearFilters,
-}: InvoiceFilterProps) {
+}: PendingInvoiceFilterProps) {
     const [localSearch, setLocalSearch] = useState(search)
 
     useEffect(() => { setLocalSearch(search) }, [search])
@@ -99,7 +95,6 @@ export function InvoiceFilter({
 
     const computedHasActiveFilters =
         (aiVerdictFilter !== undefined && aiVerdictFilter !== "all") ||
-        (statusFilter !== undefined && statusFilter !== "all") ||
         !!(dateRange?.from || dateRange?.to) ||
         (monthFilter !== undefined && monthFilter !== "all") ||
         (yearFilter !== undefined && yearFilter !== "all") ||
@@ -194,36 +189,6 @@ export function InvoiceFilter({
                                                 checked={aiVerdictFilter === opt.value}
                                                 onCheckedChange={() =>
                                                     onAiVerdictChange(aiVerdictFilter === opt.value ? "all" : opt.value as any)
-                                                }
-                                                className="text-sm"
-                                            >
-                                                {opt.label}
-                                            </DropdownMenuCheckboxItem>
-                                        ))}
-                                    </div>
-                                </div>
-                            </>
-                        )}
-
-                        {/* Review Status */}
-                        {statusFilter !== undefined && onStatusChange && (
-                            <>
-                                <DropdownMenuSeparator />
-                                <div>
-                                    <DropdownMenuLabel className="px-0 pt-0 pb-2 text-muted-foreground uppercase text-xs tracking-wider">
-                                        Review Status
-                                    </DropdownMenuLabel>
-                                    <div className="space-y-1">
-                                        {[
-                                            { value: "pending", label: "Pending" },
-                                            { value: "approved", label: "Approved" },
-                                            { value: "rejected", label: "Rejected" },
-                                        ].map((opt) => (
-                                            <DropdownMenuCheckboxItem
-                                                key={opt.value}
-                                                checked={statusFilter === opt.value}
-                                                onCheckedChange={() =>
-                                                    onStatusChange(statusFilter === opt.value ? "all" : opt.value)
                                                 }
                                                 className="text-sm"
                                             >

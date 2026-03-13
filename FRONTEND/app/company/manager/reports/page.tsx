@@ -29,7 +29,7 @@ export default function ManagerReportsPage() {
         <>
           <FinancialOverview
             total={metrics.totalValue}
-            cleanValue={metrics.cleanValue}
+            verifiedValue={metrics.verifiedValue}
             flagged={metrics.flaggedValue}
             fraudValue={metrics.flaggedValue}
           />
@@ -38,7 +38,7 @@ export default function ManagerReportsPage() {
             <StatusBreakdown counts={statusCounts} total={totalCount} />
             <RiskAnalysis
               averageRiskScore={riskMetrics.averageRiskScore}
-              cleanCount={riskMetrics.cleanCount}
+              verifiedCount={riskMetrics.verifiedCount}
               flaggedCount={riskMetrics.aiFlaggedCount}
               fraudRate={riskMetrics.fraudRate}
               fraudCount={riskMetrics.fraudCount}

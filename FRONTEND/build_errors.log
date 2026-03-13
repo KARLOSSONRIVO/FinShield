@@ -1,0 +1,91 @@
+
+> my-v0-project@0.1.0 build
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   ▲ Next.js 16.0.10 (Turbopack)
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · optimizePackageImports
+
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+   Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ✓ Compiled successfully in 33.2s
+   Skipping validation of types
+   Collecting page data using 11 workers ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Generating static pages using 11 workers (0/42) ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   Generating static pages using 11 workers (10/42) 
+   Generating static pages using 11 workers (20/42) 
+   Generating static pages using 11 workers (31/42) 
+ ✓ Generating static pages using 11 workers (42/42) in 6.2s
+   Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /admin/auditor
+├ ○ /admin/auditor/blockchain
+├ ○ /admin/auditor/flagged
+├ ○ /admin/auditor/invoices
+├ ƒ /admin/auditor/invoices/[id]
+├ ○ /admin/auditor/pending
+├ ○ /admin/auditor/settings
+├ ○ /admin/regulator
+├ ○ /admin/regulator/blockchain
+├ ○ /admin/regulator/flagged
+├ ○ /admin/regulator/invoices
+├ ƒ /admin/regulator/invoices/[id]
+├ ○ /admin/regulator/policy
+├ ○ /admin/regulator/settings
+├ ○ /admin/regulator/terms
+├ ○ /admin/super-admin
+├ ○ /admin/super-admin/assignments
+├ ƒ /admin/super-admin/assignments/[id]
+├ ○ /admin/super-admin/audit-logs
+├ ○ /admin/super-admin/blockchain
+├ ○ /admin/super-admin/flagged
+├ ○ /admin/super-admin/invoices
+├ ƒ /admin/super-admin/invoices/[id]
+├ ○ /admin/super-admin/organizations
+├ ○ /admin/super-admin/policy
+├ ○ /admin/super-admin/settings
+├ ○ /admin/super-admin/terms
+├ ○ /admin/super-admin/users
+├ ○ /company/employee
+├ ○ /company/employee/alerts
+├ ○ /company/employee/invoices
+├ ƒ /company/employee/invoices/[id]
+├ ○ /company/employee/settings
+├ ○ /company/employee/upload
+├ ○ /company/manager
+├ ○ /company/manager/alerts
+├ ○ /company/manager/employees
+├ ○ /company/manager/invoices
+├ ƒ /company/manager/invoices/[id]
+├ ○ /company/manager/reports
+├ ○ /company/manager/settings
+├ ○ /company/manager/upload
+├ ○ /forgot-password
+├ ○ /login
+└ ○ /sitemap.xml
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

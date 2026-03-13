@@ -22,7 +22,7 @@ function timeAgo(dateStr: string): string {
 }
 
 export function RecentActivity({ logs, title = "Recent Activity", icon: Icon = Activity }: RecentActivityProps) {
-    const displayLogs = logs.slice(0, 6)
+    const displayLogs = logs.slice(0, 5)
 
     return (
         <Card>

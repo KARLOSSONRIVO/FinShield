@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 interface RiskAnalysisProps {
     averageRiskScore: number
-    cleanCount: number
+    verifiedCount: number
     flaggedCount: number
     fraudRate: number
     fraudCount: number
@@ -13,7 +13,7 @@ interface RiskAnalysisProps {
 
 export function RiskAnalysis({
     averageRiskScore,
-    cleanCount,
+    verifiedCount,
     flaggedCount,
     fraudRate,
     fraudCount,
@@ -65,9 +65,9 @@ export function RiskAnalysis({
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 bg-emerald-600 rounded-lg text-center text-white">
                             <p className="text-2xl font-bold mb-0">
-                                {cleanCount}
+                                {verifiedCount}
                             </p>
-                            <p className="text-[10px] font-medium opacity-90 uppercase tracking-wide">Clean by AI</p>
+                            <p className="text-[10px] font-medium opacity-90 uppercase tracking-wide">Verified by AI</p>
                         </div>
                         <div className="p-4 bg-amber-500 rounded-lg text-center text-white">
                             <p className="text-2xl font-bold mb-0">
