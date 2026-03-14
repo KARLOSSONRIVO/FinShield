@@ -46,9 +46,9 @@ export async function uploadToIpfsAndAnchor({ actor, file, ip, userAgent }) {
 
     if (!precheck.processable) {
         throw new AppError(
-            "Invoice rejected during pre-check",
+            "Invoice precheck failed: " + (precheck.reason || "Unknown reason"),
             400,
-            precheck.reason || "PRECHECK_FAILED"
+            "INVOICE_PRECHECK_FAILED"
         );
     }
 

@@ -20,7 +20,7 @@ app.use(helmet())
 app.use(cors({
     origin: CORS_ORIGIN === "*" ? true : CORS_ORIGIN.split(",").map((s) => s.trim()),
     credentials: true,
-}))
+}))     
 
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'))
 // Parse JSON bodies with limit

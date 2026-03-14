@@ -24,7 +24,7 @@ paths:
                 type:
                   type: string
                   description: Organization type
-                  enum: [platform, company]
+                  enum: [organization, company]
                   example: company
                 status:
                   type: string

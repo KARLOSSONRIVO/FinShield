@@ -13,13 +13,6 @@ export async function createOrganization({ actor, payload, file, ip, userAgent }
         throw new AppError("Unauthorized", 403, "UNAUTHORIZED");
     }
 
-    if (payload.type === "platform") {
-        const existingPlatform = await OrganizationRepositories.findOne({ type: "platform" });
-        if (existingPlatform) {
-            throw new AppError("Platform already exists", 409, "PLATFORM_ALREADY_EXISTS");
-        }
-    }
-
     // Create organization first
     const org = await OrganizationRepositories.createOrganization({
         type: payload.type,

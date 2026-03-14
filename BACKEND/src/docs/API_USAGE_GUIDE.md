@@ -289,7 +289,7 @@ POST /organization/createOrganization
 | Field             | Type   | Required | Description                                    |
 |-------------------|--------|----------|------------------------------------------------|
 | `name`            | string | Yes      | Organization name                              |
-| `type`            | string | Yes      | `platform` or `company`                        |
+| `type`            | string | Yes      | `organization` or `company`                    |
 | `status`          | string | No       | `active` (default) or `inactive`               |
 | `invoiceTemplate` | file   | No       | PDF or DOCX template file (max 10MB)           |
 
@@ -421,7 +421,7 @@ PATCH /organization/updateOrganization/:id
 | Field | Type | Description |
 |-------|------|-------------|
 | `name` | string (min 2) | New organization name |
-| `type` | string | `platform` or `company` |
+| `type` | string | `organization` or `company` |
 | `status` | string | `active` or `inactive` |
 
 **Example:**

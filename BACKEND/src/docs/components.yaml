@@ -91,7 +91,7 @@ components:
           example: Acme Corporation
         type:
           type: string
-          enum: [platform, company]
+          enum: [organization, company]
           example: company
         status:
           type: string
