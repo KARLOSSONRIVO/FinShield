@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Upload, FileText, CheckCircle, X, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useCreateInvoice } from "@/hooks/invoices/use-create-invoice"
+import { useCreateInvoice } from "@/hooks/common/use-create-invoice"
 import { useAuth } from "@/hooks/global/use-auth"
 
 export function UploadInvoiceForm() {

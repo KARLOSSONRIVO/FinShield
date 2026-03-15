@@ -7,14 +7,14 @@ export type OrganizationStatus = NonNullable<Organization["status"]>
 
 export interface CreateOrganizationRequest {
     name: string;
-    type: "company" | "platform";
+    type: "company" | "organization";
     invoiceTemplate?: File | string;
 }
 
 export interface UpdateOrganizationRequest {
     name?: string;
-    status?: "active" | "inactive" | "suspended";
-    type?: "company" | "platform";
+    status?: "active" | "inactive";
+    type?: "company" | "organization";
     invoiceTemplate?: File | string;
 }
 
@@ -35,9 +35,10 @@ export const OrganizationService = {
             "/organization/createOrganization",
             formData,
             {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
+                transformRequest: [(_data, headers) => {
+                    delete headers["Content-Type"]
+                    return _data
+                }]
             }
         )
         return response
@@ -78,19 +79,20 @@ export const OrganizationService = {
                 formData.append("invoiceTemplate", data.invoiceTemplate);
             }
 
-            const { data: responseData } = await apiClient.put<{ ok: boolean; data: Organization }>(
+            const { data: responseData } = await apiClient.patch<{ ok: boolean; data: Organization }>(
                 `/organization/updateOrganization/${id}`,
                 formData,
                 {
-                    headers: {
-                        "Content-Type": "multipart/form-data",
-                    },
+                    transformRequest: [(_data, headers) => {
+                        delete headers["Content-Type"]
+                        return _data
+                    }]
                 }
             );
             response = responseData;
         } else {
             // Use JSON for regular updates
-            const { data: responseData } = await apiClient.put<{ ok: boolean; data: Organization }>(
+            const { data: responseData } = await apiClient.patch<{ ok: boolean; data: Organization }>(
                 `/organization/updateOrganization/${id}`,
                 data,
                 {

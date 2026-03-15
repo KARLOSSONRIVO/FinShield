@@ -69,7 +69,6 @@ export function usePendingQueue() {
     const { filteredInvoices, pagination } = useMemo(() => {
         let items = [...allInvoices]
 
-        // Search
         if (search.trim()) {
             const q = search.trim().toLowerCase()
             items = items.filter((inv: any) =>
@@ -78,7 +77,6 @@ export function usePendingQueue() {
             )
         }
 
-        // Base pending logic: exclude already reviewed (approved/rejected)
         items = items.filter((inv: any) => {
             const decision = (inv.status || inv.reviewDecision || "").toLowerCase()
             if (decision === "approved" || decision === "rejected") return false

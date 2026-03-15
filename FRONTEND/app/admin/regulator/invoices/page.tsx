@@ -2,7 +2,7 @@
 
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
-import { useRegulatorInvoices } from "@/hooks/invoices/use-regulator-invoices"
+import { useRegulatorInvoices } from "@/hooks/regulator/use-regulator-invoices"
 import { DataPagination } from "@/components/common/DataPagination"
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 

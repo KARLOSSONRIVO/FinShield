@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
-import { useRegulatorFlaggedInvoices } from "@/hooks/invoices/use-regulator-flagged"
+import { useRegulatorFlaggedInvoices } from "@/hooks/regulator/use-regulator-flagged"
 import { FlaggedInvoiceFilter } from "@/components/invoices/FlaggedInvoiceFilter"
 import { useQueryClient } from "@tanstack/react-query"
 import { useSocketEvent } from "@/hooks/global/use-socket-event"

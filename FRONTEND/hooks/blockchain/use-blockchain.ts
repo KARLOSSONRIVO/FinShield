@@ -18,7 +18,6 @@ export function useBlockchain({ initialLimit = 7 } = {}) {
     const { data, isLoading, isError, error } = useQuery({
         queryKey: ["blockchain", "ledger", queryParams],
         queryFn: async () => {
-            console.log("[useBlockchain] Fetching ledger with params:", queryParams)
             const ledgerParams = {
                 ...queryParams,
                 sortBy: (queryParams.sortBy === "anchoredAt" || queryParams.sortBy === "invoiceNumber")
@@ -28,8 +27,6 @@ export function useBlockchain({ initialLimit = 7 } = {}) {
             
             try {
                 const response = await blockchainService.getLedger(ledgerParams)
-                console.log("[useBlockchain] Successfully fetched ledger data:", response.data)
-                
                 return {
                     items: response.data?.items || [],
                     pagination: response.data?.pagination || { total: 0, page: 1, limit: 10, totalPages: 1 }

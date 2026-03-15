@@ -5,7 +5,7 @@ import { DateRange } from "react-day-picker"
 
 const LIMIT = 8
 
-export function useRegulatorFlaggedInvoices() {
+export function useFlaggedQueue() {
     const [search, setSearchState] = useState("")
     const [page, setPage] = useState(1)
     const [sortKey, setSortKey] = useState<string | null>(null)
@@ -50,7 +50,7 @@ export function useRegulatorFlaggedInvoices() {
     }
 
     const { data: response, isLoading, isError, error } = useQuery({
-        queryKey: ["regulator-flagged-queue"],
+        queryKey: ["flagged-invoices"],
         queryFn: () => InvoiceService.list()
     })
 
@@ -66,7 +66,7 @@ export function useRegulatorFlaggedInvoices() {
         return Array.from(years).sort((a, b) => b - a)
     }, [allInvoices])
 
-    const { filteredInvoices, pagination } = useMemo(() => {
+    const { filteredInvoices, pagination, currentPage, totalPages } = useMemo(() => {
         let items = [...allInvoices]
 
         if (search.trim()) {
@@ -77,14 +77,10 @@ export function useRegulatorFlaggedInvoices() {
             )
         }
 
-        // Base: only flagged
         items = items.filter((inv: any) => {
             const verdict = inv.aiVerdict?.verdict?.toLowerCase()
-            const status = inv.status?.toLowerCase()
-            const isFlagged = status === "flagged" || verdict === "flagged"
-            if (aiVerdictFilter === "all" && !isFlagged) return false
-            if (aiVerdictFilter !== "all" && verdict !== aiVerdictFilter) return false
-            return true
+            const targetVerdict = aiVerdictFilter === "all" ? "flagged" : aiVerdictFilter
+            return verdict === targetVerdict
         })
 
         if (statusFilter !== "all") {
@@ -136,15 +132,27 @@ export function useRegulatorFlaggedInvoices() {
 
         const total = items.length
         const start = (page - 1) * LIMIT
-        return { filteredInvoices: items.slice(start, start + LIMIT), pagination: { total, page, limit: LIMIT, totalPages: Math.ceil(total / LIMIT) } }
+        const totalPages = Math.ceil(total / LIMIT)
+        return {
+            filteredInvoices: items.slice(start, start + LIMIT),
+            pagination: { total, page, limit: LIMIT, totalPages },
+            currentPage: page,
+            totalPages
+        }
     }, [allInvoices, search, aiVerdictFilter, statusFilter, dateRange, monthFilter, yearFilter, sortKey, sortDir, page])
 
     const sortConfig = sortKey ? { key: sortKey, direction: sortDir } : null
     const hasActiveFilters = statusFilter !== "all" || aiVerdictFilter !== "all" || !!(dateRange?.from || dateRange?.to) || monthFilter !== "all" || yearFilter !== "all"
 
     return {
-        invoices: filteredInvoices, pagination, isLoading, isError, error: error ? (error as any).message : null,
-        search, setSearch, setPage, sortConfig, requestSort,
+        invoices: filteredInvoices,
+        pagination,
+        currentPage,
+        totalPages,
+        isLoading, isError, error: error ? (error as any).message : null,
+        search, setSearch,
+        setPage, setCurrentPage: setPage,
+        sortConfig, requestSort,
         statusFilter, setStatusFilter,
         dateRange, setDateRange, monthFilter, setMonthFilter, yearFilter, setYearFilter,
         availableYears, resetFilters, hasActiveFilters

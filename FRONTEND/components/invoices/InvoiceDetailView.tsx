@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { ArrowLeft, FileText, Brain, Link2, ClipboardCheck, ImageIcon, X, Loader2, CheckCircle2, AlertTriangle, ShieldAlert, ShieldCheck } from "lucide-react"
 import Link from "next/link"
+import { Skeleton } from "@/components/ui/skeleton"
 import { SocketContext } from "@/providers/socket-provider"
 import { useSocketEvent } from "@/hooks/global/use-socket-event"
 import { SocketEvents } from "@/lib/socket-events"
@@ -36,7 +37,6 @@ interface AiCompletePayload {
 export function InvoiceDetailView({ id, backUrl, backLabel = "Back to Invoices", role }: InvoiceDetailViewProps) {
     const [imageOpen, setImageOpen] = useState(false)
     const [iframeLoaded, setIframeLoaded] = useState(false)
-    const [aiDialog, setAiDialog] = useState<AiCompletePayload | null>(null)
     const [reviewDecision, setReviewDecision] = useState<ReviewDecision>("approved")
     const [reviewNotes, setReviewNotes] = useState("")
     const [reviewEnabled, setReviewEnabled] = useState(false)
@@ -54,11 +54,10 @@ export function InvoiceDetailView({ id, backUrl, backLabel = "Back to Invoices",
         }
     }, [id, queryClient])
 
-    // Socket: show dialog on AI complete
+    // Socket: refresh invoice on AI complete
     const handleAiComplete = useCallback((data: AiCompletePayload) => {
         if (data.invoiceId === id) {
             queryClient.invalidateQueries({ queryKey: ["invoice-detail", id] })
-            setAiDialog(data)
         }
     }, [id, queryClient])
 
@@ -109,16 +108,76 @@ export function InvoiceDetailView({ id, backUrl, backLabel = "Back to Invoices",
         }
     }, [data])
 
-    // Enable review after AI dialog is dismissed
-    const handleAiDialogDismiss = () => {
-        setAiDialog(null)
-        setReviewEnabled(true)
-    }
-
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            <div className="space-y-6">
+                <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4">
+                        <Skeleton className="h-12 w-12 rounded-lg" />
+                        <div>
+                            <Skeleton className="h-8 w-40 mb-2" />
+                            <Skeleton className="h-5 w-32" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Skeleton Card 1 */}
+                    <Card className="border border-border shadow-sm rounded-xl">
+                        <CardHeader className="pb-2">
+                            <Skeleton className="h-6 w-32" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-2 gap-y-4">
+                                <div><Skeleton className="h-4 w-24 mb-2" /><Skeleton className="h-4 w-32" /></div>
+                                <div><Skeleton className="h-4 w-24 mb-2" /><Skeleton className="h-4 w-32" /></div>
+                                <div><Skeleton className="h-4 w-24 mb-2" /><Skeleton className="h-6 w-32" /></div>
+                                <div><Skeleton className="h-4 w-24 mb-2" /><Skeleton className="h-4 w-32" /></div>
+                                <div><Skeleton className="h-4 w-24 mb-2" /><Skeleton className="h-5 w-24" /></div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Skeleton Card 2 */}
+                    <Card className="border border-border shadow-sm rounded-xl">
+                        <CardHeader className="pb-2">
+                            <Skeleton className="h-6 w-40 mb-2" />
+                            <Skeleton className="h-4 w-48" />
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Skeleton className="h-12 w-full rounded-lg" />
+                            <div className="space-y-2">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-3 w-full rounded-full" />
+                            </div>
+                            <Skeleton className="h-20 w-full rounded-lg" />
+                        </CardContent>
+                    </Card>
+
+                    {/* Skeleton Card 3 */}
+                    <Card className="border border-border shadow-sm rounded-xl">
+                        <CardHeader className="pb-2">
+                            <Skeleton className="h-6 w-48 mb-2" />
+                            <Skeleton className="h-4 w-40" />
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div><Skeleton className="h-4 w-24 mb-2" /><Skeleton className="h-8 w-full rounded-md" /></div>
+                            <div><Skeleton className="h-4 w-24 mb-2" /><Skeleton className="h-5 w-40" /></div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Skeleton Card 4 */}
+                    <Card className="border border-border shadow-sm rounded-xl">
+                        <CardHeader className="pb-2">
+                            <Skeleton className="h-6 w-40 mb-2" />
+                            <Skeleton className="h-4 w-64" />
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Skeleton className="h-24 w-full rounded-md" />
+                            <Skeleton className="h-10 w-full rounded-md" />
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         )
     }
@@ -165,38 +224,6 @@ export function InvoiceDetailView({ id, backUrl, backLabel = "Back to Invoices",
 
     return (
         <div className="space-y-6">
-
-            {/* ── AI Complete Dialog ──────────────────────────────────────────── */}
-            <Dialog open={!!aiDialog} onOpenChange={(open) => { if (!open) handleAiDialogDismiss() }}>
-                <DialogContent className="max-w-md">
-                    <DialogHeader>
-                        <div className="flex items-center gap-3 mb-1">
-                            {aiDialog?.aiVerdict === "clean" ? (
-                                <CheckCircle2 className="h-6 w-6 text-emerald-500" />
-                            ) : (
-                                <AlertTriangle className="h-6 w-6 text-yellow-500" />
-                            )}
-                            <DialogTitle>AI Analysis Complete</DialogTitle>
-                        </div>
-                        <DialogDescription>
-                            {aiDialog?.aiVerdict === "clean"
-                                ? `Invoice looks clean. Risk score: ${aiDialog?.aiRiskScore?.toFixed(1)}% (${aiDialog?.riskLevel})`
-                                : `Invoice requires audit verification. Risk score: ${aiDialog?.aiRiskScore?.toFixed(1)}% (${aiDialog?.riskLevel})`
-                            }
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className={`p-4 rounded-lg border ${aiDialog?.aiVerdict === "clean" ? "bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800" : "bg-yellow-50 border-yellow-200 dark:bg-yellow-950/30 dark:border-yellow-800"}`}>
-                        <Badge className={`${aiDialog?.aiVerdict === "clean" ? "bg-emerald-600" : "bg-yellow-600"} text-white capitalize text-sm px-4 py-1`}>
-                            {aiDialog?.aiVerdict === "clean" ? "Verified" : "For Audit Verification"}
-                        </Badge>
-                    </div>
-                    <DialogFooter>
-                        <Button onClick={handleAiDialogDismiss} className="w-full bg-primary hover:bg-primary/90 font-bold">
-                            Dismiss
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
 
             {/* ── Hidden PDF/Image preload ──────────────────────────────────── */}
             {imageUrl && !isImage && (
@@ -318,19 +345,35 @@ export function InvoiceDetailView({ id, backUrl, backLabel = "Back to Invoices",
                             </div>
                             <div>
                                 <p className="text-xs font-bold text-foreground uppercase">Invoice Date</p>
-                                <p className="text-sm font-medium mt-1 text-muted-foreground">
-                                    {data.invoiceDate ? new Date(data.invoiceDate).toLocaleDateString() : "N/A"}
-                                </p>
+                                <div className="mt-1">
+                                    {data.invoiceDate ? (
+                                        <p className="text-sm font-medium text-muted-foreground">
+                                            {new Date(data.invoiceDate).toLocaleDateString()}
+                                        </p>
+                                    ) : (
+                                        <Skeleton className="h-4 w-24" />
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <p className="text-xs font-bold text-foreground uppercase">Total Amount</p>
-                                <p className="text-xl font-extrabold mt-1">
-                                    {data.totalAmount != null ? `₱${data.totalAmount.toLocaleString()}` : "N/A"}
-                                </p>
+                                <div className="mt-1">
+                                    {data.totalAmount != null ? (
+                                        <p className="text-xl font-extrabold">{`₱${data.totalAmount.toLocaleString()}`}</p>
+                                    ) : (
+                                        <Skeleton className="h-6 w-24" />
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <p className="text-xs font-bold text-foreground uppercase">Company</p>
-                                <p className="text-sm font-medium mt-1 text-muted-foreground">{data.company || "—"}</p>
+                                <div className="mt-1">
+                                    {data.company ? (
+                                        <p className="text-sm font-medium text-muted-foreground">{data.company}</p>
+                                    ) : (
+                                        <Skeleton className="h-4 w-32" />
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <p className="text-xs font-bold text-foreground uppercase mb-1">Status</p>

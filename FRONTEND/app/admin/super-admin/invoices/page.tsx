@@ -5,7 +5,7 @@ import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skele
 import { useSocketEvent } from "@/hooks/global/use-socket-event"
 import { SocketEvents } from "@/lib/socket-events"
 import { SocketContext } from "@/providers/socket-provider"
-import { useSuperAdminInvoices } from "@/hooks/invoices/use-super-admin-invoices"
+import { useSuperAdminInvoices } from "@/hooks/super-admin/use-super-admin-invoices"
 import { DataPagination } from "@/components/common/DataPagination"
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 

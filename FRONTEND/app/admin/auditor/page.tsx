@@ -6,7 +6,7 @@ import { FileSearch } from "lucide-react"
 import { AuditorStats } from "@/components/dashboard/AuditorStats"
 import { PendingReviews } from "@/components/dashboard/PendingReviews"
 import { FlaggedItems } from "@/components/dashboard/FlaggedItems"
-import { useAuditorDashboard } from "@/hooks/dashboard/use-auditor-dashboard"
+import { useAuditorDashboard } from "@/hooks/auditor/use-auditor-dashboard"
 import { DashboardContentSkeleton } from "@/components/skeletons/dashboard-content-skeleton"
 
 export default function AuditorDashboard() {

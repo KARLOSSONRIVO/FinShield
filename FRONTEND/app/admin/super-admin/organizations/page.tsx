@@ -24,6 +24,8 @@ export default function OrganizationsPage() {
     organizations,
     isCreateOpen,
     setIsCreateOpen,
+    newInvoiceTemplate,
+    setNewInvoiceTemplate,
     newOrgName,
     setNewOrgName,
     newOrgType,
@@ -63,6 +65,8 @@ export default function OrganizationsPage() {
       <CreateOrganizationDialog
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
+        newInvoiceTemplate={newInvoiceTemplate}
+        setNewInvoiceTemplate={setNewInvoiceTemplate}
         newOrgName={newOrgName}
         setNewOrgName={setNewOrgName}
         newOrgType={newOrgType}

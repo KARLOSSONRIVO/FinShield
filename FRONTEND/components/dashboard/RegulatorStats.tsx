@@ -1,7 +1,7 @@
 "use client"
 
 import { FileText, Link2, AlertTriangle, ScrollText } from "lucide-react"
-import { useRegulatorDashboard } from "@/hooks/dashboard/use-regulator-dashboard"
+import { useRegulatorDashboard } from "@/hooks/regulator/use-regulator-dashboard"
 
 export function RegulatorStats() {
     const {

@@ -15,6 +15,7 @@ import {
 import { MoreVertical, Edit, Trash2, X, Check, ChevronDown, ChevronUp } from 'lucide-react'
 import { Terms } from '@/services/terms.service'
 import { cn } from '@/lib/utils'
+import { DeleteTermsDialog } from './DeleteTermsDialog'
 
 interface TermsCardProps {
     terms: Terms
@@ -42,6 +43,7 @@ export function TermsCard({
     const [content, setContent] = useState(terms.content)
     const [version, setVersion] = useState(terms.version)
     const [errors, setErrors] = useState<{ title?: string; content?: string }>({})
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
     const validateForm = () => {
         const newErrors: { title?: string; content?: string } = {}
@@ -118,7 +120,7 @@ export function TermsCard({
                                 Edit Terms
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                onClick={() => onDelete && onDelete(terms.id)}
+                                onClick={() => setIsDeleteDialogOpen(true)}
                                 disabled={isDeleting}
                                 className="text-red-600 focus:text-red-600"
                             >
@@ -129,6 +131,17 @@ export function TermsCard({
                     </DropdownMenu>
                 </div>
             )}
+
+            <DeleteTermsDialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+                terms={terms}
+                onConfirm={() => {
+                    if (onDelete) onDelete(terms.id)
+                    setIsDeleteDialogOpen(false)
+                }}
+                isLoading={isDeleting}
+            />
 
             <CardHeader className="pr-12 pb-3">
                 <div className="flex items-center gap-2">

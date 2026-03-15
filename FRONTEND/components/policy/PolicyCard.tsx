@@ -15,6 +15,7 @@ import {
 import { MoreVertical, Edit, Trash2, X, Check, ChevronDown, ChevronUp } from "lucide-react"
 import { Policy } from "@/services/policy.service"
 import { cn } from "@/lib/utils"
+import { DeletePolicyDialog } from "./DeletePolicyDialog"
 
 interface PolicyCardProps {
     policy: Policy
@@ -42,6 +43,7 @@ export function PolicyCard({
     const [content, setContent] = useState(policy.content)
     const [version, setVersion] = useState(policy.version)
     const [errors, setErrors] = useState<{ title?: string; content?: string }>({})
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
     const validateForm = () => {
         const newErrors: { title?: string; content?: string } = {}
@@ -115,7 +117,7 @@ export function PolicyCard({
                                 Edit Policy
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                onClick={() => onDelete && onDelete(policy.id || policy._id || "")}
+                                onClick={() => setIsDeleteDialogOpen(true)}
                                 disabled={isDeleting}
                                 className="text-red-600 focus:text-red-600"
                             >
@@ -126,6 +128,17 @@ export function PolicyCard({
                     </DropdownMenu>
                 </div>
             )}
+
+            <DeletePolicyDialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+                policy={policy}
+                onConfirm={() => {
+                    if (onDelete) onDelete(policy.id || policy._id || "")
+                    setIsDeleteDialogOpen(false)
+                }}
+                isLoading={isDeleting}
+            />
 
             <CardHeader className="pr-12 pb-3">
                 <div className="flex items-center gap-2">

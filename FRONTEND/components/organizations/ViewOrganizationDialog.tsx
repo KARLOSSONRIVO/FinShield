@@ -44,7 +44,7 @@ export function ViewOrganizationDialog({
                             <label className="text-sm font-medium text-muted-foreground">Type</label>
                             <div className="mt-1">
                                 <Badge variant="outline" className="bg-emerald-600 text-white border-0">
-                                    {organization.type}
+                                    {organization.type ? organization.type.charAt(0).toUpperCase() + organization.type.slice(1) : "N/A"}
                                 </Badge>
                             </div>
                         </div>

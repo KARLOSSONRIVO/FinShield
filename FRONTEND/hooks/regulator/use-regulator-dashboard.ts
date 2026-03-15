@@ -22,22 +22,18 @@ export function useRegulatorDashboard({ enabled = true }: UseRegulatorDashboardO
         enabled
     })
 
-    // Count unique companies based on company name or orgId
     const companiesSet = new Set<string>()
     invoices.forEach((inv: any) => {
         if (inv.companyName) companiesSet.add(inv.companyName)
     })
 
-    // Calculate total value
     const totalValue = invoices.reduce((sum: number, inv: any) => sum + (Number(inv.amount || inv.totalAmount) || 0), 0)
 
-    // Calculate flagged invoices (pending or rejected review, or flagged by AI)
     const flaggedCount = invoices.filter((inv: any) =>
         inv.status === "flagged" ||
         inv.aiVerdict?.verdict === "flagged"
     ).length
 
-    // Calculate verified on chain
     const verifiedOnChain = invoices.filter((inv: any) =>
         inv.status === "anchored" ||
         inv.blockchain?.txHash ||

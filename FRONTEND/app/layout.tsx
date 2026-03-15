@@ -4,9 +4,9 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
-import { ThemeProvider } from "@/components/providers/ThemeProvider"
-import { QueryProvider } from "@/components/providers/QueryProvider"
-import { AuthProvider } from "@/components/providers/auth-provider"
+import { ThemeProvider } from "@/providers/ThemeProvider"
+import { QueryProvider } from "@/providers/QueryProvider"
+import { AuthProvider } from "@/providers/auth-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { SocketProvider } from "@/providers/socket-provider"
 import { GlobalSocketListeners } from "@/components/global/GlobalSocketListeners"
@@ -18,7 +18,10 @@ export const metadata: Metadata = {
   title: "FinShield - AI Fraud Detection & Blockchain Invoice Verification",
   description:
     "AI-powered fraud detection and blockchain invoice verification system for enterprises, auditors, and regulators",
-  generator: 'v0.dev'
+  generator: 'v0.dev',
+  icons: {
+    icon: '/assets/image/FinShield.svg'
+  }
 }
 
 export default function RootLayout({

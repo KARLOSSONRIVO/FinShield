@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { AuthService } from "@/services/auth.service"
-import { useAuthContext } from "@/components/providers/auth-provider"
+import { useAuthContext } from "@/providers/auth-provider"
 import {
     Dialog,
     DialogContent,

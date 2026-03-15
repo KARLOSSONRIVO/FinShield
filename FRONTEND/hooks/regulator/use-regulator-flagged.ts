@@ -5,7 +5,7 @@ import { DateRange } from "react-day-picker"
 
 const LIMIT = 8
 
-export function useFlaggedQueue() {
+export function useRegulatorFlaggedInvoices() {
     const [search, setSearchState] = useState("")
     const [page, setPage] = useState(1)
     const [sortKey, setSortKey] = useState<string | null>(null)
@@ -50,7 +50,7 @@ export function useFlaggedQueue() {
     }
 
     const { data: response, isLoading, isError, error } = useQuery({
-        queryKey: ["flagged-invoices"],
+        queryKey: ["regulator-flagged-queue"],
         queryFn: () => InvoiceService.list()
     })
 
@@ -66,10 +66,9 @@ export function useFlaggedQueue() {
         return Array.from(years).sort((a, b) => b - a)
     }, [allInvoices])
 
-    const { filteredInvoices, pagination, currentPage, totalPages } = useMemo(() => {
+    const { filteredInvoices, pagination } = useMemo(() => {
         let items = [...allInvoices]
 
-        // Search
         if (search.trim()) {
             const q = search.trim().toLowerCase()
             items = items.filter((inv: any) =>
@@ -78,11 +77,13 @@ export function useFlaggedQueue() {
             )
         }
 
-        // Base flagged logic: show flagged AI verdict by default
         items = items.filter((inv: any) => {
             const verdict = inv.aiVerdict?.verdict?.toLowerCase()
-            const targetVerdict = aiVerdictFilter === "all" ? "flagged" : aiVerdictFilter
-            return verdict === targetVerdict
+            const status = inv.status?.toLowerCase()
+            const isFlagged = status === "flagged" || verdict === "flagged"
+            if (aiVerdictFilter === "all" && !isFlagged) return false
+            if (aiVerdictFilter !== "all" && verdict !== aiVerdictFilter) return false
+            return true
         })
 
         if (statusFilter !== "all") {
@@ -113,15 +114,12 @@ export function useFlaggedQueue() {
             items = [...items].sort((a, b) => {
                 const actualKey = k === 'reviewDecision' ? 'status' : k
                 let av = (a as any)[actualKey], bv = (b as any)[actualKey]
-                
                 if (k === 'invoiceDate' || k === 'createdAt' || k === 'date') {
                     av = (a as any).date || (a as any).invoiceDate || (a as any).uploadedAt || (a as any).createdAt
                     bv = (b as any).date || (b as any).invoiceDate || (b as any).uploadedAt || (b as any).createdAt
                 }
-
                 if (av === bv) return 0
                 if (av == null) return 1; if (bv == null) return -1
-                
                 if (k === 'invoiceDate' || k === 'createdAt' || k === 'date') {
                     const aDate = new Date(av).getTime()
                     const bDate = new Date(bv).getTime()
@@ -134,27 +132,15 @@ export function useFlaggedQueue() {
 
         const total = items.length
         const start = (page - 1) * LIMIT
-        const totalPages = Math.ceil(total / LIMIT)
-        return {
-            filteredInvoices: items.slice(start, start + LIMIT),
-            pagination: { total, page, limit: LIMIT, totalPages },
-            currentPage: page,
-            totalPages
-        }
+        return { filteredInvoices: items.slice(start, start + LIMIT), pagination: { total, page, limit: LIMIT, totalPages: Math.ceil(total / LIMIT) } }
     }, [allInvoices, search, aiVerdictFilter, statusFilter, dateRange, monthFilter, yearFilter, sortKey, sortDir, page])
 
     const sortConfig = sortKey ? { key: sortKey, direction: sortDir } : null
     const hasActiveFilters = statusFilter !== "all" || aiVerdictFilter !== "all" || !!(dateRange?.from || dateRange?.to) || monthFilter !== "all" || yearFilter !== "all"
 
     return {
-        invoices: filteredInvoices,
-        pagination,
-        currentPage,
-        totalPages,
-        isLoading, isError, error: error ? (error as any).message : null,
-        search, setSearch,
-        setPage, setCurrentPage: setPage,
-        sortConfig, requestSort,
+        invoices: filteredInvoices, pagination, isLoading, isError, error: error ? (error as any).message : null,
+        search, setSearch, setPage, sortConfig, requestSort,
         statusFilter, setStatusFilter,
         dateRange, setDateRange, monthFilter, setMonthFilter, yearFilter, setYearFilter,
         availableYears, resetFilters, hasActiveFilters

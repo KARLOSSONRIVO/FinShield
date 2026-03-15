@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { PendingInvoiceFilter } from "@/components/invoices/PendingInvoiceFilter"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
-import { usePendingQueue } from "@/hooks/flagged/use-pending-queue"
+import { usePendingQueue } from "@/hooks/auditor/use-pending-queue"
 
 export default function AuditorPendingPage() {
     const {

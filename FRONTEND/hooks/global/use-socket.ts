@@ -27,7 +27,7 @@ export function useSocket(token: string | null | undefined) {
         });
 
         socket.on("connect", () => {
-            console.log("[WS] Connected:", socket.id);
+            // Socket connected
         });
 
         socket.on("connect_error", (err) => {
@@ -35,13 +35,8 @@ export function useSocket(token: string | null | undefined) {
             // toast.error("Connection error: " + err.message);
         });
 
-        socket.on("disconnect", (reason) => {
-            console.log("[WS] Disconnected:", reason);
-        });
-
-        // Debug: Log EVERY incoming socket event to the console
-        socket.onAny((eventName, ...args) => {
-            console.log(`[WS DEBUG] Received event: ${eventName}`, args);
+        socket.on("disconnect", (_reason) => {
+            // Socket disconnected
         });
 
         socketRef.current = socket;

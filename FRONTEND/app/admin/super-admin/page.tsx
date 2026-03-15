@@ -6,7 +6,7 @@ import { Building2, FileText, AlertTriangle, CheckCircle } from "lucide-react"
 
 import { RecentInvoices } from "@/components/dashboard/RecentInvoices"
 import { RecentActivity } from "@/components/dashboard/RecentActivity"
-import { useSuperAdminDashboard } from "@/hooks/dashboard/use-super-admin-dashboard"
+import { useSuperAdminDashboard } from "@/hooks/super-admin/use-super-admin-dashboard"
 import { DashboardContentSkeleton } from "@/components/skeletons/dashboard-content-skeleton"
 
 export default function SuperAdminDashboard() {

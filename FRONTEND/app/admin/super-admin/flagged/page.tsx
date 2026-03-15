@@ -2,7 +2,7 @@
 
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
 import { FlaggedTableSkeleton } from "@/components/skeletons/flagged-table-skeleton"
-import { useFlaggedQueue } from "@/hooks/flagged/use-flagged-queue"
+import { useFlaggedQueue } from "@/hooks/super-admin/use-flagged-queue"
 import { Pagination } from "@/components/ui/pagination-custom"
 import { FlaggedInvoiceFilter } from "@/components/invoices/FlaggedInvoiceFilter"
 import { useSocketEvent } from "@/hooks/global/use-socket-event"

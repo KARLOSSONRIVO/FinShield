@@ -1,10 +1,10 @@
-﻿"use client"
+"use client"
 
 import { useAuth } from "@/hooks/global/use-auth"
 import { RegulatorStats } from "@/components/dashboard/RegulatorStats"
 import { RecentInvoices } from "@/components/dashboard/RecentInvoices"
 import { BlockchainRecentInvoices } from "@/components/dashboard/BlockchainRecentInvoices"
-import { useRegulatorDashboard } from "@/hooks/dashboard/use-regulator-dashboard"
+import { useRegulatorDashboard } from "@/hooks/regulator/use-regulator-dashboard"
 import { DashboardContentSkeleton } from "@/components/skeletons/dashboard-content-skeleton"
 
 export default function RegulatorDashboard() {

@@ -3,7 +3,7 @@
 import { useContext, useCallback } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
-import { useAuditorInvoices } from "@/hooks/invoices/use-auditor-invoices"
+import { useAuditorInvoices } from "@/hooks/auditor/use-auditor-invoices"
 import { DataPagination } from "@/components/common/DataPagination"
 import { InvoiceFilter } from "@/components/invoices/InvoiceFilter"
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"

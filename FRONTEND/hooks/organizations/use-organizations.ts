@@ -15,7 +15,8 @@ export function useOrganizations({ initialLimit = 10 } = {}) {
 
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const [newOrgName, setNewOrgName] = useState("")
-    const [newOrgType, setNewOrgType] = useState("company")
+    const [newInvoiceTemplate, setNewInvoiceTemplate] = useState<File | null>(null)
+    const [newOrgType, setNewOrgType] = useState("organization")
     const [newOrgStatus, setNewOrgStatus] = useState("active")
     const [createError, setCreateError] = useState<string | null>(null)
 
@@ -41,8 +42,8 @@ export function useOrganizations({ initialLimit = 10 } = {}) {
                         id: String(o.id || o._id),
                         _id: String(o.id || o._id),
                         name: o.name,
-                        type: (o.type || "").toUpperCase() as "COMPANY" | "AUDITOR" | "REGULATOR",
-                        status: (o.status || "ACTIVE").toUpperCase() as "ACTIVE" | "INACTIVE",
+                        type: (o.type || "organization").toLowerCase() as "organization" | "company",
+                        status: (o.status || "active").toLowerCase() as "active" | "inactive",
                         createdAt: o.createdAt,
                         updatedAt: o.updatedAt,
                     })),
@@ -56,8 +57,8 @@ export function useOrganizations({ initialLimit = 10 } = {}) {
                 id: String(o.id || o._id),
                 _id: String(o.id || o._id),
                 name: o.name,
-                type: (o.type || "").toUpperCase() as "COMPANY" | "AUDITOR" | "REGULATOR",
-                status: (o.status || "ACTIVE").toUpperCase() as "ACTIVE" | "INACTIVE",
+                type: (o.type || "organization").toLowerCase() as "organization" | "company",
+                status: (o.status || "active").toLowerCase() as "active" | "inactive",
                 createdAt: o.createdAt,
                 updatedAt: o.updatedAt,
             }))
@@ -75,7 +76,8 @@ export function useOrganizations({ initialLimit = 10 } = {}) {
             setCreateError(null)
             return await OrganizationService.createOrganization({
                 name: newOrgName,
-                type: newOrgType as "company" | "platform"
+                type: newOrgType as "organization" | "company",
+                invoiceTemplate: newInvoiceTemplate || undefined,
             })
         },
         onSuccess: () => {
@@ -83,7 +85,8 @@ export function useOrganizations({ initialLimit = 10 } = {}) {
             toast.success("Organization created successfully")
             setIsCreateOpen(false)
             setNewOrgName("")
-            setNewOrgType("company")
+            setNewOrgType("organization")
+            setNewInvoiceTemplate(null)
             setNewOrgStatus("active")
             setCreateError(null)
         },
@@ -104,8 +107,8 @@ export function useOrganizations({ initialLimit = 10 } = {}) {
 
             return await OrganizationService.updateOrganization(organizationId, {
                 name: org.name,
-                status: (org.status || "ACTIVE").toLowerCase() as "active" | "inactive",
-                type: (org.type || "COMPANY").toLowerCase() as "company" | "platform"
+                status: (org.status || "active").toLowerCase() as "active" | "inactive",
+                type: (org.type || "organization").toLowerCase() as "organization" | "company"
             })
         },
         onSuccess: () => {
@@ -167,6 +170,8 @@ export function useOrganizations({ initialLimit = 10 } = {}) {
         // Create
         isCreateOpen,
         setIsCreateOpen,
+        newInvoiceTemplate,
+        setNewInvoiceTemplate,
         newOrgName,
         setNewOrgName,
         newOrgType,

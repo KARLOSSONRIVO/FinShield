@@ -19,8 +19,8 @@ const regulatorLinks: NavLink[] = [
     { href: "/admin/regulator", label: "Dashboard", icon: LayoutDashboard },
     { href: "/admin/regulator/invoices", label: "Invoices", icon: FileText },
     { href: "/admin/regulator/flagged", label: "Flagged Invoices", icon: AlertTriangle },
-    { href: "/admin/regulator/policy", label: "Policy", icon: Shield },
     { href: "/admin/regulator/blockchain", label: "Blockchain Ledger", icon: Link2 },
+    { href: "/admin/regulator/policy", label: "Policy", icon: Shield },
     { href: "/admin/regulator/terms", label: "Terms", icon: ScrollText },
 ]
 
@@ -37,8 +37,8 @@ export default function RegulatorLayout({
     const getPageTitle = (path: string) => {
         if (path === "/admin/regulator") return "Regulator Dashboard"
         if (path === "/admin/regulator/policy") return "Policy Management"
-        if (path === "/admin/regulator/invoices") return "Invoice Management"
         if (path === "/admin/regulator/blockchain") return "Blockchain Ledger"
+        if (path === "/admin/regulator/invoices") return "Invoice Management"
         if (path === "/admin/regulator/terms") return "Terms Management"
         return "FinShield Regulator"
     }

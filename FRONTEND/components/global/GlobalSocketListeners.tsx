@@ -18,15 +18,37 @@ interface AssignmentPayload {
     companyOrgId: string;
 }
 
+interface AssignmentUpdatedPayload {
+    assignmentId: string;
+    status: string;
+}
+
 interface InvoiceCreatedPayload {
     invoiceId: string;
     uploadedBy: string;
+}
+
+interface AnchorSuccessPayload {
+    invoiceId: string;
+}
+
+interface AnchorFailedPayload {
+    invoiceId: string;
+    error: string;
+}
+
+interface AiCompletePayload {
+    invoiceId: string;
+    aiVerdict: string;
+    aiRiskScore: number;
+    riskLevel: string;
 }
 
 export function GlobalSocketListeners() {
     const socketCtx = useContext(SocketContext);
     const queryClient = useQueryClient();
 
+    // ── Handlers defined unconditionally (Rules of Hooks) ──────────────
     const handleFlagged = useCallback((data: FlaggedPayload) => {
         toast({
             title: "Invoice Flagged",
@@ -35,66 +57,102 @@ export function GlobalSocketListeners() {
         });
     }, []);
 
-    const handleAssignmentCreated = useCallback((data: AssignmentPayload) => {
+    const handleAssignmentCreated = useCallback((_data: AssignmentPayload) => {
         toast({
             title: "New Assignment",
             description: `You have been assigned to audit a new company.`,
         });
     }, []);
 
-    const handleInvoiceCreated = useCallback((data: InvoiceCreatedPayload) => {
+    const handleAssignmentUpdated = useCallback((_data: AssignmentUpdatedPayload) => {
+        toast({
+            title: "Assignment Updated",
+            description: `An assignment status has changed.`,
+        });
+    }, []);
+
+    const handleAssignmentDeactivated = useCallback((_data: AssignmentPayload) => {
+        toast({
+            title: "Assignment Deactivated",
+            description: `An auditor assignment has been deactivated.`,
+        });
+    }, []);
+
+    const handleInvoiceCreated = useCallback((_data: InvoiceCreatedPayload) => {
         toast({
             title: "New Invoice Uploaded",
             description: `A new invoice has been uploaded to your organization.`,
         });
     }, []);
 
-    // Set up listeners if socket context is available
-    if (socketCtx) {
-        useSocketEvent(socketCtx, SocketEvents.INVOICE_FLAGGED, handleFlagged);
-        useSocketEvent(socketCtx, SocketEvents.ASSIGNMENT_CREATED, handleAssignmentCreated);
-        useSocketEvent(socketCtx, SocketEvents.INVOICE_CREATED, handleInvoiceCreated);
+    const handleAnchorSuccess = useCallback((_data: AnchorSuccessPayload) => {
+        queryClient.invalidateQueries({ queryKey: ["invoices"] });
+        toast({
+            title: "Blockchain Anchored",
+            description: `An invoice has been successfully anchored to the blockchain.`,
+        });
+    }, [queryClient]);
 
-        // Global App-Wide Invalidation Events (Triggers Tanstack Query Refresh)
-        useSocketEvent(socketCtx, SocketEvents.INVOICE_LIST_INVALIDATE, () => {
-            queryClient.invalidateQueries({ queryKey: ["invoices"] });
+    const handleAnchorFailed = useCallback((data: AnchorFailedPayload) => {
+        toast({
+            title: "Blockchain Anchoring Failed",
+            description: data.error || "An invoice could not be anchored to the blockchain.",
+            variant: "destructive",
         });
+    }, []);
 
-        useSocketEvent(socketCtx, SocketEvents.USER_LIST_INVALIDATE, () => {
-            queryClient.invalidateQueries({ queryKey: ["users"] });
-            queryClient.invalidateQueries({ queryKey: ["employees"] });
-            queryClient.invalidateQueries({ queryKey: ["manager-employees"] });
-        });
+    const handleAiComplete = useCallback((_data: AiCompletePayload) => {
+        queryClient.invalidateQueries({ queryKey: ["invoices"] });
+    }, [queryClient]);
 
-        useSocketEvent(socketCtx, SocketEvents.ORG_LIST_INVALIDATE, () => {
-            queryClient.invalidateQueries({ queryKey: ["organizations"] });
-        });
+    const handleInvalidateInvoices = useCallback(() => {
+        queryClient.invalidateQueries({ queryKey: ["invoices"] });
+    }, [queryClient]);
 
-        useSocketEvent(socketCtx, SocketEvents.ASSIGNMENT_CREATED, () => {
-            queryClient.invalidateQueries({ queryKey: ["assignments"] });
-        });
-        useSocketEvent(socketCtx, SocketEvents.ASSIGNMENT_UPDATED, () => {
-            queryClient.invalidateQueries({ queryKey: ["assignments"] });
-        });
-        useSocketEvent(socketCtx, SocketEvents.ASSIGNMENT_DEACTIVATED, () => {
-            queryClient.invalidateQueries({ queryKey: ["assignments"] });
-        });
+    const handleInvalidateUsers = useCallback(() => {
+        queryClient.invalidateQueries({ queryKey: ["users"] });
+        queryClient.invalidateQueries({ queryKey: ["employees"] });
+        queryClient.invalidateQueries({ queryKey: ["manager-employees"] });
+    }, [queryClient]);
 
-        // Audit Log Real-time Updates
-        // Payload matches `AuditLog` structure from backend
-        useSocketEvent(socketCtx, SocketEvents.AUDIT_CREATED, (data: any) => {
-            queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
+    const handleInvalidateOrgs = useCallback(() => {
+        queryClient.invalidateQueries({ queryKey: ["organizations"] });
+    }, [queryClient]);
 
-            // Optional: Show toast for very specific high-priority audit events 
-            // if we want Super Admins to be notified on-screen instantly.
-            if (data?.action === 'ORG_CREATED' || data?.action === 'ACCOUNT_LOCKED') {
-                toast({
-                    title: "System Audit Activity",
-                    description: data.summary || "A critical system action occurred.",
-                });
-            }
-        });
-    }
+    const handleInvalidateAssignments = useCallback(() => {
+        queryClient.invalidateQueries({ queryKey: ["assignments"] });
+    }, [queryClient]);
+
+    const handleAuditCreated = useCallback((data: any) => {
+        queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
+        if (data?.action === 'ORG_CREATED' || data?.action === 'ACCOUNT_LOCKED') {
+            toast({
+                title: "System Audit Activity",
+                description: data.summary || "A critical system action occurred.",
+            });
+        }
+    }, [queryClient]);
+
+    // ── All useSocketEvent calls top-level (no conditionals) ────────────
+    // useSocketEvent handles null socketCtx internally
+    useSocketEvent(socketCtx, SocketEvents.INVOICE_FLAGGED, handleFlagged);
+    useSocketEvent(socketCtx, SocketEvents.INVOICE_CREATED, handleInvoiceCreated);
+    useSocketEvent(socketCtx, SocketEvents.INVOICE_PROCESSING, handleInvalidateInvoices);
+    useSocketEvent(socketCtx, SocketEvents.INVOICE_AI_COMPLETE, handleAiComplete);
+    useSocketEvent(socketCtx, SocketEvents.INVOICE_ANCHOR_SUCCESS, handleAnchorSuccess);
+    useSocketEvent(socketCtx, SocketEvents.INVOICE_ANCHOR_FAILED, handleAnchorFailed);
+    useSocketEvent(socketCtx, SocketEvents.INVOICE_LIST_INVALIDATE, handleInvalidateInvoices);
+
+    useSocketEvent(socketCtx, SocketEvents.ASSIGNMENT_CREATED, handleAssignmentCreated);
+    useSocketEvent(socketCtx, SocketEvents.ASSIGNMENT_CREATED, handleInvalidateAssignments);
+    useSocketEvent(socketCtx, SocketEvents.ASSIGNMENT_UPDATED, handleAssignmentUpdated);
+    useSocketEvent(socketCtx, SocketEvents.ASSIGNMENT_UPDATED, handleInvalidateAssignments);
+    useSocketEvent(socketCtx, SocketEvents.ASSIGNMENT_DEACTIVATED, handleAssignmentDeactivated);
+    useSocketEvent(socketCtx, SocketEvents.ASSIGNMENT_DEACTIVATED, handleInvalidateAssignments);
+
+    useSocketEvent(socketCtx, SocketEvents.USER_LIST_INVALIDATE, handleInvalidateUsers);
+    useSocketEvent(socketCtx, SocketEvents.ORG_LIST_INVALIDATE, handleInvalidateOrgs);
+    useSocketEvent(socketCtx, SocketEvents.AUDIT_CREATED, handleAuditCreated);
 
     return null; // Render nothing — listener only
 }

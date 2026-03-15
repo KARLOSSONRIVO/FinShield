@@ -1,7 +1,7 @@
 "use client"
 
 import { usePathname } from "next/navigation"
-import { useAuthContext } from "@/components/providers/auth-provider"
+import { useAuthContext } from "@/providers/auth-provider"
 import { MustChangePasswordDialog } from "@/components/global/MustChangePasswordDialog"
 
 export function GlobalPasswordChange() {

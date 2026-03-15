@@ -34,8 +34,7 @@ export function useManagerUploadInvoice() {
             // Pass values if backend supported them, currently ignored
             return await InvoiceService.upload(file)
         },
-        onSuccess: (data) => {
-            console.log("Upload success:", data)
+        onSuccess: () => {
             setUploadSuccess(true)
             // Reset form after success
             setTimeout(() => {

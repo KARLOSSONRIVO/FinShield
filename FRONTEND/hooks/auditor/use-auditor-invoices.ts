@@ -1,9 +1,8 @@
-import { useState, useMemo, useContext, useCallback } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+"use client"
+
+import { useState, useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { InvoiceService } from "@/services/invoice.service"
-import { SocketContext } from "@/providers/socket-provider"
-import { useSocketEvent } from "@/hooks/global/use-socket-event"
-import { SocketEvents } from "@/lib/socket-events"
 import { DateRange } from "react-day-picker"
 
 export type SortConfig = {
@@ -13,10 +12,7 @@ export type SortConfig = {
 
 const LIMIT = 7
 
-export function useSuperAdminInvoices() {
-    const queryClient = useQueryClient()
-    const socketCtx = useContext(SocketContext)
-
+export function useAuditorInvoices() {
     const [search, setSearchState] = useState("")
     const [page, setPage] = useState(1)
     const [sortKey, setSortKey] = useState<string | null>(null)
@@ -44,35 +40,24 @@ export function useSuperAdminInvoices() {
 
     const requestSort = (key: string, direction?: 'asc' | 'desc') => {
         if (direction !== undefined) {
-            setSortKey(key)
-            setSortDir(direction)
+            setSortKey(key); setSortDir(direction)
         } else if (sortKey === key) {
             if (sortDir === 'asc') setSortDir('desc')
             else setSortKey(null)
         } else {
-            setSortKey(key)
-            setSortDir('asc')
+            setSortKey(key); setSortDir('asc')
         }
         setPage(1)
     }
 
-    const resetFilters = useCallback(() => {
+    const resetFilters = () => {
         setSearchState(""); setStatusFilterState("all"); setAiVerdictFilterState("all")
         setDateRangeState(undefined); setMonthFilterState("all"); setYearFilterState("all")
         setSortKey(null); setPage(1)
-    }, [])
-
-    const invalidateList = useCallback(() => {
-        queryClient.invalidateQueries({ queryKey: ["invoices", "super-admin"] })
-    }, [queryClient])
-
-    useSocketEvent(socketCtx!, SocketEvents.INVOICE_LIST_INVALIDATE, invalidateList)
-    useSocketEvent(socketCtx!, SocketEvents.INVOICE_AI_COMPLETE, invalidateList)
-    useSocketEvent(socketCtx!, SocketEvents.INVOICE_FLAGGED, invalidateList)
-    useSocketEvent(socketCtx!, SocketEvents.INVOICE_ANCHOR_SUCCESS, invalidateList)
+    }
 
     const { data: response, isLoading, isError, error } = useQuery({
-        queryKey: ["invoices", "super-admin"],
+        queryKey: ["invoices", "auditor"],
         queryFn: () => InvoiceService.list()
     })
 
@@ -91,7 +76,6 @@ export function useSuperAdminInvoices() {
     const { filteredInvoices, pagination } = useMemo(() => {
         let items = [...allInvoices]
 
-        // 1. Search
         if (search.trim()) {
             const q = search.trim().toLowerCase()
             items = items.filter(inv =>
@@ -99,121 +83,64 @@ export function useSuperAdminInvoices() {
                 inv.companyName?.toLowerCase().includes(q)
             )
         }
-
-        // 2. AI Verdict
         if (aiVerdictFilter !== "all") {
             items = items.filter(inv => inv.aiVerdict?.verdict?.toLowerCase() === aiVerdictFilter)
         }
-
-        // 3. Review Status
         if (statusFilter !== "all") {
-            items = items.filter(inv => {
-                const status = (inv.status || inv.reviewDecision || "pending").toLowerCase()
-                return status === statusFilter
-            })
+            items = items.filter(inv => (inv.status || inv.reviewDecision || "pending").toLowerCase() === statusFilter)
         }
-
-        // 4. Date Range
         if (dateRange?.from || dateRange?.to) {
             items = items.filter(inv => {
-                const dateStr = inv.date || inv.invoiceDate || inv.uploadedAt || inv.createdAt
-                if (!dateStr) return false
-                const date = new Date(dateStr)
-                if (isNaN(date.getTime())) return false
-                if (dateRange.from && date < dateRange.from) return false
-                if (dateRange.to) {
-                    const toDate = new Date(dateRange.to)
-                    toDate.setHours(23, 59, 59, 999)
-                    if (date > toDate) return false
-                }
+                const dStr = inv.date || inv.invoiceDate || inv.uploadedAt || inv.createdAt || ""
+                const d = new Date(dStr)
+                if (isNaN(d.getTime())) return false
+                if (dateRange.from && d < dateRange.from) return false
+                if (dateRange.to) { const t = new Date(dateRange.to); t.setHours(23,59,59,999); if (d > t) return false }
                 return true
             })
         }
-
-        // 5. Month/Year filter
         if (monthFilter !== "all" || yearFilter !== "all") {
             items = items.filter(inv => {
-                const dateStr = inv.date || inv.invoiceDate || inv.uploadedAt || inv.createdAt
-                if (!dateStr) return false
-                const d = new Date(dateStr)
+                const dStr = inv.date || inv.invoiceDate || inv.uploadedAt || inv.createdAt || ""
+                const d = new Date(dStr)
                 if (isNaN(d.getTime())) return false
                 if (monthFilter !== "all" && d.getMonth() !== Number(monthFilter)) return false
                 if (yearFilter !== "all" && d.getFullYear() !== Number(yearFilter)) return false
                 return true
             })
         }
-
-        // 6. Sort
         if (sortKey) {
-            const key = sortKey
-            const direction = sortDir
+            const key = sortKey, dir = sortDir
             items = [...items].sort((a, b) => {
-                // Map reviewDecision to status since that's what the mapper outputs
                 const actualKey = key === 'reviewDecision' ? 'status' : key
-                
-                let aVal = (a as any)[actualKey]
-                let bVal = (b as any)[actualKey]
-                
-                // Map date sorting correctly across all possible date fields
+                let av = (a as any)[actualKey], bv = (b as any)[actualKey]
                 if (key === 'invoiceDate' || key === 'createdAt' || key === 'date') {
-                    aVal = (a as any).date || (a as any).invoiceDate || (a as any).uploadedAt || (a as any).createdAt
-                    bVal = (b as any).date || (b as any).invoiceDate || (b as any).uploadedAt || (b as any).createdAt
+                    av = (a as any).date || (a as any).invoiceDate || (a as any).uploadedAt || (a as any).createdAt
+                    bv = (b as any).date || (b as any).invoiceDate || (b as any).uploadedAt || (b as any).createdAt
                 }
-
-                if (aVal === bVal) return 0
-                if (aVal == null) return 1
-                if (bVal == null) return -1
-                
+                if (av === bv) return 0
+                if (av == null) return 1; if (bv == null) return -1
                 if (key === 'invoiceDate' || key === 'createdAt' || key === 'date') {
-                    const da = new Date(aVal).getTime(), db = new Date(bVal).getTime()
-                    return direction === 'desc' ? db - da : da - db
+                    return dir === 'desc' ? new Date(bv).getTime() - new Date(av).getTime() : new Date(av).getTime() - new Date(bv).getTime()
                 }
-                if (typeof aVal === 'number' && typeof bVal === 'number') {
-                    return direction === 'desc' ? bVal - aVal : aVal - bVal
-                }
-                const sa = String(aVal).toLowerCase(), sb = String(bVal).toLowerCase()
-                return direction === 'desc' ? sb.localeCompare(sa) : sa.localeCompare(sb)
+                if (typeof av === 'number' && typeof bv === 'number') return dir === 'desc' ? bv - av : av - bv
+                return dir === 'desc' ? String(bv).toLowerCase().localeCompare(String(av).toLowerCase()) : String(av).toLowerCase().localeCompare(String(bv).toLowerCase())
             })
         }
 
         const total = items.length
-        const totalPages = Math.ceil(total / LIMIT)
         const start = (page - 1) * LIMIT
-        return {
-            filteredInvoices: items.slice(start, start + LIMIT),
-            pagination: { total, page, limit: LIMIT, totalPages }
-        }
+        return { filteredInvoices: items.slice(start, start + LIMIT), pagination: { total, page, limit: LIMIT, totalPages: Math.ceil(total / LIMIT) } }
     }, [allInvoices, search, aiVerdictFilter, statusFilter, dateRange, monthFilter, yearFilter, sortKey, sortDir, page])
 
     const sortConfig = sortKey ? { key: sortKey as SortConfig['key'], direction: sortDir } : null
-    const hasActiveFilters =
-        statusFilter !== "all" || aiVerdictFilter !== "all" ||
-        !!(dateRange?.from || dateRange?.to) ||
-        monthFilter !== "all" || yearFilter !== "all"
+    const hasActiveFilters = statusFilter !== "all" || aiVerdictFilter !== "all" || !!(dateRange?.from || dateRange?.to) || monthFilter !== "all" || yearFilter !== "all"
 
     return {
-        availableYears,
-        invoices: filteredInvoices,
-        pagination,
-        isLoading,
-        isError,
-        error: error ? (error as any).message : null,
-        search,
-        setSearch,
-        setPage,
-        sortConfig,
-        requestSort,
-        statusFilter,
-        setStatusFilter,
-        aiVerdictFilter,
-        setAiVerdictFilter,
-        dateRange,
-        setDateRange,
-        monthFilter,
-        setMonthFilter,
-        yearFilter,
-        setYearFilter,
-        resetFilters,
-        hasActiveFilters
+        invoices: filteredInvoices, pagination, isLoading, isError, error: error ? (error as any).message : null,
+        search, setSearch, setPage, sortConfig, requestSort,
+        statusFilter, setStatusFilter, aiVerdictFilter, setAiVerdictFilter,
+        dateRange, setDateRange, monthFilter, setMonthFilter, yearFilter, setYearFilter,
+        availableYears, resetFilters, hasActiveFilters
     }
 }

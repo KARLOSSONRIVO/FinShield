@@ -13,7 +13,7 @@ import { User, PaginationDetails } from "@/lib/types"
 import { DataPagination } from "../common/DataPagination"
 import { ChevronUp, ChevronDown } from "lucide-react"
 
-import { useState, Fragment, useEffect } from "react"
+import { useState, Fragment } from "react"
 import { DisableUserDialog } from "./DisableUserDialog"
 
 
@@ -33,10 +33,6 @@ interface UserTableProps {
 export function UserTable({ users, onUpdateStatus, renderSubComponent, pagination, onPageChange, sortBy, order, onSort, hideRoleAndOrg = false }: UserTableProps) {
     const [statusUpdate, setStatusUpdate] = useState<{ id: string, status: "ACTIVE" | "INACTIVE" } | null>(null)
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
-
-    useEffect(() => {
-        console.log("Users Listing:", users);
-    }, [users]);
 
     const toggleRow = (userId: string) => {
         const newExpanded = new Set(expandedRows)

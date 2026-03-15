@@ -31,17 +31,13 @@ export function useEmployeeFlaggedQueue() {
             const verdict = inv.aiVerdict?.verdict?.toLowerCase()
             const status = inv.status?.toLowerCase()
 
-            // 1. Base Flagged Logic (respect user override via aiVerdictFilter)
             const isFlagged = verdict === "flagged" || status === "flagged"
 
             if (aiVerdictFilter === "all" && !isFlagged) return false
             if (aiVerdictFilter !== "all" && verdict !== aiVerdictFilter) return false
 
-            // 2. Status Filter - employees might want and/or have status filter too? 
-            // In the alerts page, they usually only see flagged.
             if (statusFilter !== "all" && status !== statusFilter?.toLowerCase()) return false
 
-            // 3. Date Range filter
             if (dateRange?.from || dateRange?.to) {
                 const dateStr = inv.invoiceDate || inv.date || inv.createdAt
                 if (!dateStr) return false
@@ -59,7 +55,6 @@ export function useEmployeeFlaggedQueue() {
             return true
         })
 
-        // Sorting
         if (sortBy) {
             items.sort((a: any, b: any) => {
                 const aValue = (a as any)[sortBy]
@@ -83,38 +78,24 @@ export function useEmployeeFlaggedQueue() {
 
         return {
             filteredInvoices: paginatedItems,
-            pagination: {
-                total,
-                page,
-                limit,
-                totalPages
-            }
+            pagination: { total, page, limit, totalPages }
         }
     }, [allInvoices, aiVerdictFilter, statusFilter, dateRange, sortBy, order, page, limit])
+
     return {
-        // Table Data
         invoices: filteredInvoices,
-        pagination: {
-            ...pagination,
-            setPage
-        },
-        // URL Pagination & Filters
+        pagination: { ...pagination, setPage },
         search,
         setSearch,
         setPage,
         sortConfig: sortBy ? { key: sortBy as keyof Invoice, direction: (order || "asc") as "asc" | "desc" } : null,
         requestSort: setSort,
-
-        // Filter states
         aiVerdictFilter,
         setAiVerdictFilter,
-
         dateRange,
         setDateRange,
-
         resetFilters,
         hasActiveFilters,
-
         isLoading,
         isError,
         error: error ? (error as any).message : null

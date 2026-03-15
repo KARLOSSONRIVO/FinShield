@@ -9,6 +9,7 @@ import Link from "next/link"
 import { ListInvoice, MyInvoice, PaginationDetails } from "@/lib/types"
 import { ChevronUp, ChevronDown, Loader2 } from "lucide-react"
 import { DataPagination } from "../common/DataPagination"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export type TableViewMode = "super-admin" | "auditor" | "regulator" | "manager" | "employee"
 
@@ -90,6 +91,8 @@ export function InvoiceTable({ invoices, mode, baseUrl, pagination, onPageChange
     const getAiVerdict = (row: AnyInvoice) => {
         if (isEmployee) return null; // Don't show for employees
         const listRow = row as ExtendedListInvoice;
+        // Check if aiVerdict exists AND has a verdict value
+        if (!listRow.aiVerdict || !listRow.aiVerdict.verdict) return null;
         return listRow.aiVerdict;
     }
 
@@ -190,29 +193,29 @@ export function InvoiceTable({ invoices, mode, baseUrl, pagination, onPageChange
                             return (
                                 <TableRow key={id} className="h-16 hover:bg-muted/30 transition-colors border-b border-border/50">
                                     <TableCell className="px-4 text-center font-bold text-base text-foreground">
-                                        {row.invoiceNumber || "—"}
+                                        {row.invoiceNumber || <Skeleton className="h-5 w-24 mx-auto" />}
                                     </TableCell>
 
                                     {showCompany(mode) && !showOrgColumn && (
                                         <TableCell className="px-4 font-bold text-base text-foreground">
-                                            {listRow.companyName || "—"}
+                                            {listRow.companyName || <Skeleton className="h-5 w-32" />}
                                         </TableCell>
                                     )}
 
                                     {showOrgColumn && (
                                         <TableCell className="px-4 font-bold text-base text-foreground">
-                                            {getOrganizationName(row)}
+                                            {!getOrganizationName(row) || getOrganizationName(row) === "—" ? <Skeleton className="h-5 w-32" /> : getOrganizationName(row)}
                                         </TableCell>
                                     )}
 
                                     {/* Date Cell */}
                                     <TableCell className="px-4 text-foreground">
-                                        {formatDate(date)}
+                                        {!date || formatDate(date) === "—" ? <Skeleton className="h-5 w-24" /> : formatDate(date)}
                                     </TableCell>
 
                                     {/* Amount Cell */}
                                     <TableCell className="px-4 font-bold text-base text-foreground">
-                                        {amount != null ? `₱${amount.toLocaleString()}` : "—"}
+                                        {amount != null ? `₱${amount.toLocaleString()}` : <Skeleton className="h-5 w-20" />}
                                     </TableCell>
 
                                     {/* AI Verdict Cell - Only for non-employees */}
@@ -223,9 +226,9 @@ export function InvoiceTable({ invoices, mode, baseUrl, pagination, onPageChange
                                                     {aiVerdict.verdict === "clean" ? "Verified" : aiVerdict.verdict}
                                                 </Badge>
                                             ) : (
-                                                <Badge className="bg-muted text-muted-foreground border border-border rounded-md px-3 py-1 text-xs font-bold flex items-center gap-1 w-fit mx-auto">
+                                                <Badge className="bg-muted text-muted-foreground border border-border flex items-center gap-1 text-xs font-bold px-4 w-fit mx-auto">
                                                     <Loader2 className="h-3 w-3 animate-spin" />
-                                                    Processing
+                                                    Processing...
                                                 </Badge>
                                             )}
                                         </TableCell>

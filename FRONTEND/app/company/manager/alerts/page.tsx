@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { FlaggedInvoiceFilter } from "@/components/invoices/FlaggedInvoiceFilter"
 import { InvoiceTable } from "@/components/invoices/InvoiceTable"
-import { useFlaggedQueue } from "@/hooks/flagged/use-flagged-queue"
+import { useFlaggedQueue } from "@/hooks/super-admin/use-flagged-queue"
 import { InvoiceTableSkeleton } from "@/components/skeletons/invoice-table-skeleton"
 
 export default function ManagerFlaggedPage() {

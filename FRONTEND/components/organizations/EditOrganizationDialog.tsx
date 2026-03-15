@@ -39,14 +39,14 @@ export function EditOrganizationDialog({
 }: EditOrganizationDialogProps) {
     const [name, setName] = useState("")
     const [status, setStatus] = useState<OrganizationStatus>("ACTIVE")
-    const [type, setType] = useState("COMPANY")
+    const [type, setType] = useState("company")
 
     // Reset form when organization changes
     useEffect(() => {
         if (organization) {
             setName(organization.name || "")
             setStatus(organization.status || "ACTIVE")
-            setType(organization.type || "COMPANY")
+            setType(organization.type || "company")
         }
     }, [organization])
 
@@ -56,7 +56,7 @@ export function EditOrganizationDialog({
             ...organization,
             name,
             status: status as OrganizationStatus,
-            type: type as "COMPANY" | "AUDITOR" | "REGULATOR"
+            type: type as unknown as "COMPANY" | "AUDITOR" | "REGULATOR"
         })
         onOpenChange(false)
     }
@@ -99,8 +99,8 @@ export function EditOrganizationDialog({
                                 <SelectValue placeholder="Select type" />
                             </SelectTrigger>
                             <SelectContent className="border border-black rounded-lg">
-                                <SelectItem value="COMPANY">Company</SelectItem>
-                                <SelectItem value="ORGANIZATION">Organization</SelectItem>
+                                <SelectItem value="company">Company</SelectItem>
+                                <SelectItem value="organization">Organization</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -117,8 +117,8 @@ export function EditOrganizationDialog({
                                 <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent className="border border-black rounded-lg">
-                                <SelectItem value="ACTIVE">Active</SelectItem>
-                                <SelectItem value="INACTIVE">Inactive</SelectItem>
+                                <SelectItem value="active">Active</SelectItem>
+                                <SelectItem value="inactive">Inactive</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

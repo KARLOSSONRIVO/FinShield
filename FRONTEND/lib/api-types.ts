@@ -787,10 +787,10 @@ export interface paths {
                         /** @example Acme Corporation */
                         name: string;
                         /**
-                         * @example COMPANY
+                         * @example company
                          * @enum {string}
                          */
-                        type: "COMPANY" | "AUDITOR" | "REGULATOR";
+                        type: "company" | "organization";
                     };
                 };
             };

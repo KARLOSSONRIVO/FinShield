@@ -16,7 +16,6 @@ export function useCreateInvoice() {
             })
         },
         onError: (error: any) => {
-            // Drill through all possible error shapes the API may return
             const data = error.response?.data
             const message = typeof data?.message === 'string'
                 ? data.message
