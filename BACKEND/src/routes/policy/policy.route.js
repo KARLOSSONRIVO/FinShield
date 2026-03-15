@@ -14,7 +14,7 @@ const policyRouter = Router();
 // Create a new policy for a company org
 policyRouter.post(
     "/",
-    allowRoles("REGULATOR"),
+    allowRoles("REGULATOR", "SUPER_ADMIN"),
     validateCreatePolicy,
     PolicyController.createPolicy
 );
@@ -22,7 +22,7 @@ policyRouter.post(
 // Update a policy by id
 policyRouter.patch(
     "/:id",
-    allowRoles("REGULATOR"),
+    allowRoles("REGULATOR", "SUPER_ADMIN"),
     validateUpdatePolicy,
     PolicyController.updatePolicy
 );
@@ -30,7 +30,7 @@ policyRouter.patch(
 // Delete a policy by id
 policyRouter.delete(
     "/:id",
-    allowRoles("REGULATOR"),
+    allowRoles("REGULATOR", "SUPER_ADMIN"),
     validatePolicyIdParam,
     PolicyController.deletePolicy
 );
