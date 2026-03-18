@@ -1,235 +1,42 @@
-# FinShield AI Service
+# FinShield AI Service Docs
 
-Invoice processing and fraud detection microservice with OCR, layout analysis, anomaly detection, and fraud detection capabilities.
+This folder contains implementation documentation for the AI microservice used by FinShield.
 
----
+## What Changed (March 2026)
+- Verification orchestration now runs through the LLM agent orchestrator in `app/agent/orchestrator.py`.
+- Scoring rules (weights, hard caps, compound penalties, verdict thresholds) are defined in `app/agent/prompt.py`.
+- OCR service stores `aiRiskScore` as `round((1 - overall_score) * 100, 2)` in `app/services/ocr_service.py`.
+- Template API endpoint is `POST /template/process` (not `/template/analyze`).
+- Template cache invalidation endpoint is `POST /template/invalidate/{org_id}`.
+- Scheduler runs as a dedicated process via `scripts/run_scheduler.py` and should not run inside each API worker.
+- Scheduler cadence in `scripts/scheduler.py`:
+  - Health ping every 10 minutes
+  - Anomaly retraining every 3 days (2 AM start)
+  - Fraud retraining monthly (day 1 at 3 AM)
+- Redis usage includes:
+  - Text client for JSON cache
+  - Binary client for shared model caching across workers
+  - Pub/Sub publish helper for AI completion events
 
-## 🚀 Quick Start
+## Runtime Endpoints
+- `GET /` health status
+- `POST /precheck/` invoice pre-validation
+- `POST /ocr/{invoice_id}` OCR + AI verification
+- `POST /template/process` template extraction
+- `POST /template/invalidate/{org_id}` template cache invalidation
+- `GET /docs` Swagger UI
+- `GET /redoc` ReDoc
 
-### Installation
+## Core Documents
+- `COMPUTATION.md` scoring and verdict computation used by the orchestrator
+- `CONCURRENT_UPLOAD_FLOW.md` current AI-side concurrency behavior
+- `REDIS_SETUP.md` Redis setup and cache design
+- `anomaly/AI_SERVICE_GUIDE.md` anomaly architecture and operation notes
+- `anomaly/ANOMALY_DETECTION_IMPLEMENTATION.md` anomaly implementation details
+- `anomaly/ANOMALY_DETECTION_LAYER.md` anomaly layer behavior
+- `FRAUD/FRAUD_DETECTION_LAYER.md` fraud layer behavior
+- `layout/LAYOUT_DETECTION_LAYER.md` layout layer behavior
 
-```bash
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### Running the Service
-
-**Windows Development:**
-```powershell
-python dev.py
-```
-
-**Linux/Mac Development:**
-```bash
-python dev.py
-# Or use Gunicorn:
-gunicorn app.main:app -c gunicorn.conf.py
-```
-
-**Production (Linux/Docker only):**
-```bash
-gunicorn app.main:app -c gunicorn.conf.py
-# Or use the start script:
-chmod +x start.sh && ./start.sh
-```
-
-> ⚠️ **Note:** Gunicorn requires Linux/Mac/WSL. On Windows, use `python dev.py` for development.
-
-> 💡 Worker count auto-adjusts based on CPU cores. Override in `.env` with `UVICORN_WORKERS`.
-
----
-
-## ⚙️ Configuration
-
-Edit `.env` file:
-
-```env
-# Development (1 worker for local testing)
-UVICORN_WORKERS=1
-
-# Production (adjust based on your server)
-# 1 CPU = 3 workers
-# 2 CPU = 5 workers
-# 4 CPU = 9 workers
-UVICORN_WORKERS=5
-```
-
----
-
-## 🌐 API Endpoints
-
-Server runs at: `http://0.0.0.0:8000`
-
-### Main Endpoints:
-- `GET /` - Health check
-- `POST /precheck` - Pre-validate invoice before upload
-- `POST /ocr/{invoice_id}` - Run OCR and AI verification on anchored invoice
-- `POST /template/analyze` - Analyze organization invoice template
-
-### Interactive Documentation:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
-
----
-
-## 📊 Performance
-
-### Development (1 worker):
-```
-100 invoices → ~16 minutes (sequential)
-Good for: Local testing
-```
-
-### Production (5 workers, 2 CPU):
-```
-100 invoices → ~3-4 minutes (parallel)
-Good for: 1000-5000 invoices/day
-```
-
-### Production (9 workers, 4 CPU):
-```
-100 invoices → ~2 minutes (parallel)
-Good for: 10,000+ invoices/day
-```
-
-Each invoice takes ~5-10 seconds to process (OCR + AI analysis).
-
----
-
-## 🚢 Deployment
-
-### Render.com
-See [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md) for complete setup guide.
-
-**Quick config:**
-- **Build Command:** `pip install -r requirements.txt`
-- **Start Command:** `gunicorn app.main:app -c gunicorn.conf.py`
-- **Environment Variables:** Set `UVICORN_WORKERS` based on plan
-
-### Docker
-```dockerfile
-FROM python:3.11-slim
-RUN apt-get update && apt-get install -y tesseract-ocr poppler-utils
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-CMD ["gunicorn", "app.main:app", "-c", "gunicorn.conf.py"]
-```
-
----
-
-## 🏗️ Architecture
-
-### 3-Layer AI Verification Pipeline:
-
-1. **Layout Detection Layer (60% weight)**
-   - Compares invoice structure with organization template
-   - Detects structural anomalies in document layout
-
-2. **Anomaly Detection Layer (passive)**
-   - Rule-based checks (60%): Line items, dates, amounts, round numbers
-   - ML-based checks (40%): Isolation Forest per organization
-   - Organization-specific models cached in memory
-
-3. **Fraud Detection Layer (passive)**
-   - Duplicate detection across organization history
-   - Pattern analysis for known fraud schemes
-   - Temporal anomaly checking
-   - Customer validation
-
-### ML Model Management:
-- **Storage:** AWS S3
-- **Training:** Automated weekly (Sundays 2 AM)
-- **Cache:** In-memory per organization
-- **First load:** ~150ms from S3
-- **Subsequent:** <1ms (cached)
-
----
-
-## 📁 Project Structure
-
-```
-AI_SERVICE/
-├── app/
-│   ├── main.py              # FastAPI application
-│   ├── api/                 # API endpoints
-│   ├── services/            # Business logic
-│   ├── engines/             # OCR & AI engines
-│   ├── pipelines/           # Verification pipeline
-│   └── core/                # Config & utilities
-├── scripts/                 # Training & scheduling
-├── models/                  # ML model artifacts
-├── gunicorn.conf.py        # Production server config
-├── start.sh                # Quick start script
-└── .env                    # Configuration
-```
-Windows:
-```powershell
-# Run development server
-python dev.py
-
-# With auto-reload (edit dev.py and add reload=True to uvicorn.run())
-```
-
-### Linux/Mac:
-```bash
-# Option 1: Use dev.py
-python dev.py
-
-# Option 2: Use Gunicorn with reload
-gunicorn app.main:app -c gunicorn.conf.py --reload
-```
-
-Then run:
-```bash
-gunicorn app.main:app -c gunicorn.conf.py
-```
-
-### Run tests:
-```bash
-pytest tests/
-```
-
----
-
-## 📚 Documentation
-
-- **[RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)** - Complete Render.com deployment guide
-- **[REDIS_SETUP.md](REDIS_SETUP.md)** - Redis configuration, setup, and caching guide
-- **[MODEL_CACHING_COMPARISON.md](MODEL_CACHING_COMPARISON.md)** - In-Memory vs Redis for ML models
-- **[CONCURRENT_UPLOAD_FLOW.md](CONCURRENT_UPLOAD_FLOW.md)** - How concurrent uploads are handled
-- **[AI_SERVICE_GUIDE.md](anomaly/AI_SERVICE_GUIDE.md)** - Architecture and scaling guide
-
----
-
-## 🔐 Environment Variables
-
-Required in `.env`:
-
-```env
-# MongoDB
-MONGO_URI=mongodb+srv://...
-MONGO_DB=finshield
-
-# IPFS
-IPFS_GATEWAY_BASE=https://gateway.pinata.cloud/ipfs
-
-# AWS S3 (ML Models)
-AWS_ACCESS_KEY_ID=...
-AWS_SECRET_ACCESS_KEY=...
-AWS_REGION=ap-southeast-2
-MODEL_BUCKET_NAME=finshield-models
-
-# Server
-UVICORN_WORKERS=1
-UVICORN_HOST=0.0.0.0
-UVICORN_PORT=8000
-```
-
----
-
-## 📝 License
-
-Private - FinShield Project
+## Notes
+- This docs index is aligned to the current code paths and endpoint names.
+- Legacy references such as `start.sh`, `RENDER_DEPLOYMENT.md`, and `MODEL_CACHING_COMPARISON.md` are not part of this folder at this time.

@@ -1,103 +1,66 @@
-# Layout Detection Layer
+# Layout Detection Layer (Current)
 
-The **Layout Detection Layer** is **Stage 1** of the FinShield verification pipeline. It acts as a structural biometric scanner, ensuring that an incoming invoice visually and geometrically matches the organization's verified master template.
+## Purpose
+Layout detection is stage 1 of verification. It compares extracted invoice structure to organization template structure.
 
-## Overview
+Code location:
+- `app/pipelines/verification/stages/layout/layer.py`
 
-Unlike standard OCR which only reads text content, Layout Detection analyzes the **geometric DNA** of the document. It catches sophisticated fraudsters who might use the correct company name and logo but generate the invoice using a different software or template.
+Comparison engine:
+- `app/engines/layout/comparison_engine.py`
 
-### Core Objectives
-1.  **Template Verification**: Ensure the invoice uses the official company format.
-2.  **Impersonation Defense**: Detect "Clone Invoices" where text is identical but layout is generic.
-3.  **Extraction Quality Check**: Verify that OCR correctly identified the document structure.
+## Inputs
+Expected context fields:
+- `extracted_layout`
+- `template_layout`
 
----
+## Decision Flow
+1. If template missing or no template fields:
+- verdict: skip
+- score: 1.0
+- flag: `NO_TEMPLATE`
 
-## How It Works
+2. If extracted layout missing or no extracted fields:
+- verdict: fail
+- score: 0.0
+- flag: `EXTRACTION_FAILED`
 
-The system operates in four primary phases:
+3. Otherwise run comparison engine and score weighted components.
 
-### 1. Extraction (Visual Mapping)
-When an invoice is uploaded, the **Tesseract OCR** engine extracts:
-*   Every word/line of text.
-*   The precise **Bounding Box** ($x, y, width, height$) for every element.
-*   The **Zone** (e.g., Top-Left, Bottom-Right) of the element.
+## Current Thresholds
+Layout layer thresholds currently in code:
+- pass: score >= 0.70
+- warn: score >= 0.45
+- fail: score < 0.45
 
-### 2. Signature Building
-The `Layout Signature Builder` (`app/engines/tesseract/signature.py`) converts thousands of coordinates into a compact mathematical fingerprint. It calculates:
-*   **Quadrant Density**: How many items are in each corner of the page.
-*   **Center of Gravity**: The average statistical center of all content.
-*   **Geometric Stats**: Mean and Standard Deviation of block sizes and positions.
+These are intentionally less strict than older documentation to reduce false warnings from minor positional drift.
 
-### 3. Comparison
-The `LayoutComparisonEngine` (`app/engines/layout/comparison_engine.py`) retrieves the organization's stored **Master Template Signature** and calculates a similarity score based on weighted factors.
+## Comparison Weights
+Engine weights:
+- field presence: 0.10
+- field positions: 0.15
+- element count: 0.10
+- structure: 0.05
+- structural features: 0.60
 
-### 4. Verdict Determination
-The layer returns a verdict based on the similarity score:
+If structural features are unavailable, weights are redistributed across remaining components.
 
-| Score | Verdict | Meaning |
-| :--- | :--- | :--- |
-| **≥ 0.95** | **PASS** | Perfect structural match. |
-| **0.85 - 0.94** | **WARN** | Minor structural shifts (e.g., scanning skew). |
-| **< 0.85** | **FAIL** | Major mismatch. Likely a different document or fraudulent clone. |
+## Critical Field Penalty
+Critical fields:
+- `invoice_number`
+- `total`
+- `invoice_date`
 
----
+If critical fields are missing, engine applies heavy penalty by halving total score and adds `CRITICAL_FIELDS_MISSING:...` flag.
 
-## Scoring & Weights
+## Output Shape
+Layer result includes:
+- `verdict`
+- `score`
+- `flags`
+- `details`
 
-The comparison score (0.0 to 1.0) is derived from five components. Note the heavy emphasis on **Structural Features**.
+Engine details intentionally omit per-field mismatch internals to keep downstream summaries generic and avoid exposing low-level layout coordinates.
 
-| Component | Weight | Description |
-| :--- | :--- | :--- |
-| **Structural Features** | **60%** | **Geometry**: Analyzes quadrant density and positional distribution statistics. |
-| **Field Positions** | **15%** | **Zones**: Verifies if "Total", "Date", etc., are in the expected visual zones. |
-| **Field Presence** | **10%** | **Keywords**: Checks for the existence of required form labels. |
-| **Element Count** | **10%** | **Complexity**: Checks if the "busyness" of the page matches the template. |
-| **General Structure** | **5%** | **Alignment**: General check for row/column alignment. |
-
-> [!IMPORTANT]
-> Because **60% of the score** is based on geometry, it is nearly impossible for a fraudster to bypass this check using a generic "Online Invoice Maker" even if they type the correct vendor details.
-
----
-
-## Database Storage
-
-The "Master Template" fingerprint is stored in the **`organizations`** collection in MongoDB.
-
-### Schema Example
-```javascript
-{
-  "_id": ObjectId("..."),
-  "invoiceTemplate": {
-    "s3Key": "templates/org_123/master.pdf",
-    "layoutSignature": {
-      "fields": ["invoice_number", "total", "date"],
-      "positions": {
-        "total": "bottom-right",
-        "invoice_number": "top-right"
-      },
-      "elementCount": 42,
-      // The geometric fingerprint used for the 60% weight
-      "structuralFeatures": {
-        "quadrant_density": {
-           "top_left": 12, "top_right": 8, 
-           "bottom_left": 15, "bottom_right": 7
-        },
-        "position_distribution": {
-           "x": {"mean": 402.5, "median": 390.0, "stdev": 210.1},
-           "y": {"mean": 515.2, "median": 480.0, "stdev": 300.5}
-        }
-      }
-    }
-  }
-}
-```
-
----
-
-## Implementation Details
-
-*   **Logic Layer**: `app/pipelines/verification/stages/layout.py`
-*   **Comparison Engine**: `app/engines/layout/comparison_engine.py`
-*   **Signature Builder**: `app/engines/tesseract/signature.py`
-*   **Service Layer**: `app/services/template_service.py`
+## Change Note (March 2026)
+Updated from legacy thresholds and aligned to current comparison engine behavior.

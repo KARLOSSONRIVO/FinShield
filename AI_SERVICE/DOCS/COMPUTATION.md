@@ -1,96 +1,91 @@
-# Weighted Layer Scoring for Verification Pipeline
+# Verification Computation (Current)
 
-## Problem
+This document describes how the AI service computes final invoice risk and verdict.
 
-Currently, all 3 verification layers contribute equally (33.33% each) to the overall `aiRiskScore`. This doesn't reflect reality — a fraud detection hit is far more significant than a layout mismatch.
+## Source of Truth
+- Scoring policy is defined in `app/agent/prompt.py`.
+- Orchestration is executed in `app/agent/orchestrator.py`.
+- Persisted database fields are applied in `app/services/ocr_service.py`.
 
-## Proposed Weights
+## Layer Weights
+The orchestrator uses three layers and applies weighted scoring:
+- Layout detection: 0.10
+- Anomaly detection: 0.35
+- Fraud detection: 0.55
 
-| Layer | Current Weight | Proposed Weight | Justification |
-|-------|---------------|----------------|---------------|
-| **Fraud Detection** | 33.33% | **50%** | Uses supervised ML trained on confirmed fraud. A hit here means the invoice matches known fraud patterns — the strongest signal. |
-| **Anomaly Detection** | 33.33% | **30%** | Uses unsupervised ML to catch statistical outliers. Important but can produce false positives (e.g., a legitimately large purchase). |
-| **Layout Validation** | 33.33% | **20%** | Heuristic-based template comparison. Useful but layout changes can be legitimate (new templates, vendor updates). Least reliable fraud indicator. |
+Base weighted score:
 
-### Why This Ranking?
+$$
+\text{overall\_score} = (S_{layout} \times 0.10) + (S_{anomaly} \times 0.35) + (S_{fraud} \times 0.55)
+$$
 
-1. **Fraud (50%)**: This layer is trained on **labeled, confirmed fraud data**. If the Random Forest says "this looks like fraud", it's based on patterns from actual fraudulent invoices. This is the most direct and reliable signal.
+If any layer returns skip, remaining weights are re-normalized proportionally.
 
-2. **Anomaly (30%)**: Catches things the fraud model hasn't seen before ("unknown unknowns"). Important for novel fraud, but statistical outliers can also be legitimate business events.
+## Hard Caps
+After base weighted score, the orchestrator applies hard caps using flag matches.
+The lowest matching cap wins.
 
-3. **Layout (20%)**: A structural check that catches basic template forgery. However, layout mismatches are often benign (template updates, different vendor formats). Lowest fraud signal.
+Examples of cap rules:
+- `DUPLICATE_EXACT` -> max 0.20
+- `DUPLICATE_NUMBER` -> max 0.25
+- `TEMPORAL_FUTURE` -> max 0.35
+- `MATH_MISCALCULATION` -> max 0.35
+- `HIGH_TAX_RATE (>50%)` -> max 0.20
+- `HIGH_TAX_RATE (>25%)` -> max 0.35
+- `SINGLE_ITEM` -> max 0.45
+- `ROUND_NUMBER (>= $10k)` -> max 0.40
 
-### Scoring Examples
+Domain override rules in the prompt can enforce stricter caps than the generic list.
 
-| Scenario | Layout (×0.20) | Anomaly (×0.30) | Fraud (×0.50) | Old Score | New Score | Impact |
-|----------|:---:|:---:|:---:|:---:|:---:|---|
-| All clean (1.0 each) | 0.20 | 0.30 | 0.50 | **1.00** | **1.00** | No change |
-| Layout fails only | 0.00 | 0.30 | 0.50 | **0.67** | **0.80** | Less punishing (layout issues shouldn't tank the score) |
-| Fraud fails only | 0.20 | 0.30 | 0.00 | **0.67** | **0.50** | More punishing (fraud hit matters more) |
-| Anomaly + Fraud fail | 0.20 | 0.00 | 0.00 | **0.33** | **0.20** | More punishing |
+## Compound Penalty
+After caps, a compound penalty is applied for multiple severe flags.
 
-## Proposed Changes
+Severe list includes items such as:
+- `TEMPORAL_FUTURE`
+- `DUPLICATE_EXACT`
+- `DUPLICATE_NUMBER`
+- `PATTERN_ROUND`
+- `ROUND_NUMBER`
+- `MATH_MISCALCULATION`
+- `HIGH_TAX_RATE`
+- `SINGLE_ITEM`
 
-### Verification Pipeline
+Penalty rule:
+- If severe_count <= 2: no compound penalty
+- If severe_count > 2:
 
-#### [MODIFY] [runner.py](file:///c:/Users/lNooisYl/Documents/IT/WEBDEV/FinShield/AI_SERVICE/app/pipelines/verification/runner.py)
+$$
+\text{penalty} = \min((\text{severe\_count} - 2) \times 0.10, 0.50)
+$$
 
-1. Add a `LAYER_WEIGHTS` dictionary mapping layer names to their weights
-2. Replace the simple average calculation with a weighted average
-3. Handle dynamic weight normalization when stages are skipped
+$$
+\text{overall\_score} = \text{overall\_score} \times (1 - \text{penalty})
+$$
 
-```diff
- class VerificationPipeline:
-     SCORE_CLEAN_THRESHOLD = 0.80
-     SCORE_FLAGGED_THRESHOLD = 0.50
-+
-+    # Layer weights for overall score calculation
-+    # Fraud is most important (supervised ML on confirmed fraud)
-+    # Anomaly is second (unsupervised, catches unknown patterns)
-+    # Layout is third (heuristic, prone to false positives)
-+    LAYER_WEIGHTS = {
-+        "fraud_detection": 0.50,
-+        "anomaly_detection": 0.30,
-+        "layout_detection": 0.20,
-+    }
-+    DEFAULT_WEIGHT = 0.33  # Fallback for unknown layers
-```
+## Verdict Thresholds
+Final thresholds:
+- overall_score >= 0.85 -> clean, risk_level low
+- overall_score >= 0.50 -> flagged, risk_level medium
+- overall_score < 0.50 -> fraudulent, risk_level high
 
-Replace the scoring logic (lines 95-99):
+## Stored Risk Field
+The API stores `aiRiskScore` on a 0 to 100 riskier-is-higher scale:
 
-```diff
--        # Calculate overall score (average of active stages)
--        if active_scores:
--            overall_score = sum(active_scores) / len(active_scores)
--        else:
--            overall_score = 1.0
-+        # Calculate overall score (weighted average of active stages)
-+        if active_scores:
-+            total_weight = sum(w for _, w in active_scores)
-+            overall_score = sum(s * w for s, w in active_scores) / total_weight
-+        else:
-+            overall_score = 1.0
-```
+$$
+aiRiskScore = \text{round}((1 - overall\_score) \times 100, 2)
+$$
 
-And update the score collection (lines 91-93):
+This transformation is performed in `app/services/ocr_service.py`.
 
-```diff
--            if result.verdict != LayerVerdict.SKIP:
--                active_scores.append(result.score)
-+            if result.verdict != LayerVerdict.SKIP:
-+                weight = self.LAYER_WEIGHTS.get(result.layer_name, self.DEFAULT_WEIGHT)
-+                active_scores.append((result.score, weight))
-```
+## Output Fields Returned by AI Service
+The OCR endpoint returns:
+- `aiRiskScore`
+- `aiVerdict` (clean or flagged in DB mapping)
+- `riskLevel`
+- `aiSummary`
+- `layerResults`
+- `allFlags`
 
-## Verification Plan
-
-### Manual Verification
-
-Since there are no existing automated tests for this pipeline, verification will be done by reviewing the code logic and confirming the math:
-
-1. **Code Review**: Verify the weighted average formula produces correct results for edge cases:
-   - All 3 layers active: weights sum to 1.0, weighted average is correct
-   - 1 layer skipped: remaining weights are re-normalized
-   - All layers skipped: score defaults to 1.0
-
-2. **User Testing**: After deployment, the user can verify by checking `aiRiskScore` values in the database and confirming that fraud-heavy invoices receive higher risk scores than layout-only issues.
+## Change Note (March 2026)
+This replaced the older static pipeline-runner documentation.
+Scoring policy is now prompt-governed and enforced by the agent orchestrator flow.
