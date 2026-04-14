@@ -1,142 +1,116 @@
 "use client"
 
-import { useState } from "react"
-import { AdminSidebar } from "@/components/admin-sidebar"
+import { Building2, Plus, Filter } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { OrganizationTable } from "@/components/organizations/OrganizationTable"
+import { useOrganizations } from "@/hooks/organizations/use-organizations"
+import { CreateOrganizationDialog } from "@/components/organizations/CreateOrganizationDialog"
+import { SearchInput } from "@/components/common/SearchInput"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
-import { mockOrganizations } from "@/lib/mock-data"
-import { Building2, Plus, Search } from "lucide-react"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+import { OrganizationTableSkeleton } from "@/components/skeletons/organization-table-skeleton"
 
 export default function OrganizationsPage() {
-  const [search, setSearch] = useState("")
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [newOrgName, setNewOrgName] = useState("")
-
-  const companies = mockOrganizations.filter((o) => o.type === "company")
-  const filteredCompanies = companies.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
-
-  const handleCreateOrg = () => {
-    alert(`Creating organization: ${newOrgName}`)
-    setNewOrgName("")
-    setIsCreateOpen(false)
-  }
+  const {
+    search,
+    setSearch,
+    organizations,
+    isCreateOpen,
+    setIsCreateOpen,
+    newOrgName,
+    setNewOrgName,
+    newOrgType,
+    setNewOrgType,
+    newOrgStatus,
+    setNewOrgStatus,
+    handleCreateOrg,
+    pagination,
+    setPage,
+    sortConfig,
+    requestSort,
+    handleEditOrg,
+    handleDeleteOrg,
+    error, // Extract error
+    isLoading // Destructure isLoading
+  } = useOrganizations()
 
   return (
-    <div className="flex h-screen">
-      <AdminSidebar role="SUPER_ADMIN" />
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Building2 className="h-6 w-6 text-primary" />
-                Organizations
-              </h1>
-              <p className="text-muted-foreground">Manage company organizations on the platform</p>
-            </div>
-            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Organization
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New Organization</DialogTitle>
-                  <DialogDescription>Add a new company organization to the platform</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="orgName">Organization Name</Label>
-                    <Input
-                      id="orgName"
-                      placeholder="Enter company name"
-                      value={newOrgName}
-                      onChange={(e) => setNewOrgName(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleCreateOrg}>Create Organization</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-4">
-                <div className="relative flex-1 max-w-sm">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search organizations..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Organization Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredCompanies.map((org) => (
-                    <TableRow key={org._id}>
-                      <TableCell className="font-medium">{org.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{org.type}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={org.status === "active" ? "default" : "destructive"}
-                          className={org.status === "active" ? "bg-primary text-primary-foreground" : ""}
-                        >
-                          {org.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{new Date(org.createdAt).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm">
-                          View
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          Edit
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+    <div className="space-y-6">
+      {error && (
+        <div className="p-4 rounded-md bg-red-50 border border-red-200 text-red-700 flex items-center gap-2">
+          <span className="font-bold">Error:</span> {error}
         </div>
-      </main>
+      )}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-normal tracking-tight">Organization Management</h2>
+        <Button
+          onClick={() => setIsCreateOpen(true)}
+          suppressHydrationWarning
+          className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-medium"
+        >
+          <Plus className="h-4 w-4" />
+          Create Organization
+        </Button>
+      </div>
+
+      <CreateOrganizationDialog
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        newOrgName={newOrgName}
+        setNewOrgName={setNewOrgName}
+        newOrgType={newOrgType}
+        setNewOrgType={setNewOrgType}
+        newOrgStatus={newOrgStatus}
+        setNewOrgStatus={setNewOrgStatus}
+        onCreateOrg={handleCreateOrg}
+      />
+
+      <div className="flex gap-4">
+        <SearchInput
+          value={search || ""}
+          onChange={setSearch}
+          placeholder="Search by organization name..."
+        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="gap-2 border-2 text-base px-6 h-10 border-black/10" suppressHydrationWarning>
+              <Filter className="h-4 w-4" />
+              Filter & Sort
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>Sort By</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => requestSort('createdAt', 'desc')}>
+              <span className={sortConfig?.key === 'createdAt' && sortConfig?.direction === 'desc' ? "font-bold text-primary" : ""}>Date Created (New - Old)</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => requestSort('createdAt', 'asc')}>
+              <span className={sortConfig?.key === 'createdAt' && sortConfig?.direction === 'asc' ? "font-bold text-primary" : ""}>Date Created (Old - New)</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {isLoading ? (
+        <OrganizationTableSkeleton />
+      ) : (
+        <OrganizationTable
+          organizations={organizations}
+          onEdit={handleEditOrg}
+          pagination={pagination}
+          onPageChange={setPage}
+          sortBy={sortConfig?.key}
+          order={sortConfig?.direction as "asc" | "desc" | undefined}
+          onSort={(field) => requestSort(field)}
+        />
+      )}
     </div>
   )
 }

@@ -1,0 +1,7 @@
+app/admin/super-admin/assignments/[id]/page.tsx(76,38): error TS2554: Expected 0 arguments, but got 1.
+app/admin/super-admin/assignments/[id]/page.tsx(93,87): error TS2367: This comparison appears to be unintentional because the types '"INACTIVE"' and '"active"' have no overlap.
+app/admin/super-admin/assignments/[id]/page.tsx(94,91): error TS2367: This comparison appears to be unintentional because the types '"ACTIVE"' and '"inactive"' have no overlap.
+app/admin/super-admin/assignments/[id]/page.tsx(136,42): error TS2552: Cannot find name 'mockOrganizations'. Did you mean 'organizations'?
+app/admin/super-admin/assignments/[id]/page.tsx(136,67): error TS7006: Parameter 'o' implicitly has an 'any' type.
+app/admin/super-admin/assignments/[id]/page.tsx(136,98): error TS7006: Parameter 'org' implicitly has an 'any' type.
+components/ui/sidebar.tsx(8,29): error TS2307: Cannot find module '@/hooks/common/use-mobile' or its corresponding type declarations.

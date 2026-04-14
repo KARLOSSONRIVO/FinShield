@@ -1,77 +1,91 @@
 "use client"
 
-import { AdminSidebar } from "@/components/admin-sidebar"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { mockInvoices } from "@/lib/mock-data"
-import { InvoiceStatusBadge, AIVerdictBadge } from "@/components/status-badge"
-import { AlertTriangle, Eye } from "lucide-react"
-import Link from "next/link"
+import { InvoiceTable } from "@/components/invoices/InvoiceTable"
+import { FlaggedTableSkeleton } from "@/components/skeletons/flagged-table-skeleton"
+import { useFlaggedQueue } from "@/hooks/flagged/use-flagged-queue"
+import { Pagination } from "@/components/ui/pagination-custom"
+import { FlaggedInvoiceFilter } from "@/components/invoices/FlaggedInvoiceFilter"
+import { useSocketEvent } from "@/hooks/global/use-socket-event"
+import { SocketEvents } from "@/lib/socket-events"
+import { SocketContext } from "@/providers/socket-provider"
+import { useContext } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 
 export default function FlaggedQueuePage() {
-  const flaggedInvoices = mockInvoices.filter((i) => i.status === "flagged" || i.ai_verdict === "flagged")
+  const {
+    search,
+    setSearch,
+    statusFilter,
+    setStatusFilter,
+    invoices,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    sortConfig,
+    requestSort,
+    isLoading,
+    dateRange,
+    setDateRange,
+    hasActiveFilters,
+    monthFilter,
+    setMonthFilter,
+    yearFilter,
+    setYearFilter,
+    availableYears,
+    resetFilters,
+  } = useFlaggedQueue()
+
+  const queryClient = useQueryClient()
+  const socketCtx = useContext(SocketContext)
+
+  const invalidateList = () => {
+    queryClient.invalidateQueries({ queryKey: ["flagged-queue"] })
+  }
+
+  useSocketEvent(socketCtx!, SocketEvents.INVOICE_LIST_INVALIDATE, invalidateList)
 
   return (
-    <div className="flex h-screen">
-      <AdminSidebar role="SUPER_ADMIN" />
-      <main className="flex-1 overflow-auto">
-        <div className="p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <AlertTriangle className="h-6 w-6 text-warning" />
-              Flagged Queue
-            </h1>
-            <p className="text-muted-foreground">Invoices requiring immediate attention</p>
-          </div>
+    <div className="space-y-3">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl font-bold">Flagged Invoices</h1>
+        <FlaggedInvoiceFilter
+          search={search || ""}
+          onSearchChange={setSearch}
+          sortConfig={sortConfig}
+          onSortChange={requestSort}
+          statusFilter={statusFilter}
+          onStatusChange={setStatusFilter as any}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+          hasActiveFilters={hasActiveFilters}
+          monthFilter={monthFilter}
+          yearFilter={yearFilter}
+          onMonthChange={setMonthFilter}
+          onYearChange={setYearFilter}
+          availableYears={availableYears}
+          onClearFilters={resetFilters}
+        />
+      </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>High Risk Invoices</CardTitle>
-              <CardDescription>{flaggedInvoices.length} invoices flagged by AI or marked for review</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Invoice No</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>AI Analysis</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {flaggedInvoices.map((invoice) => (
-                    <TableRow key={invoice._id}>
-                      <TableCell className="font-medium">{invoice.invoiceNo}</TableCell>
-                      <TableCell>{invoice.companyName}</TableCell>
-                      <TableCell>${invoice.totals_total.toLocaleString()}</TableCell>
-                      <TableCell>
-                        <AIVerdictBadge verdict={invoice.ai_verdict} score={invoice.ai_riskScore} />
-                      </TableCell>
-                      <TableCell>
-                        <InvoiceStatusBadge status={invoice.status} />
-                      </TableCell>
-                      <TableCell>{new Date(invoice.invoiceDate).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <Link href={`/admin/super-admin/invoices/${invoice._id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4 mr-1" />
-                            Review
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+      <div className="mt-4">
+        {isLoading ? (
+          <FlaggedTableSkeleton />
+        ) : (
+          <InvoiceTable
+            invoices={invoices}
+            mode="super-admin"
+            baseUrl="/admin/super-admin/invoices"
+          />
+        )}
+      </div>
+
+      <div className="mt-4 flex justify-center">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </div>
     </div>
   )
 }

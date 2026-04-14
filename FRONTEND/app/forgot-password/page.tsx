@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { FinShieldLogo } from "@/components/finshield-logo"
+import { FinShieldLogo } from "@/components/common/FinShieldLogo"
 import Link from "next/link"
 import { ArrowLeft, Mail } from "lucide-react"
 

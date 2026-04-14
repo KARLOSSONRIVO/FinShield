@@ -27,7 +27,7 @@ interface UseFileUploadReturn {
 export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUploadReturn {
     const {
         maxSize = 10 * 1024 * 1024, // 10MB default
-        acceptedTypes = [".pdf", ".png", ".jpg", ".jpeg"],
+        acceptedTypes = [".pdf", ".docx"], // Matches Backend restrictions
         onSuccess,
         onError,
         resetDelay = 3000,
