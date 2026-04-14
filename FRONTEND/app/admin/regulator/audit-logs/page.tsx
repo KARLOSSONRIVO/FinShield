@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { mockAuditLogs } from "@/lib/mock-data"
 import { ScrollText, Search } from "lucide-react"
 
-export default function AuditLogsPage() {
+export default function RegulatorAuditLogsPage() {
   const [search, setSearch] = useState("")
   const [entityFilter, setEntityFilter] = useState("all")
 
@@ -26,7 +26,7 @@ export default function AuditLogsPage() {
 
   return (
     <div className="flex h-screen">
-      <AdminSidebar role="SUPER_ADMIN" />
+      <AdminSidebar role="REGULATOR" />
       <main className="flex-1 overflow-auto">
         <div className="p-6">
           <div className="mb-6">
@@ -35,6 +35,9 @@ export default function AuditLogsPage() {
               Audit Logs
             </h1>
             <p className="text-muted-foreground">Complete system activity history</p>
+            <Badge variant="outline" className="mt-2">
+              Read-Only Access
+            </Badge>
           </div>
 
           <Card>

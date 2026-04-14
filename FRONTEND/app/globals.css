@@ -1,82 +1,47 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* 
-  Tailwind CSS v4 Directives 
-  The following @-rules are part of Tailwind v4. 
-  IDE warnings for "Unknown at-rule" can be ignored as they are valid v4 syntax.
-*/
-
 @custom-variant dark (&:is(.dark *));
 
 /* Dark theme for FinShield financial system */
-/* Light Theme Default */
 :root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(240 10% 3.9%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(240 10% 3.9%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(240 10% 3.9%);
-  --primary: hsl(153 60% 75%);
-  /* Mint Green Main */
-  --primary-foreground: hsl(240 5.9% 10%);
-  --secondary: hsl(240 4.8% 95.9%);
-  --secondary-foreground: hsl(240 5.9% 10%);
-  --muted: hsl(240 4.8% 95.9%);
-  --muted-foreground: hsl(240 3.8% 46.1%);
-  --accent: hsl(240 4.8% 95.9%);
-  --accent-foreground: hsl(240 5.9% 10%);
-  --destructive: hsl(0 84.2% 60.2%);
-  --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 5.9% 90%);
-  --input: hsl(240 5.9% 90%);
-  --ring: hsl(153 60% 75%);
+  --background: oklch(0.13 0.01 250);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.17 0.01 250);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.17 0.01 250);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.72 0.19 145);
+  --primary-foreground: oklch(0.13 0.01 250);
+  --secondary: oklch(0.22 0.01 250);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.22 0.01 250);
+  --muted-foreground: oklch(0.65 0 0);
+  --accent: oklch(0.72 0.19 145);
+  --accent-foreground: oklch(0.13 0.01 250);
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(0.95 0 0);
+  --border: oklch(0.28 0.01 250);
+  --input: oklch(0.22 0.01 250);
+  --ring: oklch(0.72 0.19 145);
+  --chart-1: oklch(0.72 0.19 145);
+  --chart-2: oklch(0.65 0.15 200);
+  --chart-3: oklch(0.75 0.15 60);
+  --chart-4: oklch(0.6 0.2 25);
+  --chart-5: oklch(0.55 0.15 280);
   --radius: 0.5rem;
-
-  /* Sidebar Variables - Light */
-  --sidebar: hsl(0 0% 100%);
-  --sidebar-foreground: hsl(240 5.3% 26.1%);
-  --sidebar-primary: hsl(240 5.9% 10%);
-  --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(153 60% 75%);
-  /* Mint Green Active */
-  --sidebar-accent-foreground: hsl(240 5.9% 10%);
-  --sidebar-border: hsl(220 13% 91%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
-}
-
-/* Dark Theme Override */
-.dark {
-  --background: hsl(240 5.9% 10%);
-  --foreground: hsl(0 0% 98%);
-  --card: hsl(240 5.9% 10%);
-  --card-foreground: hsl(0 0% 98%);
-  --popover: hsl(240 10% 3.9%);
-  --popover-foreground: hsl(0 0% 98%);
-  --primary: hsl(153 60% 75%);
-  --primary-foreground: hsl(240 5.9% 10%);
-  --secondary: hsl(240 3.7% 15.9%);
-  --secondary-foreground: hsl(0 0% 98%);
-  --muted: hsl(240 3.7% 15.9%);
-  --muted-foreground: hsl(240 5% 64.9%);
-  --accent: hsl(240 3.7% 15.9%);
-  --accent-foreground: hsl(0 0% 98%);
-  --destructive: hsl(0 62.8% 30.6%);
-  --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(240 3.7% 15.9%);
-  --input: hsl(240 3.7% 15.9%);
-  --ring: hsl(153 60% 75%);
-
-  /* Sidebar Variables - Dark */
-  --sidebar: hsl(240 5.9% 10%);
-  --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsl(224.3 76.3% 48%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(240 3.7% 15.9%);
-  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-border: hsl(240 3.7% 15.9%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  --sidebar: oklch(0.1 0.01 250);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.72 0.19 145);
+  --sidebar-primary-foreground: oklch(0.13 0.01 250);
+  --sidebar-accent: oklch(0.22 0.01 250);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.28 0.01 250);
+  --sidebar-ring: oklch(0.72 0.19 145);
+  --warning: oklch(0.8 0.15 85);
+  --warning-foreground: oklch(0.2 0.05 85);
+  --success: oklch(0.72 0.19 145);
+  --success-foreground: oklch(0.13 0.01 250);
 }
 
 @theme inline {
@@ -124,113 +89,11 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* Force Toaster above all Radix Dialogs */
-.toaster,
-[data-sonner-toaster] {
-  z-index: 9999 !important;
-}
-
-/* Custom Toaster Layout: Content | Border | X */
-/* Custom Toaster Layout: Pill Shape */
-[data-sonner-toast] {
-  border-radius: 9999px !important;
-  padding: 12px 16px !important;
-  padding-right: 48px !important;
-  /* Space for absolute close button */
-  display: flex !important;
-  align-items: center !important;
-}
-
-[data-sonner-toast]>[data-content] {
-  margin-right: 8px;
-}
-
-/* Error Toast Styling - Bright Red & White */
-[data-sonner-toast][data-type="error"] {
-  background-color: #dc2626 !important;
-  color: #ffffff !important;
-  border: none !important;
-}
-
-[data-sonner-toast][data-type="error"] [data-close-button] {
-  color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.2) !important;
-}
-
-[data-sonner-toast][data-type="error"] [data-icon] {
-  color: #ffffff !important;
-}
-
-/* Close Button Styling - Circular & Absolute */
-[data-sonner-toast] [data-close-button] {
-  position: absolute !important;
-  right: 8px !important;
-  /* Interior padding */
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  width: 24px !important;
-  height: 24px !important;
-  min-width: 24px !important;
-  min-height: 24px !important;
-  border-radius: 9999px !important;
-  border: none !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  opacity: 0.8;
-  transition: all 0.2s ease;
-  margin: 0 !important;
-  left: auto !important;
-  /* Reset standard styles */
-  background: rgba(0, 0, 0, 0.05);
-  /* Default subtle bg */
-}
-
-[data-sonner-toast] [data-close-button]:hover {
-  opacity: 1 !important;
-  background-color: rgba(0, 0, 0, 0.1) !important;
-}
-
-/* Fix for dark mode or colored toasts */
-[data-sonner-toast][data-type="error"] [data-close-button]:hover {
-  background-color: rgba(255, 255, 255, 0.3) !important;
-}
-
-/* Ensure icons align nicely with text */
-[data-sonner-toast] [data-icon] {
-  margin-top: 0 !important;
-  display: flex;
-  align-items: center;
-}
-
 @layer base {
-
-  *,
-  ::after,
-  ::before {
+  * {
     @apply border-border outline-ring/50;
   }
-
   body {
     @apply bg-background text-foreground;
-    overflow-x: hidden;
-    overscroll-behavior-x: none;
   }
-}
-
-@layer utilities {
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-}
-
-/* Override radio indicator colour inside the review decision form */
-.review-radio [data-state="checked"] {
-  border-color: var(--foreground) !important;
-  color: var(--foreground) !important;
 }

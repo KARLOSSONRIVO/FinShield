@@ -88,11 +88,11 @@ export function useInvoiceFilter<
 
 // Convenience hook for user filtering
 export function useUserFilter<
-    T extends { username: string; email: string; role?: string }
+    T extends { name: string; email: string; role?: string }
 >(users: T[]) {
     return useSearchFilter({
         items: users,
-        searchFields: ["username", "email"],
+        searchFields: ["name", "email"],
         statusField: "role",
     })
 }
